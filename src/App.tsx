@@ -40,6 +40,21 @@ function App() {
   const current = flowType === 'run' ? RUN_PERSONAS[persona] : PERSONAS[persona]
   const step = current.steps[index]
 
+  const [themeMode, setThemeMode] = useState<'dark' | 'light'>(() => {
+    return (localStorage.getItem('portalTheme') as 'dark' | 'light') || 'dark'
+  })
+
+  useEffect(() => {
+    localStorage.setItem('portalTheme', themeMode)
+    if (themeMode === 'light') {
+      document.documentElement.classList.add('light-mode')
+    } else {
+      document.documentElement.classList.remove('light-mode')
+    }
+  }, [themeMode])
+
+  const toggleTheme = () => setThemeMode((prev) => (prev === 'dark' ? 'light' : 'dark'))
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
@@ -123,6 +138,8 @@ function App() {
             }
           }}
           onUserTypeChange={setPortalUserType}
+          themeMode={themeMode}
+          toggleTheme={toggleTheme}
         />
       </div>
     )
@@ -244,7 +261,13 @@ function App() {
 
           <main className="wrap" id="root">
             {activeMenu === 'employee' ? (
-              <EmployeeMenu onSelectOption={(optionId) => console.log('Selected:', optionId)} onLoginStateChange={setPortalLoggedIn} onUserTypeChange={setPortalUserType} />
+              <EmployeeMenu
+                onSelectOption={(optionId) => console.log('Selected:', optionId)}
+                onLoginStateChange={setPortalLoggedIn}
+                onUserTypeChange={setPortalUserType}
+                themeMode={themeMode}
+                toggleTheme={toggleTheme}
+              />
             ) : flowType === 'run' ? (
               <PayrollWalkthrough
                 current={current}

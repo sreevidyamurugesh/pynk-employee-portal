@@ -9,9 +9,18 @@ interface EmployeeMenuProps {
   selectedOption?: string
   onLoginStateChange?: (isLoggedIn: boolean) => void
   onUserTypeChange?: (userType: UserType | null) => void
+  themeMode?: 'dark' | 'light'
+  toggleTheme?: () => void
 }
 
-export function EmployeeMenu({ onSelectOption: _onSelectOption, selectedOption: _selectedOption, onLoginStateChange, onUserTypeChange }: EmployeeMenuProps) {
+export function EmployeeMenu({
+  onSelectOption: _onSelectOption,
+  selectedOption: _selectedOption,
+  onLoginStateChange,
+  onUserTypeChange,
+  themeMode,
+  toggleTheme
+}: EmployeeMenuProps) {
   const [userType, setUserType] = useState<UserType>(null)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
 
@@ -42,8 +51,8 @@ export function EmployeeMenu({ onSelectOption: _onSelectOption, selectedOption: 
   }
 
   if (!isLoggedIn || !userType) {
-    return <EmployeePortalLogin onLogin={handleLogin} />
+    return <EmployeePortalLogin onLogin={handleLogin} themeMode={themeMode} toggleTheme={toggleTheme} />
   }
 
-  return <EmployeePortalFlow userType={userType} onLogout={handleLogout} />
+  return <EmployeePortalFlow userType={userType} onLogout={handleLogout} themeMode={themeMode} toggleTheme={toggleTheme} />
 }

@@ -6,9 +6,11 @@ type LoginStep = 'role' | 'credentials'
 
 interface EmployeePortalLoginProps {
   onLogin: (userType: UserType) => void
+  themeMode?: 'dark' | 'light'
+  toggleTheme?: () => void
 }
 
-export function EmployeePortalLogin({ onLogin }: EmployeePortalLoginProps) {
+export function EmployeePortalLogin({ onLogin, themeMode, toggleTheme }: EmployeePortalLoginProps) {
   const [step, setStep] = useState<LoginStep>('role')
   const [userType, setUserType] = useState<UserType>(null)
   const [username, setUsername] = useState('')
@@ -35,7 +37,8 @@ export function EmployeePortalLogin({ onLogin }: EmployeePortalLoginProps) {
   }
 
   return (
-    <div className="portal-login-container">
+    <>
+      <div className="portal-login-container">
       {step === 'role' ? (
         <div className="login-card">
           <div className="login-header">
@@ -121,5 +124,18 @@ export function EmployeePortalLogin({ onLogin }: EmployeePortalLoginProps) {
         </div>
       )}
     </div>
+    
+    {toggleTheme && (
+      <button
+        type="button"
+        className="login-theme-toggle"
+        onClick={toggleTheme}
+        aria-label={`Switch to ${themeMode === 'dark' ? 'Light' : 'Dark'} Mode`}
+        title={`Switch to ${themeMode === 'dark' ? 'Light' : 'Dark'} Mode`}
+      >
+        {themeMode === 'dark' ? '☀️' : '🌙'}
+      </button>
+    )}
+    </>
   )
 }

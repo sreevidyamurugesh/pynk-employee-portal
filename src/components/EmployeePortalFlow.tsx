@@ -8,6 +8,8 @@ type TimeEntryStatus = 'submitted' | 'draft' | 'returned' | 'none'
 interface EmployeePortalFlowProps {
   userType: UserType
   onLogout: () => void
+  themeMode?: 'dark' | 'light'
+  toggleTheme?: () => void
 }
 
 interface ModuleStep {
@@ -1551,7 +1553,7 @@ function getCategoryIcon(category: string) {
   }
 }
 
-export function EmployeePortalFlow({ userType, onLogout }: EmployeePortalFlowProps) {
+export function EmployeePortalFlow({ userType, onLogout, themeMode, toggleTheme }: EmployeePortalFlowProps) {
   const [previewRoleMode, setPreviewRoleMode] = useState<UserType | null>(null)
   
   const activeUserType = previewRoleMode || userType
@@ -3905,6 +3907,19 @@ export function EmployeePortalFlow({ userType, onLogout }: EmployeePortalFlowPro
               </svg>
               {unreadCount > 0 && <span className="bell-badge">{unreadCount}</span>}
             </button>
+
+            {toggleTheme && (
+              <button
+                type="button"
+                className="bell-btn"
+                onClick={toggleTheme}
+                aria-label={`Switch to ${themeMode === 'dark' ? 'Light' : 'Dark'} Mode`}
+                title={`Switch to ${themeMode === 'dark' ? 'Light' : 'Dark'} Mode`}
+                style={{ fontSize: '16px' }}
+              >
+                {themeMode === 'dark' ? '☀️' : '🌙'}
+              </button>
+            )}
             
             <button type="button" className="btn btn-secondary btn-sm" onClick={onLogout}>
               Logout
