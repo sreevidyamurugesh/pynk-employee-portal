@@ -16,7 +16,7 @@ export function EmployeePortalLogin({ onLogin }: EmployeePortalLoginProps) {
 
   const roleInfo: Record<'employee' | 'admin' | 'client', { icon: string; label: string; desc: string }> = {
     employee: { icon: '👤', label: 'Employee', desc: 'Access payroll, leave, documents' },
-    admin: { icon: '👨‍💼', label: 'Admin', desc: 'HR administration & approvals' },
+    admin: { icon: '👨‍💼', label: 'Admin', desc: 'Payroll Operations & Workforce Management' },
     client: { icon: '🏢', label: 'Client', desc: 'View employee & team data' },
   }
 
