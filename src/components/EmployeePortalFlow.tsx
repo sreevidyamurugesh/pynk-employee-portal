@@ -208,6 +208,17 @@ interface EmergencyContact {
   email: string
 }
 
+interface NotificationItem {
+  id: string
+  category: 'payroll' | 'leave' | 'time-entry' | 'documents' | 'profile' | 'system'
+  title: string
+  description: string
+  timestamp: string
+  isRead: boolean
+  actionText?: string
+  module: Module
+}
+
 interface ProfileChangeRequest {
   id: string
   type: string
@@ -464,6 +475,149 @@ const emergencyContactsSeed: EmergencyContact[] = [
   { id: 'ec-001', name: 'Jane Doe', relationship: 'Sister', phone: '+91 98765 11111', email: 'jane.doe@gmail.com' },
   { id: 'ec-002', name: 'Robert Doe', relationship: 'Father', phone: '+91 98765 22222', email: 'robert.doe@gmail.com' },
   { id: 'ec-003', name: 'Mary Doe', relationship: 'Mother', phone: '+91 98765 33333', email: 'mary.doe@gmail.com' },
+]
+
+const notificationsSeed: NotificationItem[] = [
+  {
+    id: 'n-001',
+    category: 'leave',
+    title: 'Leave Approved',
+    description: 'Your leave request for July 15 has been approved.',
+    timestamp: '2 mins ago',
+    isRead: false,
+    actionText: 'View Leave',
+    module: 'leave'
+  },
+  {
+    id: 'n-002',
+    category: 'time-entry',
+    title: 'Timesheet Reminder',
+    description: "Don't forget to submit your timesheet before Friday.",
+    timestamp: '1 hour ago',
+    isRead: false,
+    actionText: 'Go to Time Entry',
+    module: 'time-entry'
+  },
+  {
+    id: 'n-003',
+    category: 'payroll',
+    title: 'Payslip Available',
+    description: 'Your June payslip is now available.',
+    timestamp: '3 hours ago',
+    isRead: false,
+    actionText: 'View Payslip',
+    module: 'my-pay'
+  },
+  {
+    id: 'n-004',
+    category: 'documents',
+    title: 'Document Verification',
+    description: 'Your passport has been successfully verified.',
+    timestamp: 'Yesterday',
+    isRead: true,
+    actionText: 'View Documents',
+    module: 'documents'
+  },
+  {
+    id: 'n-005',
+    category: 'documents',
+    title: 'Passport Expiry Reminder',
+    description: 'Your passport expires in 30 days.',
+    timestamp: '2 days ago',
+    isRead: false,
+    actionText: 'Upload New Copy',
+    module: 'documents'
+  },
+  {
+    id: 'n-006',
+    category: 'profile',
+    title: 'Bank Detail Update Approved',
+    description: 'Your bank account details change request has been approved.',
+    timestamp: '3 days ago',
+    isRead: true,
+    actionText: 'View Profile',
+    module: 'profile'
+  },
+  {
+    id: 'n-007',
+    category: 'system',
+    title: 'System Update Complete',
+    description: 'The Pynk Employee Portal has been updated to version 2.4.0.',
+    timestamp: '4 days ago',
+    isRead: true,
+    module: 'dashboard'
+  },
+  {
+    id: 'n-008',
+    category: 'leave',
+    title: 'Sick Leave Submitted',
+    description: 'Your sick leave request for June 12 has been submitted for approval.',
+    timestamp: '1 week ago',
+    isRead: true,
+    actionText: 'View Leave History',
+    module: 'leave'
+  },
+  {
+    id: 'n-009',
+    category: 'payroll',
+    title: 'Tax Declaration Window Open',
+    description: 'Tax declaration window for Q2 is now open. Declare before month end.',
+    timestamp: '1 week ago',
+    isRead: true,
+    actionText: 'Declare Tax',
+    module: 'my-pay'
+  },
+  {
+    id: 'n-010',
+    category: 'system',
+    title: 'Welcome to Pynk',
+    description: 'Welcome to your new employee self-service portal! Get started by completing your profile.',
+    timestamp: '2 weeks ago',
+    isRead: true,
+    actionText: 'Complete Profile',
+    module: 'profile'
+  }
+]
+
+const additionalNotificationsSeed: NotificationItem[] = [
+  {
+    id: 'n-011',
+    category: 'time-entry',
+    title: 'Overtime Approved',
+    description: 'Your overtime claim of 4.5 hours for week 23 has been approved.',
+    timestamp: '3 weeks ago',
+    isRead: true,
+    module: 'time-entry'
+  },
+  {
+    id: 'n-012',
+    category: 'documents',
+    title: 'Visa Document Upload Needed',
+    description: 'Your work visa document needs updating. Please upload a copy.',
+    timestamp: '1 month ago',
+    isRead: true,
+    actionText: 'Upload Visa',
+    module: 'documents'
+  },
+  {
+    id: 'n-013',
+    category: 'payroll',
+    title: 'Bonus Allocation Details',
+    description: 'Performance bonus allocation statement is ready for download.',
+    timestamp: '1 month ago',
+    isRead: true,
+    actionText: 'View Pay Details',
+    module: 'my-pay'
+  },
+  {
+    id: 'n-014',
+    category: 'system',
+    title: 'Security Alert: Password Changed',
+    description: "Your account password was updated successfully. If this wasn't you, contact IT.",
+    timestamp: '2 months ago',
+    isRead: true,
+    module: 'dashboard'
+  }
 ]
 
 const profileChangeRequestsSeed: ProfileChangeRequest[] = [
@@ -1258,6 +1412,73 @@ const moduleSteps: Record<Module, ModuleStep[]> = {
   ],
 }
 
+const notificationFilterTabs = ['All', 'Unread', 'Payroll', 'Leave', 'Time Entry', 'Documents', 'System'] as const
+
+function getCategoryIcon(category: string) {
+  switch (category) {
+    case 'payroll':
+      return (
+        <span className="notification-card-icon notification-icon-payroll">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="1" x2="12" y2="23"></line>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+          </svg>
+        </span>
+      )
+    case 'leave':
+      return (
+        <span className="notification-card-icon notification-icon-leave">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+        </span>
+      )
+    case 'time-entry':
+      return (
+        <span className="notification-card-icon notification-icon-time-entry">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+        </span>
+      )
+    case 'documents':
+      return (
+        <span className="notification-card-icon notification-icon-documents">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+        </span>
+      )
+    case 'profile':
+      return (
+        <span className="notification-card-icon notification-icon-profile">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </span>
+      )
+    case 'system':
+    default:
+      return (
+        <span className="notification-card-icon notification-icon-system">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </span>
+      )
+  }
+}
+
 export function EmployeePortalFlow(_props: EmployeePortalFlowProps) {
   const [currentModule, setCurrentModule] = useState<Module>('dashboard')
   const [stepIndex, setStepIndex] = useState(0)
@@ -1272,6 +1493,31 @@ export function EmployeePortalFlow(_props: EmployeePortalFlowProps) {
   const [contactDetails, setContactDetails] = useState<ContactDetails>(contactDetailsSeed)
   const [emergencyContacts, setEmergencyContacts] = useState<EmergencyContact[]>(emergencyContactsSeed)
   const [profileChangeRequests, setProfileChangeRequests] = useState<ProfileChangeRequest[]>(profileChangeRequestsSeed)
+
+  // Notification states
+  const [isNotificationDrawerOpen, setIsNotificationDrawerOpen] = useState(false)
+  const [notifications, setNotifications] = useState<NotificationItem[]>(notificationsSeed)
+  const [activeNotificationFilter, setActiveNotificationFilter] = useState<string>('All')
+  const [visibleNotificationsCount, setVisibleNotificationsCount] = useState(5)
+  const [isNotificationsLoadingMore, setIsNotificationsLoadingMore] = useState(false)
+
+  const unreadCount = useMemo(() => notifications.filter((n) => !n.isRead).length, [notifications])
+
+  const filteredNotifications = useMemo(() => {
+    return notifications.filter((n) => {
+      if (activeNotificationFilter === 'All') return true
+      if (activeNotificationFilter === 'Unread') return !n.isRead
+      // Normalize 'Time Entry' to 'time-entry' for categories matching
+      const categoryKey = activeNotificationFilter.toLowerCase().replace(' ', '-')
+      return n.category === categoryKey
+    })
+  }, [notifications, activeNotificationFilter])
+
+  const displayedNotifications = useMemo(() => {
+    return filteredNotifications.slice(0, visibleNotificationsCount)
+  }, [filteredNotifications, visibleNotificationsCount])
+
+  const hasMoreNotifications = filteredNotifications.length > displayedNotifications.length
 
   // Remaining Profile Tabs States
   const [bankDetails] = useState<BankDetails>({
@@ -1740,6 +1986,76 @@ export function EmployeePortalFlow(_props: EmployeePortalFlowProps) {
     setPreferencesSaveSuccess(true)
     setTimeout(() => setPreferencesSaveSuccess(false), 3000)
   }
+
+  // Notification Center Action Handlers
+  const handleMarkAllAsRead = () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })))
+  }
+
+  const handleToggleRead = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, isRead: !n.isRead } : n))
+    )
+  }
+
+  const handleDeleteNotification = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setNotifications((prev) => prev.filter((n) => n.id !== id))
+  }
+
+  const handleLoadMoreNotifications = () => {
+    if (isNotificationsLoadingMore) return
+    setIsNotificationsLoadingMore(true)
+    setTimeout(() => {
+      setNotifications((prev) => {
+        const currentIds = new Set(prev.map((n) => n.id))
+        const itemsToAdd = additionalNotificationsSeed.filter((item) => !currentIds.has(item.id))
+        return [...prev, ...itemsToAdd]
+      })
+      setVisibleNotificationsCount((prev) => prev + 5)
+      setIsNotificationsLoadingMore(false)
+    }, 800)
+  }
+
+  const handleNotificationClick = (item: NotificationItem) => {
+    // 1. Mark as read
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === item.id ? { ...n, isRead: true } : n))
+    )
+
+    // 2. Navigate to corresponding module
+    setCurrentModule(item.module)
+
+    // 3. Navigate to specific tab within the module if appropriate
+    if (item.module === 'my-pay') {
+      if (item.title.toLowerCase().includes('payslip')) {
+        setActivePayTab('Payslips')
+      } else if (item.title.toLowerCase().includes('tax')) {
+        setActivePayTab('Tax Documents')
+      } else if (item.title.toLowerCase().includes('bank')) {
+        setActivePayTab('Bank Details')
+      }
+    } else if (item.module === 'documents') {
+      if (item.title.toLowerCase().includes('expiry')) {
+        setActiveDocTab('Expiring Documents')
+      } else if (item.title.toLowerCase().includes('verification')) {
+        setActiveDocTab('Uploaded Documents')
+      }
+    } else if (item.module === 'profile') {
+      if (item.title.toLowerCase().includes('bank')) {
+        setActiveProfileTab('Bank')
+      }
+    } else if (item.module === 'leave') {
+      if (item.title.toLowerCase().includes('history')) {
+        setActiveLeaveTab('Leave History')
+      }
+    }
+
+    // 4. Close notification drawer
+    setIsNotificationDrawerOpen(false)
+  }
+
 
 
   // My Pay state
@@ -2616,6 +2932,23 @@ export function EmployeePortalFlow(_props: EmployeePortalFlowProps) {
       <div className="portal-header">
         <div className="portal-header-content">
           <h2>{currentModule === 'dashboard' ? 'Dashboard' : modules.find((m) => m.id === currentModule)?.label}</h2>
+          <div className="portal-header-actions" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <button
+              type="button"
+              className="bell-btn"
+              onClick={() => {
+                setVisibleNotificationsCount(5)
+                setIsNotificationDrawerOpen(true)
+              }}
+              aria-label={`Notification center. ${unreadCount} unread notifications.`}
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+              {unreadCount > 0 && <span className="bell-badge">{unreadCount}</span>}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -6369,6 +6702,186 @@ export function EmployeePortalFlow(_props: EmployeePortalFlowProps) {
           )}
         </section>
       </div>
+
+      {/* ── Notification Drawer ── */}
+      {isNotificationDrawerOpen && (
+        <div
+          className="notification-drawer-backdrop"
+          role="presentation"
+          onClick={() => setIsNotificationDrawerOpen(false)}
+        >
+          <div
+            className="notification-drawer-panel"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Notification Center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="notification-drawer-header">
+              <h3>
+                🔔 Notifications
+                {unreadCount > 0 && (
+                  <span className="notification-unread-pill">{unreadCount} unread</span>
+                )}
+              </h3>
+              <div className="notification-header-actions">
+                {unreadCount > 0 && (
+                  <button type="button" className="btn-mark-all" onClick={handleMarkAllAsRead}>
+                    Mark all read
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="btn-drawer-close"
+                  aria-label="Close notification drawer"
+                  onClick={() => setIsNotificationDrawerOpen(false)}
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* Filter Tabs */}
+            <div className="notification-drawer-filters">
+              {notificationFilterTabs.map((tab) => (
+                <button
+                  key={tab}
+                  type="button"
+                  className={`notification-filter-btn ${activeNotificationFilter === tab ? 'active' : ''}`}
+                  onClick={() => {
+                    setActiveNotificationFilter(tab)
+                    setVisibleNotificationsCount(5)
+                  }}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+
+            {/* Notification List */}
+            <div className="notification-drawer-list">
+              {/* Empty state */}
+              {displayedNotifications.length === 0 && !isNotificationsLoadingMore && (
+                <div className="notification-empty">
+                  <div className="notification-empty-icon">🔕</div>
+                  <h4>All caught up!</h4>
+                  <p>
+                    {activeNotificationFilter === 'Unread'
+                      ? 'No unread notifications.'
+                      : `No ${activeNotificationFilter === 'All' ? '' : activeNotificationFilter + ' '}notifications found.`}
+                  </p>
+                </div>
+              )}
+
+              {/* Notification cards */}
+              {displayedNotifications.map((item) => (
+                <div
+                  key={item.id}
+                  className={`notification-card ${item.isRead ? 'read' : 'unread'}`}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => handleNotificationClick(item)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleNotificationClick(item)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  {getCategoryIcon(item.category)}
+
+                  <div className="notification-card-body">
+                    <div className="notification-card-header">
+                      <p className="notification-card-title">{item.title}</p>
+                      <span className="notification-card-time">{item.timestamp}</span>
+                    </div>
+                    <p className="notification-card-desc">{item.description}</p>
+
+                    <div className="notification-card-actions">
+                      {item.actionText && (
+                        <button
+                          type="button"
+                          className="btn-notification-action"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleNotificationClick(item)
+                          }}
+                        >
+                          {item.actionText} →
+                        </button>
+                      )}
+                      {/* Toggle read / unread */}
+                      <button
+                        type="button"
+                        className="btn-notification-toggle-read"
+                        title={item.isRead ? 'Mark as unread' : 'Mark as read'}
+                        onClick={(e) => handleToggleRead(item.id, e)}
+                      >
+                        {item.isRead ? (
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                          </svg>
+                        ) : (
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                        )}
+                      </button>
+                      {/* Delete */}
+                      <button
+                        type="button"
+                        className="btn-notification-delete"
+                        title="Delete notification"
+                        onClick={(e) => handleDeleteNotification(item.id, e)}
+                      >
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="3 6 5 6 21 6" />
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {/* Skeleton loaders while loading more */}
+              {isNotificationsLoadingMore && (
+                <>
+                  {[1, 2, 3].map((i) => (
+                    <div key={`sk-${i}`} className="notification-skeleton">
+                      <div className="skeleton-circle skeleton-pulse" />
+                      <div className="skeleton-lines">
+                        <div className="skeleton-line-title skeleton-pulse" />
+                        <div className="skeleton-line-desc skeleton-pulse" />
+                        <div className="skeleton-line-time skeleton-pulse" />
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
+
+              {/* Load More */}
+              {hasMoreNotifications && !isNotificationsLoadingMore && (
+                <div className="notification-load-more">
+                  <button
+                    type="button"
+                    className="btn-load-more"
+                    onClick={handleLoadMoreNotifications}
+                    disabled={isNotificationsLoadingMore}
+                  >
+                    Load older notifications
+                  </button>
+                </div>
+              )}
+
+              {/* All loaded message */}
+              {!hasMoreNotifications && displayedNotifications.length > 0 && (
+                <p style={{ textAlign: 'center', fontSize: '12px', color: 'var(--muted)', padding: '12px 20px 20px' }}>
+                  You've seen all notifications
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
+
   )
 }
