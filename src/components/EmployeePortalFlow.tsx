@@ -1829,7 +1829,7 @@ export function EmployeePortalFlow(_props: EmployeePortalFlowProps) {
     { id: 'my-pay', label: 'My Pay', icon: '💰' },
     { id: 'documents', label: 'Documents', icon: '📄' },
     { id: 'profile', label: 'Profile', icon: '👤' },
-    { id: 'notifications', label: 'Notifications', icon: '🔔' },
+    // { id: 'notifications', label: 'Notifications', icon: '🔔' },
   ]
 
   const steps = moduleSteps[currentModule]
