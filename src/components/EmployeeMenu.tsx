@@ -11,6 +11,10 @@ interface EmployeeMenuProps {
   onUserTypeChange?: (userType: UserType | null) => void
   themeMode?: 'dark' | 'light'
   toggleTheme?: () => void
+  notifications?: any[]
+  setNotifications?: any
+  isNotificationDrawerOpen?: boolean
+  setIsNotificationDrawerOpen?: (open: boolean) => void
 }
 
 export function EmployeeMenu({
@@ -19,7 +23,11 @@ export function EmployeeMenu({
   onLoginStateChange,
   onUserTypeChange,
   themeMode,
-  toggleTheme
+  toggleTheme,
+  notifications = [],
+  setNotifications = () => {},
+  isNotificationDrawerOpen = false,
+  setIsNotificationDrawerOpen = () => {}
 }: EmployeeMenuProps) {
   const [userType, setUserType] = useState<UserType>(null)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -41,18 +49,18 @@ export function EmployeeMenu({
     onUserTypeChange?.(type)
   }
 
-  const handleLogout = () => {
-    setUserType(null)
-    setIsLoggedIn(false)
-    localStorage.removeItem('portalUserType')
-    localStorage.removeItem('portalLoginTime')
-    onLoginStateChange?.(false)
-    onUserTypeChange?.(null)
-  }
 
   if (!isLoggedIn || !userType) {
     return <EmployeePortalLogin onLogin={handleLogin} themeMode={themeMode} toggleTheme={toggleTheme} />
   }
 
-  return <EmployeePortalFlow userType={userType} onLogout={handleLogout} themeMode={themeMode} toggleTheme={toggleTheme} />
+  return (
+    <EmployeePortalFlow
+      userType={userType}
+      notifications={notifications}
+      setNotifications={setNotifications}
+      isNotificationDrawerOpen={isNotificationDrawerOpen}
+      setIsNotificationDrawerOpen={setIsNotificationDrawerOpen}
+    />
+  )
 }

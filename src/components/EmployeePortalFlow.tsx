@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { additionalNotificationsSeed } from '../data/notifications'
 
 type UserType = 'employee' | 'admin' | 'client'
 type Module = 'dashboard' | 'time-entry' | 'leave' | 'my-pay' | 'documents' | 'profile' | 'notifications' | 'admin-dashboard' | 'admin-reconciliation' | 'admin-payslips' | 'admin-access' | 'admin-reports' | 'client-dashboard' | 'client-payroll-control' | 'client-payroll-period' | 'client-offcycles' | 'client-lock' | 'client-reports'
@@ -7,9 +8,10 @@ type TimeEntryStatus = 'submitted' | 'draft' | 'returned' | 'none'
 
 interface EmployeePortalFlowProps {
   userType: UserType
-  onLogout: () => void
-  themeMode?: 'dark' | 'light'
-  toggleTheme?: () => void
+  notifications: any[]
+  setNotifications: React.Dispatch<React.SetStateAction<any[]>>
+  isNotificationDrawerOpen: boolean
+  setIsNotificationDrawerOpen: (open: boolean) => void
 }
 
 interface ModuleStep {
@@ -538,149 +540,6 @@ const emergencyContactsSeed: EmergencyContact[] = [
   { id: 'ec-001', name: 'Jane Doe', relationship: 'Sister', phone: '+91 98765 11111', email: 'jane.doe@gmail.com' },
   { id: 'ec-002', name: 'Robert Doe', relationship: 'Father', phone: '+91 98765 22222', email: 'robert.doe@gmail.com' },
   { id: 'ec-003', name: 'Mary Doe', relationship: 'Mother', phone: '+91 98765 33333', email: 'mary.doe@gmail.com' },
-]
-
-const notificationsSeed: NotificationItem[] = [
-  {
-    id: 'n-001',
-    category: 'leave',
-    title: 'Leave Approved',
-    description: 'Your leave request for July 15 has been approved.',
-    timestamp: '2 mins ago',
-    isRead: false,
-    actionText: 'View Leave',
-    module: 'leave'
-  },
-  {
-    id: 'n-002',
-    category: 'time-entry',
-    title: 'Timesheet Reminder',
-    description: "Don't forget to submit your timesheet before Friday.",
-    timestamp: '1 hour ago',
-    isRead: false,
-    actionText: 'Go to Time Entry',
-    module: 'time-entry'
-  },
-  {
-    id: 'n-003',
-    category: 'payroll',
-    title: 'Payslip Available',
-    description: 'Your June payslip is now available.',
-    timestamp: '3 hours ago',
-    isRead: false,
-    actionText: 'View Payslip',
-    module: 'my-pay'
-  },
-  {
-    id: 'n-004',
-    category: 'documents',
-    title: 'Document Verification',
-    description: 'Your passport has been successfully verified.',
-    timestamp: 'Yesterday',
-    isRead: true,
-    actionText: 'View Documents',
-    module: 'documents'
-  },
-  {
-    id: 'n-005',
-    category: 'documents',
-    title: 'Passport Expiry Reminder',
-    description: 'Your passport expires in 30 days.',
-    timestamp: '2 days ago',
-    isRead: false,
-    actionText: 'Upload New Copy',
-    module: 'documents'
-  },
-  {
-    id: 'n-006',
-    category: 'profile',
-    title: 'Bank Detail Update Approved',
-    description: 'Your bank account details change request has been approved.',
-    timestamp: '3 days ago',
-    isRead: true,
-    actionText: 'View Profile',
-    module: 'profile'
-  },
-  {
-    id: 'n-007',
-    category: 'system',
-    title: 'System Update Complete',
-    description: 'The Pynk Employee Portal has been updated to version 2.4.0.',
-    timestamp: '4 days ago',
-    isRead: true,
-    module: 'dashboard'
-  },
-  {
-    id: 'n-008',
-    category: 'leave',
-    title: 'Sick Leave Submitted',
-    description: 'Your sick leave request for June 12 has been submitted for approval.',
-    timestamp: '1 week ago',
-    isRead: true,
-    actionText: 'View Leave History',
-    module: 'leave'
-  },
-  {
-    id: 'n-009',
-    category: 'payroll',
-    title: 'Tax Declaration Window Open',
-    description: 'Tax declaration window for Q2 is now open. Declare before month end.',
-    timestamp: '1 week ago',
-    isRead: true,
-    actionText: 'Declare Tax',
-    module: 'my-pay'
-  },
-  {
-    id: 'n-010',
-    category: 'system',
-    title: 'Welcome to Pynk',
-    description: 'Welcome to your new employee self-service portal! Get started by completing your profile.',
-    timestamp: '2 weeks ago',
-    isRead: true,
-    actionText: 'Complete Profile',
-    module: 'profile'
-  }
-]
-
-const additionalNotificationsSeed: NotificationItem[] = [
-  {
-    id: 'n-011',
-    category: 'time-entry',
-    title: 'Overtime Approved',
-    description: 'Your overtime claim of 4.5 hours for week 23 has been approved.',
-    timestamp: '3 weeks ago',
-    isRead: true,
-    module: 'time-entry'
-  },
-  {
-    id: 'n-012',
-    category: 'documents',
-    title: 'Visa Document Upload Needed',
-    description: 'Your work visa document needs updating. Please upload a copy.',
-    timestamp: '1 month ago',
-    isRead: true,
-    actionText: 'Upload Visa',
-    module: 'documents'
-  },
-  {
-    id: 'n-013',
-    category: 'payroll',
-    title: 'Bonus Allocation Details',
-    description: 'Performance bonus allocation statement is ready for download.',
-    timestamp: '1 month ago',
-    isRead: true,
-    actionText: 'View Pay Details',
-    module: 'my-pay'
-  },
-  {
-    id: 'n-014',
-    category: 'system',
-    title: 'Security Alert: Password Changed',
-    description: "Your account password was updated successfully. If this wasn't you, contact IT.",
-    timestamp: '2 months ago',
-    isRead: true,
-    module: 'dashboard'
-  }
 ]
 
 const profileChangeRequestsSeed: ProfileChangeRequest[] = [
@@ -1553,7 +1412,13 @@ function getCategoryIcon(category: string) {
   }
 }
 
-export function EmployeePortalFlow({ userType, onLogout, themeMode, toggleTheme }: EmployeePortalFlowProps) {
+export function EmployeePortalFlow({
+  userType,
+  notifications,
+  setNotifications,
+  isNotificationDrawerOpen,
+  setIsNotificationDrawerOpen
+}: EmployeePortalFlowProps) {
   const [previewRoleMode, setPreviewRoleMode] = useState<UserType | null>(null)
   
   const activeUserType = previewRoleMode || userType
@@ -1630,8 +1495,6 @@ export function EmployeePortalFlow({ userType, onLogout, themeMode, toggleTheme 
   const [profileChangeRequests, setProfileChangeRequests] = useState<ProfileChangeRequest[]>(profileChangeRequestsSeed)
 
   // Notification states
-  const [isNotificationDrawerOpen, setIsNotificationDrawerOpen] = useState(false)
-  const [notifications, setNotifications] = useState<NotificationItem[]>(notificationsSeed)
   const [activeNotificationFilter, setActiveNotificationFilter] = useState<string>('All')
   const [visibleNotificationsCount, setVisibleNotificationsCount] = useState(5)
   const [isNotificationsLoadingMore, setIsNotificationsLoadingMore] = useState(false)
@@ -3887,46 +3750,6 @@ export function EmployeePortalFlow({ userType, onLogout, themeMode, toggleTheme 
           <span>✓ {successToastMessage}</span>
         </div>
       )}
-
-      <div className="portal-header">
-        <div className="portal-header-content">
-          <h2>{currentModule === 'dashboard' ? 'Dashboard' : modules.find((m) => m.id === currentModule)?.label}</h2>
-          <div className="portal-header-actions" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <button
-              type="button"
-              className="bell-btn"
-              onClick={() => {
-                setVisibleNotificationsCount(5)
-                setIsNotificationDrawerOpen(true)
-              }}
-              aria-label={`Notification center. ${unreadCount} unread notifications.`}
-            >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-              </svg>
-              {unreadCount > 0 && <span className="bell-badge">{unreadCount}</span>}
-            </button>
-
-            {toggleTheme && (
-              <button
-                type="button"
-                className="bell-btn"
-                onClick={toggleTheme}
-                aria-label={`Switch to ${themeMode === 'dark' ? 'Light' : 'Dark'} Mode`}
-                title={`Switch to ${themeMode === 'dark' ? 'Light' : 'Dark'} Mode`}
-                style={{ fontSize: '16px' }}
-              >
-                {themeMode === 'dark' ? '☀️' : '🌙'}
-              </button>
-            )}
-            
-            <button type="button" className="btn btn-secondary btn-sm" onClick={onLogout}>
-              Logout
-            </button>
-          </div>
-        </div>
-      </div>
 
       <div className="portal-layout">
         <aside className="portal-sidebar" aria-label="Modules">

@@ -1,9 +1,10 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import './App.css'
 import { PERSONAS, RUN_PERSONAS, type FlowType, type PersonaKey } from './data/personas'
 import { PayrollWalkthrough } from './components/PayrollWalkthrough'
 import { PayrollOutputWalkthrough } from './components/PayrollOutputWalkthrough'
 import { EmployeeMenu } from './components/EmployeeMenu'
+import { notificationsSeed, type NotificationItem } from './data/notifications'
 
 const avatar = (name: string) => name.split(/\s+/).map((word) => word[0]).join('').slice(0, 2).toUpperCase()
 
@@ -54,6 +55,10 @@ function App() {
   }, [themeMode])
 
   const toggleTheme = () => setThemeMode((prev) => (prev === 'dark' ? 'light' : 'dark'))
+
+  const [notifications, setNotifications] = useState<NotificationItem[]>(notificationsSeed)
+  const [isNotificationDrawerOpen, setIsNotificationDrawerOpen] = useState(false)
+  const unreadCount = useMemo(() => notifications.filter((n) => !n.isRead).length, [notifications])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -140,6 +145,10 @@ function App() {
           onUserTypeChange={setPortalUserType}
           themeMode={themeMode}
           toggleTheme={toggleTheme}
+          notifications={notifications}
+          setNotifications={setNotifications}
+          isNotificationDrawerOpen={isNotificationDrawerOpen}
+          setIsNotificationDrawerOpen={setIsNotificationDrawerOpen}
         />
       </div>
     )
@@ -168,6 +177,34 @@ function App() {
         </div>
         <div className="spacer" />
         <div className="search">Search…</div>
+        {activeMenu === 'employee' && portalLoggedIn && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginRight: '12px' }}>
+            <button
+              type="button"
+              className="bell-btn"
+              onClick={() => setIsNotificationDrawerOpen(true)}
+              aria-label={`Notification center. ${unreadCount} unread notifications.`}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+              {unreadCount > 0 && <span className="bell-badge">{unreadCount}</span>}
+            </button>
+
+            <button
+              type="button"
+              className="bell-btn"
+              onClick={toggleTheme}
+              aria-label={`Switch to ${themeMode === 'dark' ? 'Light' : 'Dark'} Mode`}
+              title={`Switch to ${themeMode === 'dark' ? 'Light' : 'Dark'} Mode`}
+              style={{ fontSize: '15px' }}
+            >
+              {themeMode === 'dark' ? '☀️' : '🌙'}
+            </button>
+          </div>
+        )}
+
         {activeMenu === 'employee' && portalLoggedIn ? (
           <div className="profile-menu-container" ref={profileMenuRef}>
             <button
@@ -267,6 +304,10 @@ function App() {
                 onUserTypeChange={setPortalUserType}
                 themeMode={themeMode}
                 toggleTheme={toggleTheme}
+                notifications={notifications}
+                setNotifications={setNotifications}
+                isNotificationDrawerOpen={isNotificationDrawerOpen}
+                setIsNotificationDrawerOpen={setIsNotificationDrawerOpen}
               />
             ) : flowType === 'run' ? (
               <PayrollWalkthrough
