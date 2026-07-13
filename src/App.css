@@ -2758,3 +2758,209 @@ button{font:inherit}
 @media (max-width: 1360px) { .dash-stats-row { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 860px)  { .dash-stats-row { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 480px)  { .dash-stats-row { grid-template-columns: 1fr; } }
+
+
+/* ==========================================================================
+   ADMIN PORTAL & ROLE-BASED ACCESS STYLES
+   ========================================================================== */
+
+/* Toast notification */
+.admin-toast-message {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--success);
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  font-weight: 600;
+  z-index: 10000;
+  animation: slideInUp 0.3s ease;
+}
+@keyframes slideInUp {
+  from { transform: translateY(50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Impersonation bar */
+.admin-preview-banner {
+  background: linear-gradient(90deg, #f39c12 0%, #d35400 100%);
+  color: #fff;
+  padding: 10px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13.5px;
+  z-index: 999;
+  border-bottom: 1px solid rgba(0,0,0,0.2);
+}
+.preview-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.preview-pulse-dot {
+  width: 8px;
+  height: 8px;
+  background: #fff;
+  border-radius: 50%;
+  display: inline-block;
+  animation: pulse-glow 1.5s infinite;
+}
+@keyframes pulse-glow {
+  0% { transform: scale(0.9); opacity: 0.5; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0.5; }
+}
+.btn-exit-preview {
+  background: rgba(255,255,255,0.2) !important;
+  border-color: #fff !important;
+  color: #fff !important;
+  padding: 6px 12px !important;
+  font-size: 12px !important;
+}
+.btn-exit-preview:hover {
+  background: #fff !important;
+  color: #d35400 !important;
+}
+
+/* Variance Colors */
+.tbl td.increase, .increase {
+  color: #ff6b6b !important;
+  font-weight: 700;
+}
+.tbl td.decrease, .decrease {
+  color: #2ecc71 !important;
+  font-weight: 700;
+}
+.tbl td.neutral, .neutral {
+  color: var(--muted) !important;
+}
+
+.trend-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+.trend-badge.increase { background: rgba(255,107,107,0.15); color: #ff6b6b; }
+.trend-badge.decrease { background: rgba(46,204,113,0.15); color: #2ecc71; }
+.trend-badge.neutral  { background: rgba(255,255,255,0.06); color: var(--muted); }
+
+/* Alert boxes */
+.admin-alert-banner {
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-size: 12.5px;
+  align-items: flex-start;
+}
+.admin-alert-banner.warning {
+  background: rgba(243,156,18,0.08);
+  border-color: rgba(243,156,18,0.25);
+  color: #f39c12;
+}
+.admin-alert-banner.success {
+  background: rgba(46,204,113,0.08);
+  border-color: rgba(46,204,113,0.25);
+  color: #2ecc71;
+}
+.admin-alert-banner.info {
+  background: rgba(90,125,255,0.08);
+  border-color: rgba(90,125,255,0.25);
+  color: #5a7dff;
+}
+.admin-alert-banner .alert-ico {
+  font-size: 16px;
+  line-height: 1;
+}
+.admin-alert-banner .alert-text p {
+  margin: 4px 0 0;
+  opacity: 0.85;
+}
+
+/* Filters and Form Items */
+.admin-filters-bar {
+  display: flex;
+  gap: 16px;
+  background: rgba(255,255,255,0.02);
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+}
+.filter-input-group select, .filter-input-group input {
+  font-family: inherit;
+}
+.btn-sm {
+  padding: 6px 12px !important;
+  font-size: 12px !important;
+  border-radius: 4px !important;
+}
+
+/* Access Toggles */
+.admin-access-checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+/* ── Client Portal & Reports Styles ── */
+.bulk-upload-simulator {
+  transition: all 0.25s ease;
+}
+.bulk-upload-simulator:hover {
+  background: rgba(255,255,255,0.03) !important;
+  border-color: var(--primary) !important;
+}
+.bulk-upload-simulator.loading {
+  background: rgba(255,255,255,0.02) !important;
+  border-color: var(--line) !important;
+  cursor: wait;
+}
+
+/* Filter components alignment */
+.filter-input-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.filter-input-group select,
+.filter-input-group input {
+  min-width: 150px;
+}
+
+/* Table overrides for clean reporting */
+.tbl table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.tbl table th {
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+}
+.tbl table td {
+  padding: 14px 16px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--line-soft);
+  color: var(--ink);
+}
+.tbl table tfoot td {
+  background: rgba(255, 255, 255, 0.01);
+  font-weight: bold;
+  border-top: 1px solid var(--line);
+  border-bottom: none;
+}
+
+

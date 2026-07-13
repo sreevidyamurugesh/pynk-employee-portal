@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 type UserType = 'employee' | 'admin' | 'client'
-type Module = 'dashboard' | 'time-entry' | 'leave' | 'my-pay' | 'documents' | 'profile' | 'notifications'
+type Module = 'dashboard' | 'time-entry' | 'leave' | 'my-pay' | 'documents' | 'profile' | 'notifications' | 'admin-dashboard' | 'admin-reconciliation' | 'admin-payslips' | 'admin-access' | 'admin-reports' | 'client-dashboard' | 'client-payroll-control' | 'client-payroll-period' | 'client-offcycles' | 'client-lock' | 'client-reports'
 
 type TimeEntryStatus = 'submitted' | 'draft' | 'returned' | 'none'
 
@@ -354,6 +354,67 @@ interface PaymentHistoryItem {
   transactionId: string
   status: 'Credited' | 'Pending' | 'Failed'
 }
+
+interface AdminEmployee {
+  id: string
+  name: string
+  clientName: string
+  role: string
+  paygroup: string
+  paymentMode: 'Direct Deposit' | 'Wire Transfer' | 'Check'
+  prevGross: number
+  currGross: number
+  hasEmployeeView: boolean
+  hasAdminView: boolean
+  hasClientView: boolean
+}
+
+const adminEmployeesSeed: AdminEmployee[] = [
+  { id: 'EMP-001', name: 'John Doe', clientName: 'Acme Corp', role: 'Senior Developer', paygroup: 'Engineering', paymentMode: 'Direct Deposit', prevGross: 98500, currGross: 98500, hasEmployeeView: true, hasAdminView: false, hasClientView: false },
+  { id: 'EMP-002', name: 'Jane Smith', clientName: 'Acme Corp', role: 'UI/UX Designer', paygroup: 'Design', paymentMode: 'Direct Deposit', prevGross: 78000, currGross: 82000, hasEmployeeView: true, hasAdminView: false, hasClientView: false },
+  { id: 'EMP-003', name: 'Robert Brown', clientName: 'Stark Industries', role: 'Security Architect', paygroup: 'Engineering', paymentMode: 'Direct Deposit', prevGross: 120000, currGross: 125000, hasEmployeeView: true, hasAdminView: false, hasClientView: false },
+  { id: 'EMP-004', name: 'Emily Johnson', clientName: 'Stark Industries', role: 'QA Lead', paygroup: 'QA', paymentMode: 'Direct Deposit', prevGross: 85000, currGross: 85000, hasEmployeeView: true, hasAdminView: false, hasClientView: false },
+  { id: 'EMP-005', name: 'Bruce Wayne', clientName: 'Wayne Enterprises', role: 'Director', paygroup: 'Management', paymentMode: 'Wire Transfer', prevGross: 250000, currGross: 250000, hasEmployeeView: true, hasAdminView: true, hasClientView: true },
+  { id: 'EMP-006', name: 'Clark Kent', clientName: 'Globex Corp', role: 'Reporter', paygroup: 'Editorial', paymentMode: 'Check', prevGross: 55000, currGross: 55000, hasEmployeeView: true, hasAdminView: false, hasClientView: false },
+  { id: 'EMP-007', name: 'Diana Prince', clientName: 'Globex Corp', role: 'Research Analyst', paygroup: 'Operations', paymentMode: 'Direct Deposit', prevGross: 95000, currGross: 97000, hasEmployeeView: true, hasAdminView: false, hasClientView: true },
+  { id: 'EMP-008', name: 'Peter Parker', clientName: 'Acme Corp', role: 'Photographer', paygroup: 'Editorial', paymentMode: 'Check', prevGross: 45000, currGross: 46000, hasEmployeeView: true, hasAdminView: false, hasClientView: false },
+  { id: 'EMP-009', name: 'Tony Stark', clientName: 'Stark Industries', role: 'Chief Engineer', paygroup: 'Management', paymentMode: 'Wire Transfer', prevGross: 300000, currGross: 300000, hasEmployeeView: true, hasAdminView: true, hasClientView: true },
+  { id: 'EMP-010', name: 'Steve Rogers', clientName: 'Wayne Enterprises', role: 'Operations Manager', paygroup: 'Operations', paymentMode: 'Direct Deposit', prevGross: 110000, currGross: 110000, hasEmployeeView: true, hasAdminView: false, hasClientView: false }
+]
+interface ClientOffcyclePayment {
+  id: string
+  employeeId: string
+  employeeName: string
+  clientName: string
+  code: string
+  amount: number
+  date: string
+  remarks: string
+}
+
+const clientOffcyclesSeed: ClientOffcyclePayment[] = [
+  { id: 'off-001', employeeId: 'EMP-001', employeeName: 'John Doe', clientName: 'Acme Corp', code: 'Performance Incentive', amount: 8000, date: '10 July 2025', remarks: 'Q2 Performance Bonus' },
+  { id: 'off-002', employeeId: 'EMP-002', employeeName: 'Jane Smith', clientName: 'Acme Corp', code: 'Referral Bonus', amount: 5000, date: '08 July 2025', remarks: 'Referred developer candidate' },
+  { id: 'off-003', employeeId: 'EMP-003', employeeName: 'Robert Brown', clientName: 'Stark Industries', code: 'Shift Bonus', amount: 3500, date: '11 July 2025', remarks: 'Weekend overnight shifts' }
+]
+
+interface PortalAccessLog {
+  id: string
+  username: string
+  role: string
+  action: string
+  timestamp: string
+  ipAddress: string
+}
+
+const portalAccessLogsSeed: PortalAccessLog[] = [
+  { id: 'log-001', username: 'admin_user', role: 'admin', action: 'Accessed Reconciliation Tab', timestamp: '13 July 2026 14:12:15', ipAddress: '192.168.1.45' },
+  { id: 'log-002', username: 'stark_client', role: 'client', action: 'Approved Stark Timesheets', timestamp: '13 July 2026 11:45:22', ipAddress: '192.168.1.102' },
+  { id: 'log-003', username: 'john_doe', role: 'employee', action: 'Downloaded June Payslip', timestamp: '12 July 2026 18:22:10', ipAddress: '10.0.0.8' },
+  { id: 'log-004', username: 'admin_user', role: 'admin', action: 'Granted Stark Manager Client Access', timestamp: '11 July 2026 15:30:00', ipAddress: '192.168.1.45' },
+  { id: 'log-005', username: 'wayne_client', role: 'client', action: 'Downloaded Payroll Variance CSV', timestamp: '10 July 2026 09:12:35', ipAddress: '172.16.254.1' }
+]
+
 
 // ── My Pay Seed Data ──
 const payslipSeedData: Payslip[] = [
@@ -1410,6 +1471,17 @@ const moduleSteps: Record<Module, ModuleStep[]> = {
     { title: 'Leave Updates', tag: 'Time Off', content: 'Leave request updates' },
     { title: 'Document Alerts', tag: 'Files', content: 'New document notifications' },
   ],
+  'admin-dashboard': [],
+  'admin-reconciliation': [],
+  'admin-payslips': [],
+  'admin-access': [],
+  'admin-reports': [],
+  'client-dashboard': [],
+  'client-payroll-control': [],
+  'client-payroll-period': [],
+  'client-offcycles': [],
+  'client-lock': [],
+  'client-reports': [],
 }
 
 const notificationFilterTabs = ['All', 'Unread', 'Payroll', 'Leave', 'Time Entry', 'Documents', 'System'] as const
@@ -1479,9 +1551,70 @@ function getCategoryIcon(category: string) {
   }
 }
 
-export function EmployeePortalFlow(_props: EmployeePortalFlowProps) {
-  const [currentModule, setCurrentModule] = useState<Module>('dashboard')
+export function EmployeePortalFlow({ userType, onLogout }: EmployeePortalFlowProps) {
+  const [previewRoleMode, setPreviewRoleMode] = useState<UserType | null>(null)
+  
+  const activeUserType = previewRoleMode || userType
+
+  const [currentModule, setCurrentModule] = useState<Module>(() => {
+    if (userType === 'admin') return 'admin-dashboard'
+    if (userType === 'client') return 'client-dashboard'
+    return 'dashboard'
+  })
   const [stepIndex, setStepIndex] = useState(0)
+
+  // Admin Portal States
+  const [adminEmployees, setAdminEmployees] = useState<AdminEmployee[]>(adminEmployeesSeed)
+  const [reconciliationDimension, setReconciliationDimension] = useState<'client' | 'employee' | 'paygroup' | 'payment'>('client')
+  const [searchEmployeeQuery, setSearchEmployeeQuery] = useState('')
+  const [filterClientName, setFilterClientName] = useState('All')
+  const [isPayrollSubmitted, setIsPayrollSubmitted] = useState(false)
+  const [isSecondApprovalNotified, setIsSecondApprovalNotified] = useState(false)
+  const [selectedEmployeeForPayslipModal, setSelectedEmployeeForPayslipModal] = useState<AdminEmployee | null>(null)
+  const [successToastMessage, setSuccessToastMessage] = useState<string | null>(null)
+  
+  const showToast = (msg: string) => {
+    setSuccessToastMessage(msg)
+    setTimeout(() => setSuccessToastMessage(null), 3000)
+  }
+
+  // Client Portal States
+  const [hourlyRates, setHourlyRates] = useState<Record<string, number>>({
+    'Regular Hours': 450,
+    'Casual Leave': 0,
+    'Sick Leave': 0,
+    'Earned Leave': 0,
+    'Maternity Leave': 0,
+    'Paternity Leave': 0,
+    'Public Holiday': 650,
+    'National Holiday': 650,
+    'Bereavement Leave': 0,
+    'Comp Off': 450
+  })
+
+  const [clientPayGroupFilter, setClientPayGroupFilter] = useState<'Monthly' | 'Weekly' | 'Bi-Weekly' | 'Semi-Monthly'>('Monthly')
+  const [offcyclePaymentsList, setOffcyclePaymentsList] = useState<ClientOffcyclePayment[]>(clientOffcyclesSeed)
+  const [portalAccessLogs] = useState<PortalAccessLog[]>(portalAccessLogsSeed)
+  const [isPeriodApproved, setIsPeriodApproved] = useState(false)
+  const [isPeriodLocked, setIsPeriodLocked] = useState(false)
+  const [isBulkUploading, setIsBulkUploading] = useState(false)
+
+  // Client Offcycle Modal
+  const [isOffcycleModalOpen, setIsOffcycleModalOpen] = useState(false)
+  const [offcycleForm, setOffcycleForm] = useState({
+    employeeId: 'EMP-001',
+    code: 'Monthly Bonus',
+    amount: '',
+    remarks: ''
+  })
+
+  // Shared Reports State
+  const [activeReportType, setActiveReportType] = useState<'timesheet' | 'costs' | 'variance' | 'access'>('timesheet')
+  const [reportFilterEmployee, setReportFilterEmployee] = useState('All')
+  const [reportFilterClient, setReportFilterClient] = useState('All')
+  const [reportDateFrom, setReportDateFrom] = useState('2025-07-01')
+  const [reportDateTo, setReportDateTo] = useState('2025-07-15')
+
 
   const [activeTimeEntryTab, setActiveTimeEntryTab] = useState<(typeof timeEntryTabs)[number]>('My Timesheet')
   const [activeLeaveTab, setActiveLeaveTab] = useState<(typeof leaveTabs)[number]>('My Leave')
@@ -2138,19 +2271,39 @@ export function EmployeePortalFlow(_props: EmployeePortalFlowProps) {
   const [leaveHistoryError, setLeaveHistoryError] = useState('')
   const [leaveApprovalFilter, setLeaveApprovalFilter] = useState<LeaveStatus | 'all'>('pending')
 
-  const modules: { id: Module; label: string; icon: string }[] = [
-    { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-    { id: 'time-entry', label: 'Time Entry', icon: '⏱️' },
-    { id: 'leave', label: 'Leave', icon: '📅' },
-    { id: 'my-pay', label: 'My Pay', icon: '💰' },
-    { id: 'documents', label: 'Documents', icon: '📄' },
-    { id: 'profile', label: 'Profile', icon: '👤' },
-    // { id: 'notifications', label: 'Notifications', icon: '🔔' },
-  ]
+  const modules = useMemo(() => {
+    if (activeUserType === 'admin') {
+      return [
+        { id: 'admin-dashboard' as Module, label: 'Admin Dashboard', icon: '📊' },
+        { id: 'admin-reconciliation' as Module, label: 'Reconciliation', icon: '⚖️' },
+        { id: 'admin-payslips' as Module, label: 'Employee Payslips', icon: '📄' },
+        { id: 'admin-access' as Module, label: 'Access Control', icon: '🔐' },
+        { id: 'admin-reports' as Module, label: 'Reports', icon: '📈' },
+      ]
+    }
+    if (activeUserType === 'client') {
+      return [
+        { id: 'client-dashboard' as Module, label: 'Client Dashboard', icon: '📊' },
+        { id: 'client-payroll-control' as Module, label: 'Payroll Control', icon: '⚙️' },
+        { id: 'client-payroll-period' as Module, label: 'Payroll Period', icon: '📅' },
+        { id: 'client-offcycles' as Module, label: 'Offcycles / Bonus', icon: '💸' },
+        { id: 'client-lock' as Module, label: 'Approval & Lock', icon: '🔒' },
+        { id: 'client-reports' as Module, label: 'Reports', icon: '📈' },
+      ]
+    }
+    return [
+      { id: 'dashboard' as Module, label: 'Dashboard', icon: '📊' },
+      { id: 'time-entry' as Module, label: 'Time Entry', icon: '⏱️' },
+      { id: 'leave' as Module, label: 'Leave', icon: '📅' },
+      { id: 'my-pay' as Module, label: 'My Pay', icon: '💰' },
+      { id: 'documents' as Module, label: 'Documents', icon: '📄' },
+      { id: 'profile' as Module, label: 'Profile', icon: '👤' },
+    ]
+  }, [activeUserType])
 
-  const steps = moduleSteps[currentModule]
-  const currentStep = steps[stepIndex]
-  const isLast = stepIndex === steps.length - 1
+  const steps = moduleSteps[currentModule] || []
+  const currentStep = steps[stepIndex] || { title: '', tag: '', content: '' }
+  const isLast = steps.length === 0 || stepIndex === steps.length - 1
 
   useEffect(() => {
     localStorage.setItem(TIME_ENTRY_STORE_KEY, JSON.stringify(timeEntryStore))
@@ -2921,6 +3074,789 @@ export function EmployeePortalFlow(_props: EmployeePortalFlowProps) {
     )))
   }
 
+  // ── Admin Panel Aggregations and Sub-Renders ──
+  const reconciliationData = useMemo(() => {
+    if (reconciliationDimension === 'client') {
+      const groups: Record<string, { prev: number; curr: number }> = {}
+      adminEmployees.forEach((emp) => {
+        if (!groups[emp.clientName]) groups[emp.clientName] = { prev: 0, curr: 0 }
+        groups[emp.clientName].prev += emp.prevGross
+        groups[emp.clientName].curr += emp.currGross
+      })
+      return Object.entries(groups).map(([name, val]) => ({ name, prev: val.prev, curr: val.curr }))
+    }
+    if (reconciliationDimension === 'employee') {
+      return adminEmployees.map((emp) => ({ name: `${emp.name} (${emp.id})`, prev: emp.prevGross, curr: emp.currGross }))
+    }
+    if (reconciliationDimension === 'paygroup') {
+      const groups: Record<string, { prev: number; curr: number }> = {}
+      adminEmployees.forEach((emp) => {
+        if (!groups[emp.paygroup]) groups[emp.paygroup] = { prev: 0, curr: 0 }
+        groups[emp.paygroup].prev += emp.prevGross
+        groups[emp.paygroup].curr += emp.currGross
+      })
+      return Object.entries(groups).map(([name, val]) => ({ name, prev: val.prev, curr: val.curr }))
+    }
+    // payment mode
+    const groups: Record<string, { prev: number; curr: number }> = {}
+    adminEmployees.forEach((emp) => {
+      if (!groups[emp.paymentMode]) groups[emp.paymentMode] = { prev: 0, curr: 0 }
+      groups[emp.paymentMode].prev += emp.prevGross
+      groups[emp.paymentMode].curr += emp.currGross
+    })
+    return Object.entries(groups).map(([name, val]) => ({ name, prev: val.prev, curr: val.curr }))
+  }, [adminEmployees, reconciliationDimension])
+
+  const totalsAdmin = useMemo(() => {
+    return adminEmployees.reduce(
+      (acc, emp) => {
+        acc.prev += emp.prevGross
+        acc.curr += emp.currGross
+        return acc
+      },
+      { prev: 0, curr: 0 }
+    )
+  }, [adminEmployees])
+
+  const handleExportCSV = () => {
+    let csv = 'Dimension / Name,Previous Gross (INR),Current Gross (INR),Difference (INR),Variance (%)\n'
+    reconciliationData.forEach((row) => {
+      const diff = row.curr - row.prev
+      const pct = row.prev > 0 ? ((diff / row.prev) * 100).toFixed(2) : '0.00'
+      csv += `"${row.name}",${row.prev},${row.curr},${diff},${pct}%\n`
+    })
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.setAttribute('href', url)
+    link.setAttribute('download', `payroll_reconciliation_${reconciliationDimension}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    showToast(`Reconciliation ${reconciliationDimension}-wise CSV file downloaded!`)
+  }
+
+  const handleToggleAccess = (empId: string, view: 'employee' | 'admin' | 'client') => {
+    setAdminEmployees((prev) =>
+      prev.map((emp) => {
+        if (emp.id === empId) {
+          if (view === 'employee') return { ...emp, hasEmployeeView: !emp.hasEmployeeView }
+          if (view === 'admin') return { ...emp, hasAdminView: !emp.hasAdminView }
+          if (view === 'client') return { ...emp, hasClientView: !emp.hasClientView }
+        }
+        return emp
+      })
+    )
+    showToast('User access permission updated!')
+  }
+
+  // ── Client Portal & Reports Sub-Renders ──
+  const renderReportsView = () => {
+    const isAccessRestricted = activeReportType === 'access' && activeUserType !== 'admin'
+    const finalReportEmployees = adminEmployees.filter(emp => {
+      const matchesClient = activeUserType === 'admin' ? (reportFilterClient === 'All' || emp.clientName === reportFilterClient) : (emp.clientName === 'Acme Corp' || emp.clientName === 'Stark Industries')
+      const matchesSearch = reportFilterEmployee === 'All' || emp.id === reportFilterEmployee
+      return matchesClient && matchesSearch
+    })
+
+    const handleDownloadReportCSV = () => {
+      let csv = ''
+      let filename = `report_${activeReportType}.csv`
+      
+      if (activeReportType === 'timesheet') {
+        csv = 'Employee ID,Name,Client,Pay Group,Regular Hours,Leave Hours,Overtime,Status\n'
+        finalReportEmployees.forEach(e => {
+          csv += `"${e.id}","${e.name}","${e.clientName}","${e.paygroup}",40,8,4,"Approved"\n`
+        })
+      } else if (activeReportType === 'costs') {
+        csv = 'Employee ID,Name,Client,Payment Mode,Gross salary,Bonus Payments,Total Cost\n'
+        finalReportEmployees.forEach(e => {
+          const bonus = offcyclePaymentsList.filter(o => o.employeeId === e.id).reduce((sum, o) => sum + o.amount, 0)
+          csv += `"${e.id}","${e.name}","${e.clientName}","${e.paymentMode}",${e.currGross},${bonus},${e.currGross + bonus}\n`
+        })
+      } else if (activeReportType === 'variance') {
+        csv = 'Name,June Gross (Prev),July Gross (Curr),Difference,Variance (%)\n'
+        reconciliationData.forEach(r => {
+          const diff = r.curr - r.prev
+          const pct = r.prev > 0 ? ((diff / r.prev) * 100).toFixed(2) : '0.00'
+          csv += `"${r.name}",${r.prev},${r.curr},${diff},${pct}%\n`
+        })
+      } else if (activeReportType === 'access' && activeUserType === 'admin') {
+        csv = 'ID,Username,Role,Action,Timestamp,IP Address\n'
+        portalAccessLogs.forEach(l => {
+          csv += `"${l.id}","${l.username}","${l.role}","${l.action}","${l.timestamp}","${l.ipAddress}"\n`
+        })
+      }
+      
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.setAttribute('href', url)
+      link.setAttribute('download', filename)
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      showToast('Report CSV spreadsheet downloaded successfully!')
+    }
+
+    return (
+      <div className="dash-shell">
+        <div className="dash-welcome-row">
+          <div>
+            <h1 className="dash-welcome-title">Interactive Operational Reports 📈</h1>
+            <p className="dash-welcome-sub">Generate audit-ready spreadsheets and overview analytics dashboards.</p>
+          </div>
+          <button type="button" className="btn btn-primary" onClick={handleDownloadReportCSV} disabled={isAccessRestricted}>
+            📥 Download Spreadsheet (CSV)
+          </button>
+        </div>
+
+        {/* Filters */}
+        <div className="admin-filters-bar" style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+          <div className="filter-input-group">
+            <label style={{ fontSize: '11px', color: 'var(--muted)' }}>Report Type Selection</label>
+            <select value={activeReportType} onChange={e => setActiveReportType(e.target.value as any)} className="btn" style={{ background: 'var(--surface)', color: '#fff' }}>
+              <option value="timesheet">Timesheet Hours Report</option>
+              <option value="costs">Total Payroll Costs Report</option>
+              <option value="variance">Variance Reconciliation Report</option>
+              {activeUserType === 'admin' && <option value="access">Security Access Logs</option>}
+            </select>
+          </div>
+
+          <div className="filter-input-group">
+            <label style={{ fontSize: '11px', color: 'var(--muted)' }}>Pay Period From</label>
+            <input type="date" value={reportDateFrom} onChange={e => setReportDateFrom(e.target.value)} className="btn" style={{ background: 'var(--surface)', color: '#fff' }} />
+          </div>
+
+          <div className="filter-input-group">
+            <label style={{ fontSize: '11px', color: 'var(--muted)' }}>Pay Period To</label>
+            <input type="date" value={reportDateTo} onChange={e => setReportDateTo(e.target.value)} className="btn" style={{ background: 'var(--surface)', color: '#fff' }} />
+          </div>
+
+          {activeUserType === 'admin' && (
+            <div className="filter-input-group">
+              <label style={{ fontSize: '11px', color: 'var(--muted)' }}>Corporate Client Filter</label>
+              <select value={reportFilterClient} onChange={e => setReportFilterClient(e.target.value)} className="btn" style={{ background: 'var(--surface)', color: '#fff' }}>
+                <option value="All">All Clients</option>
+                <option value="Acme Corp">Acme Corp</option>
+                <option value="Stark Industries">Stark Industries</option>
+                <option value="Wayne Enterprises">Wayne Enterprises</option>
+                <option value="Globex Corp">Globex Corp</option>
+              </select>
+            </div>
+          )}
+
+          <div className="filter-input-group">
+            <label style={{ fontSize: '11px', color: 'var(--muted)' }}>Employee Database Search</label>
+            <select value={reportFilterEmployee} onChange={e => setReportFilterEmployee(e.target.value)} className="btn" style={{ background: 'var(--surface)', color: '#fff' }}>
+              <option value="All">All Employees</option>
+              {adminEmployees.map(emp => <option key={emp.id} value={emp.id}>{emp.name}</option>)}
+            </select>
+          </div>
+        </div>
+
+        {/* Main Content Display */}
+        {isAccessRestricted ? (
+          <div className="dash-card text-center" style={{ padding: '40px' }}>
+            <div style={{ fontSize: '40px', marginBottom: '14px' }}>🔒</div>
+            <h3>Access Restriction Alert</h3>
+            <p style={{ color: 'var(--muted)', maxWidth: '450px', margin: '0 auto' }}>
+              Portal Access Logs and audit logs are restricted to system administrators. Please contact your Pynk HR coordinator.
+            </p>
+          </div>
+        ) : (
+          <div className="dash-card" style={{ padding: 0, overflow: 'hidden' }}>
+            <div className="tbl">
+              {activeReportType === 'timesheet' && (
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Employee ID</th>
+                      <th>Name</th>
+                      <th>Client Entity</th>
+                      <th>Pay Group</th>
+                      <th className="num">Regular Hours</th>
+                      <th className="num">Leave Hours</th>
+                      <th className="num">Overtime</th>
+                      <th>Approval Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {finalReportEmployees.map(e => (
+                      <tr key={e.id}>
+                        <td><code>{e.id}</code></td>
+                        <td><strong>{e.name}</strong></td>
+                        <td>{e.clientName}</td>
+                        <td>{e.paygroup}</td>
+                        <td className="num">40h</td>
+                        <td className="num">8h</td>
+                        <td className="num">4h</td>
+                        <td><span className="badge done">Approved</span></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+
+              {activeReportType === 'costs' && (
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Employee ID</th>
+                      <th>Name</th>
+                      <th>Client Entity</th>
+                      <th>Payment mode</th>
+                      <th className="num">Base Pay (July)</th>
+                      <th className="num">Offcycle Bonus</th>
+                      <th className="num">Total Gross Cost</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {finalReportEmployees.map(e => {
+                      const bonus = offcyclePaymentsList.filter(o => o.employeeId === e.id).reduce((sum, o) => sum + o.amount, 0)
+                      return (
+                        <tr key={e.id}>
+                          <td><code>{e.id}</code></td>
+                          <td><strong>{e.name}</strong></td>
+                          <td>{e.clientName}</td>
+                          <td>{e.paymentMode}</td>
+                          <td className="num">₹ {e.currGross.toLocaleString('en-IN')}</td>
+                          <td className="num">₹ {bonus.toLocaleString('en-IN')}</td>
+                          <td className="num"><strong>₹ {(e.currGross + bonus).toLocaleString('en-IN')}</strong></td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              )}
+
+              {activeReportType === 'variance' && (
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Variance Group / Component</th>
+                      <th className="num">June 2025 Volume</th>
+                      <th className="num">July 2025 Volume</th>
+                      <th className="num">Absolute variance</th>
+                      <th className="num">Percentage variance</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {reconciliationData.map((r, idx) => {
+                      const diff = r.curr - r.prev
+                      const pct = r.prev > 0 ? (diff / r.prev) * 100 : 0
+                      const rowClass = diff > 0 ? 'increase' : diff < 0 ? 'decrease' : 'neutral'
+                      return (
+                        <tr key={idx}>
+                          <td><strong>{r.name}</strong></td>
+                          <td className="num">₹ {r.prev.toLocaleString('en-IN')}</td>
+                          <td className="num">₹ {r.curr.toLocaleString('en-IN')}</td>
+                          <td className={`num ${rowClass}`}>{diff > 0 ? '+' : ''}₹ {diff.toLocaleString('en-IN')}</td>
+                          <td className={`num ${rowClass}`}>{pct.toFixed(2)}%</td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              )}
+
+              {activeReportType === 'access' && activeUserType === 'admin' && (
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Log ID</th>
+                      <th>Operator</th>
+                      <th>Account Role</th>
+                      <th>Action performed</th>
+                      <th>Timestamp</th>
+                      <th>IP address</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {portalAccessLogs.map(l => (
+                      <tr key={l.id}>
+                        <td><code>{l.id}</code></td>
+                        <td><strong>{l.username}</strong></td>
+                        <td><span className="badge sign">{l.role}</span></td>
+                        <td>{l.action}</td>
+                        <td>{l.timestamp}</td>
+                        <td><code>{l.ipAddress}</code></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  const renderClientPayrollControl = () => {
+    const handleSaveHourlyRates = () => {
+      showToast('Hourly rate configuration thresholds updated!')
+    }
+    
+    const handleSaveFixedSalaries = () => {
+      showToast('Fixed employee salary database revisions saved!')
+    }
+
+    const handleCSVBulkUploadSimulation = (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (e.target.files && e.target.files[0]) {
+        setIsBulkUploading(true)
+        setTimeout(() => {
+          setIsBulkUploading(false)
+          showToast('Mass timesheet CSV parsed successfully! 12 staff hours updated.')
+        }, 1200)
+      }
+    }
+
+    return (
+      <div className="dash-shell">
+        <div className="dash-welcome-row">
+          <div>
+            <h1 className="dash-welcome-title">Payroll Control Center Configurator ⚙️</h1>
+            <p className="dash-welcome-sub">Configure hourly rates, adjust employee salaries, or run timesheet uploads.</p>
+          </div>
+        </div>
+
+        <div className="dash-grid-layout" style={{ gridTemplateColumns: '1fr 1fr' }}>
+          
+          {/* Hourly Rates Card */}
+          <div className="dash-card">
+            <h3 className="dash-card-title">Timesheet Hourly Code Rates</h3>
+            <p style={{ fontSize: '12px', color: 'var(--muted)', margin: 0 }}>Configure standard billing per hour values (INR).</p>
+            <div className="admin-integration-list" style={{ maxHeight: '350px', overflowY: 'auto', paddingRight: '4px' }}>
+              {Object.entries(hourlyRates).map(([code, rate]) => (
+                <div key={code} className="integration-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--line-soft)' }}>
+                  <span>{code}</span>
+                  <input
+                    type="number"
+                    className="btn"
+                    style={{ width: '100px', padding: '4px 8px', textAlign: 'right', background: 'var(--surface)', color: '#fff', border: '1px solid var(--line)' }}
+                    value={rate}
+                    disabled={isPeriodLocked}
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value) || 0
+                      setHourlyRates(prev => ({ ...prev, [code]: val }))
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+            <button type="button" className="btn btn-primary" onClick={handleSaveHourlyRates} disabled={isPeriodLocked} style={{ width: 'fit-content', marginTop: '10px' }}>
+              Save Hourly Rates Settings
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            
+            {/* Mass CSV upload */}
+            <div className="dash-card">
+              <h3 className="dash-card-title">Bulk Timesheet CSV Ingestion</h3>
+              <p style={{ fontSize: '12px', color: 'var(--muted)', margin: 0 }}>Load timesheet logs for many employees at once through an Excel spreadsheet file.</p>
+              
+              {isBulkUploading ? (
+                <div className="bulk-upload-simulator loading" style={{ textAlign: 'center', padding: '24px', border: '2px dashed var(--line)', borderRadius: '10px', background: 'rgba(255,255,255,0.02)' }}>
+                  <div className="preview-pulse-dot" style={{ margin: '0 auto 10px' }}></div>
+                  <span style={{ fontSize: '13px', color: 'var(--muted)' }}>Parsing sheet columns and checking Employee IDs...</span>
+                </div>
+              ) : (
+                <div className="bulk-upload-simulator" style={{ position: 'relative', border: '2px dashed var(--line)', borderRadius: '10px', padding: '24px', textAlign: 'center', background: 'rgba(255,255,255,0.01)', cursor: 'pointer' }}>
+                  <div style={{ fontSize: '24px', marginBottom: '8px' }}>📥</div>
+                  <strong>Upload CSV / Excel Timesheet</strong>
+                  <p style={{ fontSize: '11px', color: 'var(--muted)', margin: '4px 0 0' }}>Drag & drop file here or click to browse</p>
+                  <input
+                    type="file"
+                    disabled={isPeriodLocked}
+                    onChange={handleCSVBulkUploadSimulation}
+                    style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Fixed Salaries config */}
+            <div className="dash-card">
+              <h3 className="dash-card-title">Fixed Salary Revisions</h3>
+              <div className="admin-integration-list" style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                {adminEmployees.map(emp => (
+                  <div key={emp.id} className="integration-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--line-soft)' }}>
+                    <div>
+                      <strong>{emp.name}</strong>
+                      <div style={{ fontSize: '10px', color: 'var(--muted)' }}>{emp.clientName} · {emp.paygroup}</div>
+                    </div>
+                    <input
+                      type="number"
+                      className="btn"
+                      style={{ width: '120px', padding: '4px 8px', textAlign: 'right', background: 'var(--surface)', color: '#fff', border: '1px solid var(--line)' }}
+                      value={emp.currGross}
+                      disabled={isPeriodLocked}
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value) || 0
+                        setAdminEmployees(prev => prev.map(item => item.id === emp.id ? { ...item, currGross: val } : item))
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+              <button type="button" className="btn btn-secondary" onClick={handleSaveFixedSalaries} disabled={isPeriodLocked} style={{ width: 'fit-content', marginTop: '10px' }}>
+                Save Salary Adjustments
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    )
+  }
+
+  const renderClientPayrollPeriod = () => {
+    return (
+      <div className="dash-shell">
+        <div className="dash-welcome-row">
+          <div>
+            <h1 className="dash-welcome-title">Payroll Area & Time Approval Checklist 📅</h1>
+            <p className="dash-welcome-sub">Manage processing periods, approve employee logs, and run validation audits.</p>
+          </div>
+          <div className="filter-input-group">
+            <select value={clientPayGroupFilter} onChange={e => setClientPayGroupFilter(e.target.value as any)} className="btn" style={{ background: 'var(--surface)', color: '#fff' }}>
+              <option value="Monthly">Monthly Pay Period</option>
+              <option value="Weekly">Weekly Pay Period</option>
+              <option value="Bi-Weekly">Bi-Weekly Pay Period</option>
+              <option value="Semi-Monthly">Semi-Monthly Pay Period</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Alert Cards */}
+        {isPeriodApproved ? (
+          <div className="admin-alert-banner success" style={{ marginBottom: '16px' }}>
+            <span className="alert-ico">✓</span>
+            <div className="alert-text">
+              <strong>Timesheet entries APPROVED for all staff!</strong>
+              <p>Staff hours are approved. Details are forwarded for secondary payroll verification audits.</p>
+            </div>
+          </div>
+        ) : (
+          <div className="admin-alert-banner warning" style={{ marginBottom: '16px' }}>
+            <span className="alert-ico">⚠️</span>
+            <div className="alert-text">
+              <strong>Pending Client Approval (Cut-off close)</strong>
+              <p>Please audit employee logged timesheet hours for current period. Tapping "Approve time entries" will freeze submissions.</p>
+            </div>
+          </div>
+        )}
+
+        {/* Employees checklist */}
+        <div className="dash-card" style={{ padding: 0, overflow: 'hidden' }}>
+          <div className="tbl">
+            <table>
+              <thead>
+                <tr>
+                  <th>Employee ID</th>
+                  <th>Full Name</th>
+                  <th>Department / Group</th>
+                  <th>Logged Hours (Regular + OT)</th>
+                  <th>Leave Hours (Sick/Earned)</th>
+                  <th>Timesheet Status</th>
+                  <th>Audit Check</th>
+                </tr>
+              </thead>
+              <tbody>
+                {adminEmployees.map(emp => (
+                  <tr key={emp.id}>
+                    <td><code>{emp.id}</code></td>
+                    <td><strong>{emp.name}</strong></td>
+                    <td>{emp.paygroup}</td>
+                    <td>40 hours</td>
+                    <td>8 hours</td>
+                    <td>
+                      <span className="badge done">Submitted</span>
+                    </td>
+                    <td>
+                      <span className="badge ok" style={{ background: 'rgba(46,204,113,0.1)', color: '#2ecc71', border: '1px solid rgba(46,204,113,0.2)' }}>✓ Validated</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {!isPeriodApproved && (
+          <button type="button" className="btn btn-primary" onClick={() => {
+            setIsPeriodApproved(true)
+            showToast('Timesheet entries approved for all staff!')
+          }} style={{ width: 'fit-content', marginTop: '16px' }}>
+            Approve All Employee Time Entries
+          </button>
+        )}
+
+      </div>
+    )
+  }
+
+  const renderClientOffcycles = () => {
+    const handleAddOffcyclePayment = (e: React.FormEvent) => {
+      e.preventDefault()
+      const amt = parseFloat(offcycleForm.amount) || 0
+      if (amt <= 0) {
+        showToast('Please enter a valid payment amount!')
+        return
+      }
+      const targetEmp = adminEmployees.find(emp => emp.id === offcycleForm.employeeId)
+      if (!targetEmp) return
+      
+      const newPay: ClientOffcyclePayment = {
+        id: `off-${Date.now()}`,
+        employeeId: offcycleForm.employeeId,
+        employeeName: targetEmp.name,
+        clientName: targetEmp.clientName,
+        code: offcycleForm.code,
+        amount: amt,
+        date: '15 July 2025',
+        remarks: offcycleForm.remarks || 'Additional special pay'
+      }
+
+      setOffcyclePaymentsList(prev => [newPay, ...prev])
+      setIsOffcycleModalOpen(false)
+      setOffcycleForm({
+        employeeId: 'EMP-001',
+        code: 'Monthly Bonus',
+        amount: '',
+        remarks: ''
+      })
+      showToast(`Added ₹${amt.toLocaleString('en-IN')} offcycle pay to ${targetEmp.name}.`)
+    }
+
+    const handleRemoveOffcycle = (id: string) => {
+      setOffcyclePaymentsList(prev => prev.filter(item => item.id !== id))
+      showToast('Offcycle bonus transaction removed.')
+    }
+
+    return (
+      <div className="dash-shell">
+        <div className="dash-welcome-row">
+          <div>
+            <h1 className="dash-welcome-title">Offcycles & Special One-Time Payments 💸</h1>
+            <p className="dash-welcome-sub">Credit bonuses, quarterly incentives, sales commissions, spot awards, and final settlements.</p>
+          </div>
+          <button type="button" className="btn btn-primary" onClick={() => setIsOffcycleModalOpen(true)} disabled={isPeriodLocked}>
+            + Add Special Payment
+          </button>
+        </div>
+
+        {/* Ledger list */}
+        <div className="dash-card" style={{ padding: 0, overflow: 'hidden' }}>
+          <div className="tbl">
+            <table>
+              <thead>
+                <tr>
+                  <th>Employee Name</th>
+                  <th>Entity Client</th>
+                  <th>Payment Type Code</th>
+                  <th className="num">Amount (INR)</th>
+                  <th>Date Logged</th>
+                  <th>Remarks</th>
+                  {!isPeriodLocked && <th className="num">Actions</th>}
+                </tr>
+              </thead>
+              <tbody>
+                {offcyclePaymentsList.map(pay => (
+                  <tr key={pay.id}>
+                    <td><strong>{pay.employeeName}</strong> <br/><small style={{ color: 'var(--muted)' }}><code>{pay.employeeId}</code></small></td>
+                    <td>{pay.clientName}</td>
+                    <td><span className="badge done">{pay.code}</span></td>
+                    <td className="num" style={{ color: 'var(--primary)', fontWeight: 'bold' }}>₹ {pay.amount.toLocaleString('en-IN')}</td>
+                    <td>{pay.date}</td>
+                    <td>{pay.remarks}</td>
+                    {!isPeriodLocked && (
+                      <td className="num">
+                        <button type="button" className="btn btn-secondary btn-sm" onClick={() => handleRemoveOffcycle(pay.id)}>
+                          🗑️ Remove
+                        </button>
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Add Payment Modal */}
+        {isOffcycleModalOpen && (
+          <div className="time-modal-backdrop" role="dialog" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 9999, display: 'grid', placeItems: 'center' }}>
+            <div className="time-modal-content" style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '24px', width: '90%', maxWidth: '500px' }}>
+              <div className="time-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--line)', paddingBottom: '12px' }}>
+                <h3 style={{ margin: 0, color: '#fff' }}>Add One-Time Special Payment</h3>
+                <button type="button" style={{ background: 'none', border: 'none', color: '#fff', fontSize: '20px', cursor: 'pointer' }}
+                  onClick={() => setIsOffcycleModalOpen(false)}>✕</button>
+              </div>
+              <form onSubmit={handleAddOffcyclePayment} style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '16px' }}>
+                <div className="field">
+                  <label>Select Recipient Employee</label>
+                  <select
+                    className="btn"
+                    style={{ width: '100%', padding: '8px 12px', background: 'var(--surface)', color: '#fff', border: '1px solid var(--line)' }}
+                    value={offcycleForm.employeeId}
+                    onChange={(e) => setOffcycleForm(prev => ({ ...prev, employeeId: e.target.value }))}
+                  >
+                    {adminEmployees.map(emp => <option key={emp.id} value={emp.id}>{emp.name} ({emp.id})</option>)}
+                  </select>
+                </div>
+
+                <div className="field">
+                  <label>One-Time Code Component</label>
+                  <select
+                    className="btn"
+                    style={{ width: '100%', padding: '8px 12px', background: 'var(--surface)', color: '#fff', border: '1px solid var(--line)' }}
+                    value={offcycleForm.code}
+                    onChange={(e) => setOffcycleForm(prev => ({ ...prev, code: e.target.value }))}
+                  >
+                    <option value="Monthly Bonus">Monthly Bonus</option>
+                    <option value="Quarterly Bonus">Quarterly Bonus</option>
+                    <option value="Annual Bonus">Annual Bonus</option>
+                    <option value="Performance Incentive">Performance Incentive</option>
+                    <option value="Sales Commission">Sales Commission</option>
+                    <option value="Referral Bonus">Referral Bonus</option>
+                    <option value="Spot Award">Spot Award</option>
+                    <option value="Festival Bonus">Festival Bonus</option>
+                    <option value="Attendance Bonus">Attendance Bonus</option>
+                    <option value="Shift Bonus">Shift Bonus</option>
+                    <option value="Joining Bonus">Joining Bonus</option>
+                    <option value="Relocation Bonus">Relocation Bonus</option>
+                    <option value="Full & Final Settlement">Full & Final Settlement</option>
+                    <option value="Leave Encashment">Leave Encashment</option>
+                    <option value="Gratuity">Gratuity</option>
+                  </select>
+                </div>
+
+                <div className="field">
+                  <label>Payment Amount (INR)</label>
+                  <input
+                    type="number"
+                    className="btn"
+                    style={{ width: '100%', padding: '8px 12px', background: 'var(--surface)', color: '#fff', border: '1px solid var(--line)', textAlign: 'left', cursor: 'text' }}
+                    placeholder="Enter amount in INR"
+                    required
+                    value={offcycleForm.amount}
+                    onChange={(e) => setOffcycleForm(prev => ({ ...prev, amount: e.target.value }))}
+                  />
+                </div>
+
+                <div className="field">
+                  <label>Remarks & Reason</label>
+                  <input
+                    type="text"
+                    className="btn"
+                    style={{ width: '100%', padding: '8px 12px', background: 'var(--surface)', color: '#fff', border: '1px solid var(--line)', textAlign: 'left', cursor: 'text' }}
+                    placeholder="e.g. Project completion bonus"
+                    value={offcycleForm.remarks}
+                    onChange={(e) => setOffcycleForm(prev => ({ ...prev, remarks: e.target.value }))}
+                  />
+                </div>
+
+                <button type="submit" className="btn btn-primary" style={{ marginTop: '10px' }}>
+                  Save Payment
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+
+      </div>
+    )
+  }
+
+  const renderClientLock = () => {
+    return (
+      <div className="dash-shell">
+        <div className="dash-welcome-row">
+          <div>
+            <h1 className="dash-welcome-title">Final Approval & Locking Workflows 🔒</h1>
+            <p className="dash-welcome-sub">Validate periods variance differences, lock time entries, and submit payroll logs.</p>
+          </div>
+        </div>
+
+        {isPeriodLocked ? (
+          <div className="admin-alert-banner success" style={{ marginBottom: '16px' }}>
+            <span className="alert-ico">✓</span>
+            <div className="alert-text">
+              <strong>Now data is getting final submitted and no modification can be done after final submit - OK</strong>
+              <p>Current pay period payroll logs are locked and transmitted to processing partners. Client changes are disabled.</p>
+            </div>
+          </div>
+        ) : (
+          <div className="admin-alert-banner warning" style={{ marginBottom: '16px' }}>
+            <span className="alert-ico">⚠️</span>
+            <div className="alert-text">
+              <strong>Period Open - Submissions editable</strong>
+              <p>Lock the pay period to compile variance reconciliation sheets and freeze timesheets. Lock action cannot be undone.</p>
+            </div>
+          </div>
+        )}
+
+        {/* Variance stats table */}
+        <div className="dash-card">
+          <h3 className="dash-card-title">Employee-wise variance summary (July vs June)</h3>
+          <div className="tbl">
+            <table>
+              <thead>
+                <tr>
+                  <th>Employee Name</th>
+                  <th className="num">June volume (INR)</th>
+                  <th className="num">July volume (INR)</th>
+                  <th className="num">Variance Amt</th>
+                  <th className="num">Variance %</th>
+                </tr>
+              </thead>
+              <tbody>
+                {adminEmployees.map(e => {
+                  const diff = e.currGross - e.prevGross
+                  const pct = e.prevGross > 0 ? (diff / e.prevGross) * 100 : 0
+                  const rowClass = diff > 0 ? 'increase' : diff < 0 ? 'decrease' : 'neutral'
+                  return (
+                    <tr key={e.id}>
+                      <td><strong>{e.name}</strong></td>
+                      <td className="num">₹ {e.prevGross.toLocaleString('en-IN')}</td>
+                      <td className="num">₹ {e.currGross.toLocaleString('en-IN')}</td>
+                      <td className={`num ${rowClass}`}>{diff > 0 ? '+' : ''}₹ {diff.toLocaleString('en-IN')}</td>
+                      <td className={`num ${rowClass}`}>{pct.toFixed(2)}%</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {!isPeriodLocked && (
+          <button type="button" className="btn btn-primary" onClick={() => {
+            setIsPeriodLocked(true)
+            showToast('Current pay period locked - Submissions frozen.')
+          }} style={{ width: 'fit-content', marginTop: '16px' }}>
+            Lock Pay Period & Final Submit to Pynk
+          </button>
+        )}
+
+      </div>
+    )
+  }
+
+  const filteredAdminEmployees = useMemo(() => {
+    return adminEmployees.filter((emp) => {
+      const matchesClient = filterClientName === 'All' || emp.clientName === filterClientName
+      const matchesSearch =
+        emp.name.toLowerCase().includes(searchEmployeeQuery.toLowerCase()) ||
+        emp.id.toLowerCase().includes(searchEmployeeQuery.toLowerCase())
+      return matchesClient && matchesSearch
+    })
+  }, [adminEmployees, filterClientName, searchEmployeeQuery])
+
   useEffect(() => {
     if (!expandedApprovalKey && approvalItems.length > 0) {
       setExpandedApprovalKey(approvalItems[0].key)
@@ -2929,6 +3865,27 @@ export function EmployeePortalFlow(_props: EmployeePortalFlowProps) {
 
   return (
     <>
+      {previewRoleMode && (
+        <div className="admin-preview-banner">
+          <div className="preview-banner-content">
+            <span className="preview-pulse-dot"></span>
+            <span>Active Preview Mode: <strong>{previewRoleMode.toUpperCase()} VIEW</strong></span>
+          </div>
+          <button type="button" className="btn btn-primary btn-exit-preview" onClick={() => {
+            setPreviewRoleMode(null)
+            setCurrentModule('admin-access')
+          }}>
+            Return to Admin View
+          </button>
+        </div>
+      )}
+      
+      {successToastMessage && (
+        <div className="admin-toast-message">
+          <span>✓ {successToastMessage}</span>
+        </div>
+      )}
+
       <div className="portal-header">
         <div className="portal-header-content">
           <h2>{currentModule === 'dashboard' ? 'Dashboard' : modules.find((m) => m.id === currentModule)?.label}</h2>
@@ -2947,6 +3904,10 @@ export function EmployeePortalFlow(_props: EmployeePortalFlowProps) {
                 <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
               </svg>
               {unreadCount > 0 && <span className="bell-badge">{unreadCount}</span>}
+            </button>
+            
+            <button type="button" className="btn btn-secondary btn-sm" onClick={onLogout}>
+              Logout
             </button>
           </div>
         </div>
@@ -2970,7 +3931,587 @@ export function EmployeePortalFlow(_props: EmployeePortalFlowProps) {
         </aside>
 
         <section className="portal-content">
-          {currentModule === 'dashboard' ? (() => {
+          {/* ── Client / Shared Reports View ── */}
+          {currentModule === 'client-reports' || currentModule === 'admin-reports' ? renderReportsView() :
+          
+          /* ── Client Payroll Control ── */
+          currentModule === 'client-payroll-control' ? renderClientPayrollControl() :
+
+          /* ── Client Payroll Period ── */
+          currentModule === 'client-payroll-period' ? renderClientPayrollPeriod() :
+
+          /* ── Client Offcycles ── */
+          currentModule === 'client-offcycles' ? renderClientOffcycles() :
+
+          /* ── Client Lock ── */
+          currentModule === 'client-lock' ? renderClientLock() :
+
+          /* ── Admin Dashboard Module ── */
+          currentModule === 'admin-dashboard' ? (() => {
+            const clientCount = new Set(adminEmployees.map((e) => e.clientName)).size
+            const activeEmployees = adminEmployees.length
+            const grossTotal = totalsAdmin.curr
+            const variance = totalsAdmin.curr - totalsAdmin.prev
+            const varPct = totalsAdmin.prev > 0 ? (variance / totalsAdmin.prev) * 100 : 0
+            
+            return (
+              <div className="dash-shell">
+                <div className="dash-welcome-row">
+                  <div>
+                    <h1 className="dash-welcome-title">Welcome, Pynk Administrator! 👨‍💼</h1>
+                    <p className="dash-welcome-sub">Workforce management and global payroll control center.</p>
+                  </div>
+                  <div className="dash-today-date">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                      <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+                      <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                    15 July 2025 (Cut-off Date)
+                  </div>
+                </div>
+
+                {/* ── Stat Metric Cards ── */}
+                <div className="dash-stats-row">
+                  <div className="dash-stat-card">
+                    <div className="dash-stat-icon dash-stat-icon--blue">🏢</div>
+                    <div className="dash-stat-body">
+                      <p className="dash-stat-label">Clients Managed</p>
+                      <p className="dash-stat-value">{clientCount}</p>
+                      <p className="dash-stat-sub">Active Corporate Portals</p>
+                    </div>
+                  </div>
+
+                  <div className="dash-stat-card">
+                    <div className="dash-stat-icon dash-stat-icon--green">👥</div>
+                    <div className="dash-stat-body">
+                      <p className="dash-stat-label">Active Staff</p>
+                      <p className="dash-stat-value">{activeEmployees}</p>
+                      <p className="dash-stat-sub">Across All Entities</p>
+                    </div>
+                  </div>
+
+                  <div className="dash-stat-card">
+                    <div className="dash-stat-icon dash-stat-icon--purple">💰</div>
+                    <div className="dash-stat-body">
+                      <p className="dash-stat-label">July 2025 Gross Payroll</p>
+                      <p className="dash-stat-value" style={{ fontSize: '20px' }}>₹ {grossTotal.toLocaleString('en-IN')}</p>
+                      <p className="dash-stat-sub">Processing Volume</p>
+                    </div>
+                  </div>
+
+                  <div className="dash-stat-card">
+                    <div className="dash-stat-icon dash-stat-icon--orange">📊</div>
+                    <div className="dash-stat-body">
+                      <p className="dash-stat-label">Variance</p>
+                      <p className={`dash-stat-value ${variance >= 0 ? 'increase' : 'decrease'}`} style={{ fontSize: '18px', margin: 0 }}>
+                        {variance >= 0 ? '+' : ''}₹ {variance.toLocaleString('en-IN')}
+                      </p>
+                      <p className="dash-stat-sub" style={{ margin: 0 }}>{varPct.toFixed(2)}% vs Last Period</p>
+                    </div>
+                  </div>
+
+                  <div className="dash-stat-card">
+                    <div className="dash-stat-icon dash-stat-icon--red">⏱️</div>
+                    <div className="dash-stat-body">
+                      <p className="dash-stat-label">Cut-off Timer</p>
+                      <p className="dash-stat-value">{isPayrollSubmitted ? '✓ Done' : '2 Days Left'}</p>
+                      <p className="dash-stat-sub">Partner Submission window</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ── Alerts and Workflows ── */}
+                <div className="dash-grid-layout">
+                  
+                  {/* Alert: Cutoff warning */}
+                  <div className="dash-card dash-time-card">
+                    <h3 className="dash-card-title">Processing Timeline Warning</h3>
+                    {isPayrollSubmitted ? (
+                      <div className="admin-alert-banner success">
+                        <span className="alert-ico">✓</span>
+                        <div className="alert-text">
+                          <strong>Submission Completed!</strong>
+                          <p>Current pay period payroll data has been validated and submitted to partner systems (OK).</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="admin-alert-banner warning">
+                        <span className="alert-ico">⚠️</span>
+                        <div className="alert-text">
+                          <strong>Partner Portal Submission Window Expiring</strong>
+                          <p>Pynk should send data to processing partners by 15 July 2025 cut-off. Please complete comparison and reconciliation reviews first.</p>
+                        </div>
+                      </div>
+                    )}
+                    {!isPayrollSubmitted && (
+                      <button type="button" className="btn btn-primary" style={{ width: 'fit-content', marginTop: '10px' }}
+                        onClick={() => {
+                          setIsPayrollSubmitted(true);
+                          showToast('Current pay period payroll data submitted - OK');
+                        }}>
+                        Submit Current Payroll Data
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Alert: Secondary approval workflows */}
+                  <div className="dash-card dash-leave-card">
+                    <h3 className="dash-card-title">Pending Secondary Approvals</h3>
+                    {isSecondApprovalNotified ? (
+                      <div className="admin-alert-banner success">
+                        <span className="alert-ico">✓</span>
+                        <div className="alert-text">
+                          <strong>Approver Notified!</strong>
+                          <p>Second approval request has been broadcasted to Wayne Enterprises partner manager.</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="admin-alert-banner info">
+                        <span className="alert-ico">🔔</span>
+                        <div className="alert-text">
+                          <strong>Timesheet Stage 2 Approvals Required</strong>
+                          <p>Timesheet 1st approval is DONE for Stark Industries, but 2nd approval is needed from partner manager before submission.</p>
+                        </div>
+                      </div>
+                    )}
+                    {!isSecondApprovalNotified && (
+                      <button type="button" className="btn btn-secondary" style={{ width: 'fit-content', marginTop: '10px' }}
+                        onClick={() => {
+                          setIsSecondApprovalNotified(true);
+                          showToast('Second approver notified for Step 2 approval.');
+                        }}>
+                        Notify Wayne Enterprises 2nd Approver
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Card: Quick tools */}
+                  <div className="dash-card dash-upcoming-card">
+                    <h3 className="dash-card-title">Partner Integration Overview</h3>
+                    <div className="admin-integration-list">
+                      <div className="integration-row" style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--line-soft)' }}>
+                        <span>Acme Corp Portal Status:</span>
+                        <span className="badge done">Verified</span>
+                      </div>
+                      <div className="integration-row" style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--line-soft)' }}>
+                        <span>Stark Industries Timesheets:</span>
+                        <span className="badge sign">Pending 2nd Approval</span>
+                      </div>
+                      <div className="integration-row" style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--line-soft)' }}>
+                        <span>Wayne Enterprises Export status:</span>
+                        <span className="badge done">CSV Ready</span>
+                      </div>
+                      <div className="integration-row" style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0' }}>
+                        <span>Globex Corp Audit logs:</span>
+                        <span className="badge done">100% Checked</span>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            )
+          })() : currentModule === 'admin-reconciliation' ? (() => {
+            return (
+              <div className="dash-shell">
+                <div className="dash-welcome-row">
+                  <div>
+                    <h1 className="dash-welcome-title">Payroll Reconciliation & Variance Reviews ⚖️</h1>
+                    <p className="dash-welcome-sub">Compare current in-progress period against previous completed pay period.</p>
+                  </div>
+                  <div className="dash-actions-row" style={{ display: 'flex', gap: '10px' }}>
+                    <button type="button" className="btn btn-secondary" onClick={handleExportCSV}>
+                      📥 Export CSV
+                    </button>
+                    <button type="button" className="btn btn-primary" disabled={isPayrollSubmitted}
+                      onClick={() => {
+                        setIsPayrollSubmitted(true);
+                        showToast('Reconciled payroll details sent to partners successfully!');
+                      }}>
+                      ✈️ Send to Partners
+                    </button>
+                  </div>
+                </div>
+
+                {/* Dimension Toggles */}
+                <div className="reconciliation-dimensions-tabs" style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--line)', paddingBottom: '12px' }}>
+                  {(['client', 'employee', 'paygroup', 'payment'] as const).map((dim) => (
+                    <button
+                      key={dim}
+                      type="button"
+                      className={`btn ${reconciliationDimension === dim ? 'btn-primary' : ''}`}
+                      onClick={() => setReconciliationDimension(dim)}
+                    >
+                      {dim.charAt(0).toUpperCase() + dim.slice(1)} Wise
+                    </button>
+                  ))}
+                </div>
+
+                {/* Main Table */}
+                <div className="dash-card" style={{ padding: 0, overflow: 'hidden' }}>
+                  <div className="tbl">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>{reconciliationDimension.charAt(0).toUpperCase() + reconciliationDimension.slice(1)} Group / Name</th>
+                          <th className="num">June 2025 completed (Prev)</th>
+                          <th className="num">July 2025 in-progress (Curr)</th>
+                          <th className="num">Difference (Amt)</th>
+                          <th className="num">Difference (%)</th>
+                          <th>Trend Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {reconciliationData.map((row, idx) => {
+                          const diff = row.curr - row.prev
+                          const pct = row.prev > 0 ? (diff / row.prev) * 100 : 0
+                          let statusLabel = 'Equal'
+                          let statusClass = 'neutral'
+                          if (diff > 0) { statusLabel = 'Increased ↗'; statusClass = 'increase' }
+                          else if (diff < 0) { statusLabel = 'Decreased ↘'; statusClass = 'decrease' }
+                          
+                          return (
+                            <tr key={idx}>
+                              <td><strong>{row.name}</strong></td>
+                              <td className="num">₹ {row.prev.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                              <td className="num">₹ {row.curr.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                              <td className={`num ${statusClass}`}>
+                                {diff > 0 ? '+' : ''}₹ {diff.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                              </td>
+                              <td className={`num ${statusClass}`}>{pct.toFixed(2)}%</td>
+                              <td>
+                                <span className={`trend-badge ${statusClass}`}>{statusLabel}</span>
+                              </td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                      <tfoot>
+                        <tr>
+                          <td><strong>Grand Total:</strong></td>
+                          <td className="num"><strong>₹ {totalsAdmin.prev.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong></td>
+                          <td className="num"><strong>₹ {totalsAdmin.curr.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong></td>
+                          <td className={`num ${totalsAdmin.curr - totalsAdmin.prev >= 0 ? 'increase' : 'decrease'}`}>
+                            <strong>
+                              {totalsAdmin.curr - totalsAdmin.prev >= 0 ? '+' : ''}
+                              ₹ {(totalsAdmin.curr - totalsAdmin.prev).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                            </strong>
+                          </td>
+                          <td className={`num ${totalsAdmin.curr - totalsAdmin.prev >= 0 ? 'increase' : 'decrease'}`}>
+                            <strong>
+                              {(totalsAdmin.prev > 0 ? ((totalsAdmin.curr - totalsAdmin.prev) / totalsAdmin.prev) * 100 : 0).toFixed(2)}%
+                            </strong>
+                          </td>
+                          <td>
+                            <span className="trend-badge neutral">Checked</span>
+                          </td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                </div>
+
+              </div>
+            )
+          })() : currentModule === 'admin-payslips' ? (() => {
+            const clientNames = ['All', 'Acme Corp', 'Stark Industries', 'Wayne Enterprises', 'Globex Corp']
+            return (
+              <div className="dash-shell">
+                <div className="dash-welcome-row">
+                  <div>
+                    <h1 className="dash-welcome-title">Employee Payslips & Year-End Records 📄</h1>
+                    <p className="dash-welcome-sub">View and generate historical payslips or Form 16 / tax documentation details.</p>
+                  </div>
+                </div>
+
+                {/* Filter bar */}
+                <div className="admin-filters-bar" style={{ display: 'flex', gap: '16px', background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '10px', border: '1px solid var(--line)' }}>
+                  <div className="filter-input-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px', minWidth: '200px' }}>
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--muted)' }}>Filter Client Corporate</label>
+                    <select value={filterClientName} onChange={(e) => setFilterClientName(e.target.value)} className="btn" style={{ padding: '8px 12px', background: 'var(--surface)', color: '#fff', border: '1px solid var(--line)' }}>
+                      {clientNames.map((c) => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+
+                  <div className="filter-input-group flex-fill" style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--muted)' }}>Search Employee Name / ID</label>
+                    <input
+                      type="text"
+                      className="btn"
+                      style={{ padding: '8px 12px', background: 'var(--surface)', color: '#fff', border: '1px solid var(--line)', textAlign: 'left', cursor: 'text' }}
+                      placeholder="Type employee name or ID..."
+                      value={searchEmployeeQuery}
+                      onChange={(e) => setSearchEmployeeQuery(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {/* Employees list Table */}
+                <div className="dash-card" style={{ padding: 0, overflow: 'hidden' }}>
+                  <div className="tbl">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>ID</th>
+                          <th>Employee Name</th>
+                          <th>Corporate Client</th>
+                          <th>Role</th>
+                          <th>Monthly Gross</th>
+                          <th>Year-End Statement</th>
+                          <th className="num">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredAdminEmployees.map((emp) => (
+                          <tr key={emp.id}>
+                            <td><code>{emp.id}</code></td>
+                            <td><strong>{emp.name}</strong></td>
+                            <td>{emp.clientName}</td>
+                            <td><span className="badge done">{emp.role}</span></td>
+                            <td>₹ {emp.currGross.toLocaleString('en-IN')}</td>
+                            <td><span className="badge done">Form 16 Generated</span></td>
+                            <td className="num">
+                              <button type="button" className="btn btn-secondary btn-sm" style={{ marginRight: '8px' }}
+                                onClick={() => setSelectedEmployeeForPayslipModal(emp)}>
+                                📄 View Payslips
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                        {filteredAdminEmployees.length === 0 && (
+                          <tr>
+                            <td colSpan={7} className="text-center" style={{ padding: '24px', color: 'var(--muted)', textAlign: 'center' }}>
+                              No matching employee records found.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Payslips drilldown modal */}
+                {selectedEmployeeForPayslipModal && (() => {
+                  const emp = selectedEmployeeForPayslipModal
+                  const months = ['June 2025', 'May 2025', 'April 2025', 'March 2025', 'February 2025', 'January 2025']
+                  return (
+                    <div className="time-modal-backdrop" role="dialog" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 9999, display: 'grid', placeItems: 'center' }}>
+                      <div className="time-modal-content" style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '24px', width: '90%', maxWidth: '550px' }}>
+                        <div className="time-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--line)', paddingBottom: '12px' }}>
+                          <h3 style={{ margin: 0, color: '#fff' }}>Payslips history for {emp.name}</h3>
+                          <button type="button" className="close-btn" style={{ background: 'none', border: 'none', color: '#fff', fontSize: '20px', cursor: 'pointer' }}
+                            onClick={() => setSelectedEmployeeForPayslipModal(null)}>✕</button>
+                        </div>
+                        <div className="time-modal-body" style={{ padding: '16px 0 0', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                          <div className="admin-payslip-info-box" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: 'var(--muted)', padding: '10px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px' }}>
+                            <div><strong>Employee ID:</strong> {emp.id}</div>
+                            <div><strong>Client Portal:</strong> {emp.clientName}</div>
+                          </div>
+                          
+                          <div className="admin-payslips-drill-list" style={{ maxHeight: '250px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', paddingRight: '4px' }}>
+                            {months.map((m, idx) => (
+                              <div key={idx} className="admin-payslip-drill-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: '1px solid var(--line-soft)' }}>
+                                <div>
+                                  <div style={{ fontWeight: 'bold', fontSize: '13.5px' }}>{m}</div>
+                                  <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px' }}>Gross: ₹ {emp.currGross.toLocaleString('en-IN')}</div>
+                                </div>
+                                <button type="button" className="btn btn-secondary btn-sm"
+                                  onClick={() => showToast(`Downloaded ${emp.name}'s ${m} payslip PDF.`)}>
+                                  📥 Download PDF
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })()}
+
+              </div>
+            )
+          })() : currentModule === 'admin-access' ? (() => {
+            return (
+              <div className="dash-shell">
+                <div className="dash-welcome-row">
+                  <div>
+                    <h1 className="dash-welcome-title">User Roles & Access Privilege Control 🔐</h1>
+                    <p className="dash-welcome-sub">Manage active view permissions (Employee View, Admin View, Client View) across corporate personnel.</p>
+                  </div>
+                </div>
+
+                <div className="dash-card" style={{ padding: 0, overflow: 'hidden' }}>
+                  <div className="tbl">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Personnel ID</th>
+                          <th>Full Name</th>
+                          <th>Corporate Client</th>
+                          <th className="text-center" style={{ textAlign: 'center' }}>Employee View</th>
+                          <th className="text-center" style={{ textAlign: 'center' }}>Admin View</th>
+                          <th className="text-center" style={{ textAlign: 'center' }}>Client View</th>
+                          <th className="num">Perspective Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {adminEmployees.map((emp) => (
+                          <tr key={emp.id}>
+                            <td><code>{emp.id}</code></td>
+                            <td><strong>{emp.name}</strong></td>
+                            <td>{emp.clientName}</td>
+                            <td className="text-center" style={{ textAlign: 'center' }}>
+                              <input
+                                type="checkbox"
+                                style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                                checked={emp.hasEmployeeView}
+                                onChange={() => handleToggleAccess(emp.id, 'employee')}
+                              />
+                            </td>
+                            <td className="text-center" style={{ textAlign: 'center' }}>
+                              <input
+                                type="checkbox"
+                                style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                                checked={emp.hasAdminView}
+                                disabled={emp.id === 'EMP-005' || emp.id === 'EMP-009'} // Safeguard primary admins
+                                onChange={() => handleToggleAccess(emp.id, 'admin')}
+                              />
+                            </td>
+                            <td className="text-center" style={{ textAlign: 'center' }}>
+                              <input
+                                type="checkbox"
+                                style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                                checked={emp.hasClientView}
+                                onChange={() => handleToggleAccess(emp.id, 'client')}
+                              />
+                            </td>
+                            <td className="num">
+                              {emp.hasEmployeeView && (
+                                <button type="button" className="btn btn-secondary btn-sm" style={{ marginRight: '6px' }}
+                                  onClick={() => {
+                                    setPreviewRoleMode('employee');
+                                    setCurrentModule('dashboard');
+                                    showToast(`Impersonating ${emp.name} (Employee perspective)`);
+                                  }}>
+                                  👁️ Preview Employee
+                                </button>
+                              )}
+                              {emp.hasClientView && (
+                                <button type="button" className="btn btn-secondary btn-sm"
+                                  onClick={() => {
+                                    setPreviewRoleMode('client');
+                                    setCurrentModule('client-dashboard');
+                                    showToast('Impersonating Client Portal Dashboard.');
+                                  }}>
+                                    🏢 Preview Client
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+              </div>
+            )
+          })() : currentModule === 'client-dashboard' ? (() => {
+            return (
+              <div className="dash-shell">
+                <div className="dash-welcome-row">
+                  <div>
+                    <h1 className="dash-welcome-title">Acme & Stark Industries - Corporate Client Dashboard 🏢</h1>
+                    <p className="dash-welcome-sub">View overall staff lists, aggregate gross pay volume, and timesheet processing status.</p>
+                  </div>
+                </div>
+
+                <div className="dash-stats-row">
+                  <div className="dash-stat-card">
+                    <div className="dash-stat-icon dash-stat-icon--blue">👥</div>
+                    <div className="dash-stat-body">
+                      <p className="dash-stat-label">Total Employee Count</p>
+                      <p className="dash-stat-value">5</p>
+                      <p className="dash-stat-sub">Managed under entity</p>
+                    </div>
+                  </div>
+
+                  <div className="dash-stat-card">
+                    <div className="dash-stat-icon dash-stat-icon--green">⏱️</div>
+                    <div className="dash-stat-body">
+                      <p className="dash-stat-label">Timesheets Approved</p>
+                      <p className="dash-stat-value">100%</p>
+                      <p className="dash-stat-sub">All logged hours verified</p>
+                    </div>
+                  </div>
+
+                  <div className="dash-stat-card">
+                    <div className="dash-stat-icon dash-stat-icon--purple">💰</div>
+                    <div className="dash-stat-body">
+                      <p className="dash-stat-label">Total Entity Payroll</p>
+                      <p className="dash-stat-value" style={{ fontSize: '20px' }}>₹ 3,78,000.00</p>
+                      <p className="dash-stat-sub">Pending final partner wire</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="dash-card">
+                  <h3 className="dash-card-title">Corporate Personnel Directory</h3>
+                  <div className="tbl">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>ID</th>
+                          <th>Name</th>
+                          <th>Role</th>
+                          <th>Pay Group</th>
+                          <th>Payment Method</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td><code>EMP-001</code></td>
+                          <td>John Doe</td>
+                          <td>Senior Developer</td>
+                          <td>Engineering</td>
+                          <td>Direct Deposit</td>
+                        </tr>
+                        <tr>
+                          <td><code>EMP-002</code></td>
+                          <td>Jane Smith</td>
+                          <td>UI/UX Designer</td>
+                          <td>Design</td>
+                          <td>Direct Deposit</td>
+                        </tr>
+                        <tr>
+                          <td><code>EMP-003</code></td>
+                          <td>Robert Brown</td>
+                          <td>Security Architect</td>
+                          <td>Engineering</td>
+                          <td>Direct Deposit</td>
+                        </tr>
+                        <tr>
+                          <td><code>EMP-004</code></td>
+                          <td>Emily Johnson</td>
+                          <td>QA Lead</td>
+                          <td>QA</td>
+                          <td>Direct Deposit</td>
+                        </tr>
+                        <tr>
+                          <td><code>EMP-008</code></td>
+                          <td>Peter Parker</td>
+                          <td>Photographer</td>
+                          <td>Editorial</td>
+                          <td>Check</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )
+          })() : currentModule === 'dashboard' ? (() => {
             /* ── Dashboard computed values ── */
             const today = new Date()
             const todayLabel = today.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
