@@ -385,49 +385,664 @@ button{font:inherit}
 @media print{.shell,.tabs,.rail,.foot,.docbar .btn{display:none!important}body{background:#fff}.wrap{padding:0;max-width:none}.screen{box-shadow:none;border-color:#ccc;margin-bottom:14px}}
 
 .app-shell.login-mode{padding-left:0!important}
-.app-shell.login-mode .wrap{padding:0;max-width:none;margin:0}
+/* ── Fullscreen Premium Login Layout ── */
+.portal-login-fullscreen {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--ink);
+}
 
-/* ── Portal Login ── */
-.portal-login-container{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);padding:20px}
-.login-card{background:#1e1e3a;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.5);padding:48px 40px;width:100%;max-width:480px;border:1px solid rgba(236,27,141,.2)}
-.login-header{margin-bottom:36px;position:relative}
-.back-btn{appearance:none;background:none;border:none;position:absolute;top:-8px;left:-8px;font-size:20px;cursor:pointer;color:#999;padding:8px;transition:color .2s ease}
-.back-btn:hover{color:#fff}
-.login-logo{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-deep));color:#fff;display:grid;place-items:center;font-size:32px;font-weight:800;margin:0 auto 20px;box-shadow:0 4px 12px rgba(236,27,141,.3)}
-.login-logo-pynk{width:72px;height:72px;border-radius:12px;background:linear-gradient(135deg,#FF1493,#EC1B8D);color:#fff;display:grid;place-items:center;font-size:24px;font-weight:900;margin:0 auto 24px;box-shadow:0 8px 24px rgba(236,27,141,.4);letter-spacing:1px}
-.pynk-logo-text{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;font-weight:900;letter-spacing:2px}
-.login-logo-image{width:120px;height:auto;margin:0 auto 28px;display:block}
-.pynk-title{margin:0 0 12px;font-size:28px;font-weight:800;color:#fff;text-align:center;line-height:1.3}
-.pynk-tagline{margin:16px 0 0;font-size:14px;color:#999;text-align:center;line-height:1.6;font-style:italic}
-.login-header h1{margin:0 0 8px;font-size:26px;font-weight:700;color:#fff;text-align:center}
-.login-subtitle{margin:0;font-size:15px;color:#aaa;text-align:center;line-height:1.5}
+.login-sidebar {
+  width: 45%;
+  background: #f8fafc; /* Premium light sidebar background */
+  padding: 48px 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-right: 1px solid #e2e8f0;
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+}
 
-/* Role Selection Step */
-.login-roles{display:grid;gap:12px;margin-bottom:0}
-.role-card{appearance:none;background:#2a2a48;border:1px solid #3a3a5a;border-radius:10px;padding:18px 20px;cursor:pointer;transition:all .2s ease;display:flex;align-items:center;gap:14px;font-family:inherit;text-align:left}
-.role-card:hover{border-color:var(--primary);background:#363655;transform:translateX(2px)}
-.role-card:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-.role-icon{font-size:32px;flex:0 0 auto;line-height:1}
-.role-info{flex:1}
-.role-label{margin:0 0 4px;font-size:15px;font-weight:600;color:#fff}
-.role-desc{margin:0;font-size:13px;color:#aaa;line-height:1.4}
-.role-arrow{font-size:16px;color:var(--primary);opacity:0;transition:opacity .2s ease,transform .2s ease}
-.role-card:hover .role-arrow{opacity:1;transform:translateX(4px)}
+/* Dark mode overrides for sidebar */
+html:not(.light-mode) .login-sidebar {
+  background: #0d0e15;
+  border-right: 1px solid #1f202f;
+}
 
-/* Credentials Form Step */
-.login-form{display:grid;gap:18px;margin-bottom:24px}
-.form-group{display:flex;flex-direction:column;gap:8px;text-align:left}
-.form-group label{font-size:13px;font-weight:600;color:#fff;display:block}
-.form-input{appearance:none;background:#2a2a48;border:1px solid #3a3a5a;border-radius:8px;padding:11px 14px;font-family:inherit;font-size:14px;color:#fff;width:100%;transition:all .2s ease}
-.form-input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(236,27,141,.1)}
-.form-input::placeholder{color:#666}
+.login-sidebar-logo {
+  height: 38px;
+  width: auto;
+  object-fit: contain;
+}
 
-.btn-login{appearance:none;background:linear-gradient(135deg,var(--primary),var(--primary-deep));border:none;border-radius:8px;padding:12px 16px;font-family:inherit;font-size:15px;font-weight:600;color:#fff;cursor:pointer;width:100%;transition:all .2s ease;box-shadow:0 2px 8px rgba(236,27,141,.2)}
-.btn-login:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 4px 16px rgba(236,27,141,.35)}
-.btn-login:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-.btn-login:disabled{opacity:.5;cursor:not-allowed}
+.sidebar-middle {
+  margin: auto 0;
+  padding: 40px 0;
+}
 
-.login-footer{text-align:center;padding-top:12px;border-top:1px solid #3a3a5a}
+.sidebar-heading {
+  font-size: 38px;
+  font-weight: 800;
+  line-height: 1.25;
+  margin: 0 0 16px;
+  color: #0f172a;
+}
+
+html:not(.light-mode) .sidebar-heading {
+  color: #ffffff;
+}
+
+.sidebar-desc {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #475569;
+  margin: 0 0 40px;
+  max-width: 90%;
+}
+
+html:not(.light-mode) .sidebar-desc {
+  color: #94a3b8;
+}
+
+.copyright-txt {
+  font-size: 13px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.login-main {
+  width: 55%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  background: #ffffff;
+  overflow-y: auto;
+}
+
+html:not(.light-mode) .login-main {
+  background: #13141f;
+}
+
+.login-box-container {
+  width: 100%;
+  max-width: 460px;
+}
+
+.login-box-card {
+  padding: 10px;
+}
+
+.login-box-header {
+  margin-bottom: 32px;
+}
+
+.portal-badge-label {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--primary);
+  background: rgba(236,27,141,0.08);
+  padding: 4px 10px;
+  border-radius: 999px;
+  margin-bottom: 12px;
+  letter-spacing: 0.5px;
+}
+
+.portal-badge-label.highlight {
+  background: linear-gradient(135deg, rgba(236,27,141,0.15) 0%, rgba(236,27,141,0.05) 100%);
+  border: 1px solid rgba(236,27,141,0.2);
+}
+
+.login-box-header h2 {
+  font-size: 30px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 8px;
+}
+
+html:not(.light-mode) .login-box-header h2 {
+  color: #ffffff;
+}
+
+.subtitle-txt {
+  font-size: 15px;
+  color: #64748b;
+  margin: 0;
+}
+
+html:not(.light-mode) .subtitle-txt {
+  color: #94a3b8;
+}
+
+/* Back to Roles Button */
+.back-to-roles-btn {
+  appearance: none;
+  background: none;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  padding: 6px 0;
+  margin-bottom: 20px;
+  display: block;
+  transition: color 0.15s ease;
+}
+
+.back-to-roles-btn:hover {
+  color: var(--primary);
+}
+
+/* CSS Vector Illustration Mockup */
+.sidebar-illustration {
+  margin-top: 20px;
+  perspective: 1000px;
+}
+
+.mockup-frame {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.04);
+  padding: 16px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+html:not(.light-mode) .mockup-frame {
+  background: #1e1f2e;
+  border-color: #2e304f;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+}
+
+.mockup-header {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.mockup-header .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.mockup-header .dot-red { background: #f87171; }
+.mockup-header .dot-yellow { background: #fbbf24; }
+.mockup-header .dot-green { background: #34d399; }
+
+.mockup-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mockup-row {
+  display: flex;
+  gap: 12px;
+}
+
+.mockup-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+html:not(.light-mode) .mockup-card {
+  background: #161723;
+  border-color: #2a2a3e;
+}
+
+.circular-card {
+  flex: 1.3;
+}
+
+.mockup-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: conic-gradient(var(--primary) 70%, #e2e8f0 0);
+  display: grid;
+  place-items: center;
+}
+
+html:not(.light-mode) .mockup-circle {
+  background: conic-gradient(var(--primary) 70%, #2a2a3e 0);
+}
+
+.mockup-circle-inner {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #ffffff;
+}
+
+html:not(.light-mode) .mockup-circle-inner {
+  background: #1e1f2e;
+}
+
+.mockup-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.mockup-line {
+  height: 6px;
+  border-radius: 3px;
+  background: #cbd5e1;
+}
+
+html:not(.light-mode) .mockup-line {
+  background: #3a3b56;
+}
+
+.mockup-line.long { width: 85%; }
+.mockup-line.medium { width: 55%; }
+
+.profile-card {
+  flex: 0.9;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+}
+
+.mockup-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FF1493, #EC1B8D);
+}
+
+.mockup-rating {
+  font-size: 8px;
+  color: #eab308;
+  letter-spacing: 1px;
+}
+
+.stats-card {
+  position: relative;
+  justify-content: space-between;
+  padding: 16px;
+}
+
+.mockup-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 40px;
+}
+
+.mockup-bar {
+  width: 14px;
+  background: #94a3b8;
+  border-radius: 3px 3px 0 0;
+  transition: height 0.3s ease;
+}
+
+html:not(.light-mode) .mockup-bar {
+  background: #475569;
+}
+
+.mockup-bar.bar-1 { height: 18px; background: var(--primary); }
+.mockup-bar.bar-2 { height: 28px; }
+.mockup-bar.bar-3 { height: 38px; }
+.mockup-bar.bar-4 { height: 22px; }
+.mockup-bar.bar-5 { height: 32px; background: var(--primary-deep); }
+
+.mockup-lock-badge {
+  font-size: 16px;
+  background: rgba(236,27,141,0.1);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+
+/* Role Selection List */
+.login-roles-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.role-selection-card {
+  appearance: none;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 20px 24px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  width: 100%;
+  font-family: inherit;
+  text-align: left;
+}
+
+html:not(.light-mode) .role-selection-card {
+  background: #1a1b26;
+  border-color: #2a2c3f;
+}
+
+.role-selection-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.04);
+}
+
+html:not(.light-mode) .role-selection-card:hover {
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+.role-selection-icon {
+  font-size: 34px;
+  flex: 0 0 auto;
+}
+
+.role-selection-info {
+  flex: 1;
+}
+
+.role-selection-label {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 4px;
+}
+
+html:not(.light-mode) .role-selection-label {
+  color: #ffffff;
+}
+
+.role-selection-desc {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.4;
+}
+
+html:not(.light-mode) .role-selection-desc {
+  color: #94a3b8;
+}
+
+.role-selection-arrow {
+  font-size: 16px;
+  color: var(--primary);
+  transform: translateX(0);
+  transition: transform 0.2s ease;
+}
+
+.role-selection-card:hover .role-selection-arrow {
+  transform: translateX(6px);
+}
+
+/* Credentials Forms */
+.login-form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+
+.form-input-group label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #334155;
+}
+
+html:not(.light-mode) .form-input-group label {
+  color: #cbd5e1;
+}
+
+.input-field-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-field-icon {
+  position: absolute;
+  left: 14px;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+
+.form-control-input {
+  appearance: none;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 12px 14px 12px 42px;
+  font-family: inherit;
+  font-size: 14.5px;
+  color: #0f172a;
+  width: 100%;
+  transition: all 0.2s ease;
+}
+
+html:not(.light-mode) .form-control-input {
+  background: #1a1b26;
+  border-color: #2a2c3f;
+  color: #ffffff;
+}
+
+.form-control-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(236,27,141,0.08);
+}
+
+.form-control-input::placeholder {
+  color: #94a3b8;
+}
+
+/* Eye Password visibility trigger */
+.password-toggle-trigger {
+  appearance: none;
+  background: none;
+  border: none;
+  position: absolute;
+  right: 14px;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease;
+}
+
+.password-toggle-trigger:hover {
+  color: var(--primary);
+}
+
+/* Extra options (checkbox & forgot link) */
+.form-extra-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13.5px;
+}
+
+.checkbox-container-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #475569;
+  cursor: pointer;
+  user-select: none;
+}
+
+html:not(.light-mode) .checkbox-container-label {
+  color: #94a3b8;
+}
+
+.checkbox-container-label input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.forgot-password-link {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+  transition: opacity 0.15s ease;
+}
+
+.forgot-password-link:hover {
+  opacity: 0.85;
+}
+
+/* Submit and SSO Buttons */
+.btn-primary-submit {
+  appearance: none;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-deep) 100%);
+  border: none;
+  border-radius: 10px;
+  padding: 14px 20px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(236,27,141,0.15);
+}
+
+.btn-primary-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(236,27,141,0.3);
+}
+
+.btn-primary-submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.login-divider-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 24px 0;
+}
+
+.divider-line {
+  flex: 1;
+  height: 1px;
+  background: #cbd5e1;
+}
+
+html:not(.light-mode) .divider-line {
+  background: #2a2c3f;
+}
+
+.divider-text {
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.btn-sso-outline {
+  appearance: none;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 13px 20px;
+  font-family: inherit;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+html:not(.light-mode) .btn-sso-outline {
+  background: #1a1b26;
+  border-color: #2a2c3f;
+  color: #cbd5e1;
+}
+
+.btn-sso-outline:hover {
+  background: #f8fafc;
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+html:not(.light-mode) .btn-sso-outline:hover {
+  background: #212232;
+  color: #ffffff;
+}
+
+.login-box-footer {
+  text-align: center;
+  margin-top: 32px;
+}
+
+.version-txt {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+/* Responsive splits */
+@media (max-width: 1024px) {
+  .portal-login-fullscreen {
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .login-sidebar {
+    width: 100%;
+    height: auto;
+    padding: 32px 24px;
+    border-right: none;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  html:not(.light-mode) .login-sidebar {
+    border-bottom: 1px solid #1f202f;
+  }
+  .sidebar-illustration {
+    display: none; /* Hide large dashboard on smaller screens */
+  }
+  .sidebar-middle {
+    padding: 16px 0;
+  }
+  .login-main {
+    width: 100%;
+    height: auto;
+    padding: 40px 24px 80px;
+  }
+}
 .help-text{margin:0;font-size:12px;color:#888;line-height:1.5}
 
 /* ── Portal Layout ── */
