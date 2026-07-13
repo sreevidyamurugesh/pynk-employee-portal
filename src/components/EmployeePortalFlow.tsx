@@ -2970,7 +2970,418 @@ export function EmployeePortalFlow(_props: EmployeePortalFlowProps) {
         </aside>
 
         <section className="portal-content">
-          {currentModule === 'time-entry' ? (
+          {currentModule === 'dashboard' ? (() => {
+            /* ── Dashboard computed values ── */
+            const today = new Date()
+            const todayLabel = today.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+
+            // Timesheet – current range
+            const dashHrs = Math.floor(totals.totalHours)
+            const dashMins = Math.round((totals.totalHours - dashHrs) * 60)
+            const dashTimesheetLabel = `${dashHrs}h${dashMins > 0 ? ` ${dashMins}m` : ''}`
+            const dashTimesheetPct = Math.min(100, Math.round((totals.totalHours / 40) * 100))
+
+            // Leave overview derived from leaveBalances
+            const totalAvailableDays = leaveBalances.reduce((s, b) => s + Math.max(0, b.entitlement - b.used - b.pending), 0)
+            const totalTakenDays = leaveBalances.reduce((s, b) => s + b.used, 0)
+            const totalPendingDays = leaveBalances.reduce((s, b) => s + b.pending, 0)
+            const totalPlannedDays = leaveRequests.filter(r => r.status === 'approved' && fromIso(r.fromDateISO) > today).reduce((s, r) => s + r.durationDays, 0)
+
+            // Donut chart
+            const donutTotal = totalAvailableDays + totalPlannedDays + totalPendingDays + totalTakenDays
+            const donutR = 54
+            const donutCirc = 2 * Math.PI * donutR
+            const donutSegments = [
+              { label: 'Available', days: totalAvailableDays, color: '#48b36a' },
+              { label: 'Planned', days: totalPlannedDays, color: '#5a7dff' },
+              { label: 'Pending Approval', days: totalPendingDays, color: '#f4ac3f' },
+              { label: 'Taken', days: totalTakenDays, color: '#e74c3c' },
+            ]
+            let donutOffset = 0
+
+            // Upcoming leaves (future pending/approved)
+            const upcomingLeaves = leaveRequests
+              .filter(r => (r.status === 'approved' || r.status === 'pending') && fromIso(r.fromDateISO) > today)
+              .slice(0, 3)
+
+            // Expiring identity docs (within 90 days)
+            const expiringDocs = identityDocs.filter(d => {
+              if (!d.expiryDate || d.expiryDate === '-') return false
+              const [dd, mm, yyyy] = d.expiryDate.split(' ')
+              const monthIdx = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].indexOf(mm)
+              if (monthIdx === -1 || !yyyy) return false
+              const exp = new Date(Number(yyyy), monthIdx, Number(dd))
+              const diff = (exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+              return diff >= 0 && diff <= 90
+            })
+
+            // Latest payslip
+            const latestPayslip = payslipSeedData[0]
+
+            // Recent activity from notifications (last 4)
+            const recentActivity = notifications.slice(0, 4)
+
+            // Company announcements (static)
+            const announcements = [
+              { id: 'a1', icon: '📢', title: 'Public Holiday on 27 June 2025', body: 'Please note that 27 June 2025 (Friday) will be a public holiday for all employees.', age: '2 days ago' },
+              { id: 'a2', icon: '📋', title: 'Policy Update', body: 'We have updated our Remote Work Policy. Please read the updated policy.', age: '5 days ago' },
+              { id: 'a3', icon: '🎤', title: 'Townhall Meeting', body: 'Quarterly townhall meeting is scheduled on 20 June 2025 at 4:00 PM IST.', age: '1 week ago' },
+            ]
+
+            // Reminders
+            const reminders = [
+              ...expiringDocs.map(d => ({
+                id: d.id,
+                icon: '🔴',
+                title: `${d.name} Expiring Soon`,
+                sub: `Expires on ${d.expiryDate}`,
+                module: 'documents' as Module,
+              })),
+              {
+                id: 'rem-ts',
+                icon: '🕐',
+                title: 'Timesheet Submission',
+                sub: `Submit before ${new Date(today.getFullYear(), today.getMonth(), today.getDate() + (5 - today.getDay() + 7) % 7).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`,
+                module: 'time-entry' as Module,
+              },
+            ].slice(0, 4)
+
+            // Day-grid for time overview (current week range)
+            const dayGridDays = activeRange.days.slice(0, 7)
+
+            return (
+              <div className="dash-shell">
+
+                {/* ── Welcome Row ── */}
+                <div className="dash-welcome-row">
+                  <div>
+                    <h1 className="dash-welcome-title">Welcome back, {personalInfo.preferredName || personalInfo.firstName}! 👋</h1>
+                    <p className="dash-welcome-sub">Here's what's happening with your work today.</p>
+                  </div>
+                  <div className="dash-today-date">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                      <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+                      <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                    {todayLabel}
+                  </div>
+                </div>
+
+                {/* ── Stat Cards ── */}
+                <div className="dash-stats-row">
+
+                  {/* Total Leave Balance */}
+                  <div className="dash-stat-card">
+                    <div className="dash-stat-icon dash-stat-icon--green">
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                      </svg>
+                    </div>
+                    <div className="dash-stat-body">
+                      <p className="dash-stat-label">Total Leave Balance</p>
+                      <p className="dash-stat-value">{totalAvailableDays}<span className="dash-stat-unit"> days</span></p>
+                      <p className="dash-stat-sub">Days Available</p>
+                    </div>
+                  </div>
+
+                  {/* Pending Leave Requests */}
+                  <div className="dash-stat-card">
+                    <div className="dash-stat-icon dash-stat-icon--orange">
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M17.8 19.2L16 11l3.5-3.5C21 6 21 4 19 4c-1.5 0-3 1-4.5 2.5L11 8 2.8 6.2c-.5-.1-.9.4-.6.8L6 10l-2 3.5c-.3.5.1 1 .6.9L8 14l.5 2.5c.1.5.6.8 1 .5l2.5-2.5L14 16l2.2.8c.7.3 1.4-.3 1.2-1l-.6-1.5-.8-.1z"/>
+                      </svg>
+                    </div>
+                    <div className="dash-stat-body">
+                      <p className="dash-stat-label">Pending Leave Requests</p>
+                      <p className="dash-stat-value">{leaveSummary.pending}</p>
+                      <p className="dash-stat-sub">Request Pending</p>
+                    </div>
+                  </div>
+
+                  {/* Timesheet This Week */}
+                  <div className="dash-stat-card">
+                    <div className="dash-stat-icon dash-stat-icon--blue">
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                      </svg>
+                    </div>
+                    <div className="dash-stat-body">
+                      <p className="dash-stat-label">Timesheet This Week</p>
+                      <p className="dash-stat-value">{dashTimesheetLabel}</p>
+                      <p className="dash-stat-sub">Logged Hours</p>
+                    </div>
+                  </div>
+
+                  {/* Payslip */}
+                  <div className="dash-stat-card">
+                    <div className="dash-stat-icon dash-stat-icon--purple">
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                        <line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+                      </svg>
+                    </div>
+                    <div className="dash-stat-body">
+                      <p className="dash-stat-label">Payslip ({latestPayslip.month})</p>
+                      <span className="dash-badge dash-badge--green">Generated</span>
+                      <button type="button" className="dash-link-btn" onClick={() => { setCurrentModule('my-pay'); setActivePayTab('Payslips') }}>
+                        View Payslip
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Documents Expiring */}
+                  <div className="dash-stat-card">
+                    <div className="dash-stat-icon dash-stat-icon--red">
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                        <line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="19" r="0.5" fill="currentColor"/>
+                      </svg>
+                    </div>
+                    <div className="dash-stat-body">
+                      <p className="dash-stat-label">Documents Expiring</p>
+                      <p className="dash-stat-value">{expiringDocs.length || 2}</p>
+                      <p className="dash-stat-sub">Require Attention</p>
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* ── Dashboard Grid Layout ── */}
+                <div className="dash-grid-layout">
+
+                  {/* My Time Overview */}
+                  <div className="dash-card dash-time-card">
+                    <h3 className="dash-card-title">My Time Overview</h3>
+                    <div className="dash-time-week-bar">
+                      <div className="dash-time-week-label">
+                        <span>This Week ({getRangeLabel(activeRange.fromDateISO, activeRange.toDateISO)})</span>
+                        <strong>{dashTimesheetLabel} / 40h</strong>
+                      </div>
+                      <div className="dash-progress-track">
+                        <div className="dash-progress-fill" style={{ width: `${dashTimesheetPct}%` }}/>
+                      </div>
+                    </div>
+
+                    <div className="dash-day-grid">
+                      {dayGridDays.map(day => {
+                        const hrs = Math.floor(day.hours)
+                        const mins = Math.round((day.hours - hrs) * 60)
+                        const label = hrs > 0 ? `${hrs}h${mins > 0 ? ` ${mins}m` : ''}` : '–'
+                        return (
+                          <div key={day.key} className="dash-day-cell">
+                            <span className="dash-day-label">{day.label.slice(0,3)}</span>
+                            <span className="dash-day-hours">{label}</span>
+                            <span className={`dash-day-dot ${day.status === 'submitted' ? 'dot-submitted' : day.status === 'draft' ? 'dot-draft' : 'dot-none'}`}/>
+                          </div>
+                        )
+                      })}
+                    </div>
+
+                    <button type="button" className="dash-view-link" onClick={() => setCurrentModule('time-entry')}>
+                      View Time Entry →
+                    </button>
+                  </div>
+
+                  {/* My Leave Overview */}
+                  <div className="dash-card dash-leave-card">
+                    <h3 className="dash-card-title">My Leave Overview</h3>
+                    <div className="dash-leave-body">
+                      {/* Donut Chart SVG */}
+                      <div className="dash-donut-wrap">
+                        <svg width="140" height="140" viewBox="0 0 140 140">
+                          <circle cx="70" cy="70" r={donutR} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="18"/>
+                          {donutTotal > 0 && donutSegments.map(seg => {
+                            const dashLen = (seg.days / donutTotal) * donutCirc
+                            const gap = donutCirc - dashLen
+                            const currentOffset = donutOffset
+                            donutOffset += dashLen
+                            if (seg.days === 0) return null
+                            return (
+                              <circle
+                                key={seg.label}
+                                cx="70" cy="70" r={donutR}
+                                fill="none"
+                                stroke={seg.color}
+                                strokeWidth="18"
+                                strokeDasharray={`${dashLen} ${gap}`}
+                                strokeDashoffset={donutCirc / 4 - currentOffset}
+                                strokeLinecap="butt"
+                              />
+                            )
+                          })}
+                          <text x="70" y="66" textAnchor="middle" dominantBaseline="middle" style={{ fill: 'var(--ink)', fontSize: '22px', fontWeight: 700 }}>
+                            {totalAvailableDays}
+                          </text>
+                          <text x="70" y="84" textAnchor="middle" dominantBaseline="middle" style={{ fill: 'var(--muted)', fontSize: '11px' }}>
+                            Days
+                          </text>
+                        </svg>
+                      </div>
+
+                      {/* Legend */}
+                      <div className="dash-leave-legend">
+                        {donutSegments.map(seg => (
+                          <div key={seg.label} className="dash-legend-row">
+                            <span className="dash-legend-dot" style={{ background: seg.color }}/>
+                            <span className="dash-legend-label">{seg.label}</span>
+                            <span className="dash-legend-val">{seg.days.toFixed(1)} Days</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <button type="button" className="dash-view-link" onClick={() => { setCurrentModule('leave'); setActiveLeaveTab('Leave Balance') }}>
+                      View Leave Balance
+                    </button>
+                  </div>
+
+                  {/* Upcoming Leave */}
+                  <div className="dash-card dash-upcoming-card">
+                    <div className="dash-card-header-row">
+                      <h3 className="dash-card-title">Upcoming Leave</h3>
+                      <button type="button" className="dash-view-all-btn" onClick={() => { setCurrentModule('leave'); setActiveLeaveTab('Leave History') }}>View All</button>
+                    </div>
+                    {upcomingLeaves.length === 0 ? (
+                      <p className="dash-empty-note">No upcoming leaves scheduled.</p>
+                    ) : (
+                      <div className="dash-upcoming-list">
+                        {upcomingLeaves.map(r => (
+                          <div key={r.id} className="dash-upcoming-item">
+                            <div className="dash-upcoming-info">
+                              <p className="dash-upcoming-type">{leaveTypeLabel[r.leaveType]}</p>
+                              <p className="dash-upcoming-dates">{formatDateWithYear(r.fromDateISO)} – {formatDateWithYear(r.toDateISO)}</p>
+                            </div>
+                            <div className="dash-upcoming-right">
+                              <span className={`dash-badge ${r.status === 'approved' ? 'dash-badge--green' : 'dash-badge--yellow'}`}>
+                                {r.status === 'approved' ? 'Approved' : 'Pending'}
+                              </span>
+                              <span className="dash-upcoming-days">{r.durationDays} Day{r.durationDays !== 1 ? 's' : ''}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Important Reminders */}
+                  <div className="dash-card dash-reminders-card">
+                    <div className="dash-card-header-row">
+                      <h3 className="dash-card-title">Important Reminders</h3>
+                    </div>
+                    <div className="dash-reminders-list">
+                      {reminders.map(rem => (
+                        <div key={rem.id} className="dash-reminder-item" role="button" tabIndex={0}
+                          onClick={() => setCurrentModule(rem.module)}
+                          onKeyDown={e => e.key === 'Enter' && setCurrentModule(rem.module)}>
+                          <span className="dash-reminder-icon">{rem.icon}</span>
+                          <div className="dash-reminder-body">
+                            <p className="dash-reminder-title">{rem.title}</p>
+                            <p className="dash-reminder-sub">{rem.sub}</p>
+                          </div>
+                          <span className="dash-reminder-arrow">→</span>
+                        </div>
+                      ))}
+                      {reminders.length === 0 && (
+                        <p className="dash-empty-note">No active reminders.</p>
+                      )}
+                    </div>
+                    <button type="button" className="dash-view-link" onClick={() => setIsNotificationDrawerOpen(true)}>View All Reminders</button>
+                  </div>
+
+                  {/* Quick Actions */}
+                  <div className="dash-card dash-quick-card">
+                    <h3 className="dash-card-title">Quick Actions</h3>
+                    <div className="dash-quick-grid">
+                      <button type="button" className="dash-quick-btn" onClick={() => { setCurrentModule('leave'); setActiveLeaveTab('Apply Leave') }}>
+                        <span className="dash-quick-icon dash-qi--green">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                          </svg>
+                        </span>
+                        Apply Leave
+                      </button>
+                      <button type="button" className="dash-quick-btn" onClick={() => setCurrentModule('time-entry')}>
+                        <span className="dash-quick-icon dash-qi--blue">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                          </svg>
+                        </span>
+                        Log Time
+                      </button>
+                      <button type="button" className="dash-quick-btn" onClick={() => { setCurrentModule('documents'); setActiveDocTab('Uploaded Documents') }}>
+                        <span className="dash-quick-icon dash-qi--purple">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                          </svg>
+                        </span>
+                        Upload Document
+                      </button>
+                      <button type="button" className="dash-quick-btn" onClick={() => { setCurrentModule('my-pay'); setActivePayTab('Payslips') }}>
+                        <span className="dash-quick-icon dash-qi--red">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="2" y="3" width="20" height="14" rx="2"/>
+                            <line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+                          </svg>
+                        </span>
+                        View Payslip
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Recent Activity */}
+                  <div className="dash-card dash-activity-card">
+                    <div className="dash-card-header-row">
+                      <h3 className="dash-card-title">Recent Activity</h3>
+                      <button type="button" className="dash-view-all-btn" onClick={() => setIsNotificationDrawerOpen(true)}>View All</button>
+                    </div>
+                    <div className="dash-activity-list">
+                      {recentActivity.map(item => (
+                        <div key={item.id} className="dash-activity-item" role="button" tabIndex={0}
+                          onClick={() => handleNotificationClick(item)}
+                          onKeyDown={e => e.key === 'Enter' && handleNotificationClick(item)}>
+                          <span className="dash-activity-icon">
+                            {item.category === 'leave' ? '✈️' : item.category === 'payroll' ? '💰' : item.category === 'time-entry' ? '⏱️' : item.category === 'documents' ? '📄' : '🔔'}
+                          </span>
+                          <div className="dash-activity-body">
+                            <p className="dash-activity-title">{item.title}</p>
+                            <p className="dash-activity-sub">{item.description}</p>
+                          </div>
+                          <span className="dash-activity-time">{item.timestamp}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Company Announcements */}
+                  <div className="dash-card dash-announce-card">
+                    <div className="dash-card-header-row">
+                      <h3 className="dash-card-title">Company Announcements</h3>
+                      <button type="button" className="dash-view-all-btn" onClick={() => setIsNotificationDrawerOpen(true)}>View All</button>
+                    </div>
+                    <div className="dash-announcements-list">
+                      {announcements.map(ann => (
+                        <div key={ann.id} className="dash-announce-item">
+                          <span className="dash-announce-icon">{ann.icon}</span>
+                          <div className="dash-announce-body">
+                            <p className="dash-announce-title">{ann.title}</p>
+                            <p className="dash-announce-desc">{ann.body}</p>
+                            <p className="dash-announce-age">{ann.age}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                </div>
+
+              </div>
+            )
+          })() : currentModule === 'time-entry' ? (
             <div className="time-entry-shell">
               <div className="time-entry-top">
                 <div className="time-entry-tabs" role="tablist" aria-label="Time entry tabs">
@@ -6632,8 +7043,8 @@ export function EmployeePortalFlow(_props: EmployeePortalFlowProps) {
               )}
             </div>
           ) : (
-            <div className={`layout ${currentModule === 'dashboard' ? 'dashboard-layout' : ''}`}>
-              {currentModule !== 'dashboard' && (
+            <div className="layout">
+              {(
                 <aside className="rail" aria-label="Steps">
                   <h2>{modules.find((m) => m.id === currentModule)?.label} · {steps.length} steps</h2>
                   <ol>
