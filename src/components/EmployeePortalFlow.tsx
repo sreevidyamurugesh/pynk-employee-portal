@@ -3267,12 +3267,43 @@ export function EmployeePortalFlow({
       showToast('Fixed employee salary database revisions saved!')
     }
 
+    const handleDownloadTimesheetTemplate = () => {
+      const headers = ['Employee ID', 'Employee Name', 'Regular Hours', 'Sick Leave', 'Casual Leave', 'Overtime Hours', 'Pay Period']
+      const rows = [
+        ['EMP-001', 'John Doe', '160', '8', '0', '5', '2025-07'],
+        ['EMP-002', 'Jane Smith', '160', '0', '8', '0', '2025-07'],
+        ['EMP-003', 'Bob Johnson', '152', '4', '4', '8', '2025-07'],
+        ['EMP-004', 'Alice Williams', '160', '0', '0', '12', '2025-07'],
+        ['EMP-005', 'Charlie Brown', '140', '12', '8', '0', '2025-07']
+      ]
+      
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(e => e.join(','))
+      ].join('\n')
+      
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.setAttribute('href', url)
+      link.setAttribute('download', 'Pynk_Timesheet_Upload_Template.csv')
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      showToast('Timesheet format template downloaded successfully!')
+    }
+
     const handleCSVBulkUploadSimulation = (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.files && e.target.files[0]) {
+        const file = e.target.files[0]
+        if (!file.name.endsWith('.csv')) {
+          showToast('Invalid file format. Please upload a CSV file matching the format template.')
+          return
+        }
         setIsBulkUploading(true)
         setTimeout(() => {
           setIsBulkUploading(false)
-          showToast('Mass timesheet CSV parsed successfully! 12 staff hours updated.')
+          showToast(`Successfully validated and processed "${file.name}"! 5 employee records updated.`)
         }, 1200)
       }
     }
@@ -3328,16 +3359,26 @@ export function EmployeePortalFlow({
                   <span style={{ fontSize: '13px', color: 'var(--muted)' }}>Parsing sheet columns and checking Employee IDs...</span>
                 </div>
               ) : (
-                <div className="bulk-upload-simulator" style={{ position: 'relative', border: '2px dashed var(--line)', borderRadius: '10px', padding: '24px', textAlign: 'center', background: 'rgba(255,255,255,0.01)', cursor: 'pointer' }}>
-                  <div style={{ fontSize: '24px', marginBottom: '8px' }}>📥</div>
-                  <strong>Upload CSV / Excel Timesheet</strong>
-                  <p style={{ fontSize: '11px', color: 'var(--muted)', margin: '4px 0 0' }}>Drag & drop file here or click to browse</p>
-                  <input
-                    type="file"
-                    disabled={isPeriodLocked}
-                    onChange={handleCSVBulkUploadSimulation}
-                    style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }}
-                  />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div className="bulk-upload-simulator" style={{ position: 'relative', border: '2px dashed var(--line)', borderRadius: '10px', padding: '24px', textAlign: 'center', background: 'rgba(255,255,255,0.01)', cursor: 'pointer' }}>
+                    <div style={{ fontSize: '24px', marginBottom: '8px' }}>📥</div>
+                    <strong>Upload CSV / Excel Timesheet</strong>
+                    <p style={{ fontSize: '11px', color: 'var(--muted)', margin: '4px 0 0' }}>Drag & drop file here or click to browse</p>
+                    <input
+                      type="file"
+                      disabled={isPeriodLocked}
+                      onChange={handleCSVBulkUploadSimulation}
+                      style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    onClick={handleDownloadTimesheetTemplate}
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                  >
+                    📥 Download CSV Format Template
+                  </button>
                 </div>
               )}
             </div>

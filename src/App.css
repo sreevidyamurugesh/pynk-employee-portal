@@ -3882,5 +3882,46 @@ body, .app-shell, .portal-layout, aside, section, header, table, tr, td, th, h1,
   color: #4b5563 !important;
 }
 
+/* Contrast improvements for light mode forms, select tags, and dropdown option values */
+.light-mode input,
+.light-mode select,
+.light-mode textarea,
+.light-mode option {
+  background-color: #ffffff !important;
+  color: #111827 !important;
+  border-color: #cbd5e1 !important;
+}
+
+.light-mode input::placeholder,
+.light-mode select::placeholder,
+.light-mode textarea::placeholder {
+  color: #64748b !important;
+  opacity: 1 !important;
+}
+
+.light-mode .form-input,
+.light-mode .form-control-input,
+.light-mode select.form-input {
+  background-color: #ffffff !important;
+  color: #111827 !important;
+  border-color: #cbd5e1 !important;
+}
+
+.light-mode select,
+.light-mode .admin-filters-bar select,
+.light-mode .admin-filters-bar input,
+.light-mode .filter-input-group select,
+.light-mode .filter-input-group input {
+  background-color: #ffffff !important;
+  color: #111827 !important;
+  border-color: #cbd5e1 !important;
+}
+
+.light-mode select option {
+  background-color: #ffffff !important;
+  color: #111827 !important;
+}
+
+
 
 
