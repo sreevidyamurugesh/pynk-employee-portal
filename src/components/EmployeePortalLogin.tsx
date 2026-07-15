@@ -23,8 +23,8 @@ export function EmployeePortalLogin({ onLogin, themeMode, toggleTheme }: Employe
 
   const roleInfo: Record<'employee' | 'admin' | 'client', { icon: string; label: string; desc: string; badge: string }> = {
     employee: { icon: '👤', label: 'Employee Portal', desc: 'Access payroll, leave, documents', badge: 'Employee Portal' },
-    admin: { icon: '👨‍💼', label: 'Admin Portal', desc: 'Payroll Operations & Workforce Management', badge: 'Admin Portal' },
     client: { icon: '🏢', label: 'Client Portal', desc: 'View employee & team data', badge: 'Client Portal' },
+    admin: { icon: '👨‍💼', label: 'Admin Portal', desc: 'Payroll Operations & Workforce Management', badge: 'Admin Portal' },
   }
 
   const handleRoleSelect = (type: UserType) => {
@@ -66,11 +66,11 @@ export function EmployeePortalLogin({ onLogin, themeMode, toggleTheme }: Employe
           <div className="sidebar-top">
             <img src={activeLogo} alt="Pynk" className="login-sidebar-logo" />
           </div>
-          
+
           <div className="sidebar-middle">
             <h1 className="sidebar-heading">{dynamicTitle}</h1>
             <p className="sidebar-desc">{dynamicDesc}</p>
-            
+
             {/* Premium CSS Vector Illustration mockup */}
             <div className="sidebar-illustration">
               <div className="mockup-frame">
@@ -109,7 +109,7 @@ export function EmployeePortalLogin({ onLogin, themeMode, toggleTheme }: Employe
               </div>
             </div>
           </div>
-          
+
           <div className="sidebar-bottom">
             <p className="copyright-txt">© 2026 Pynk Worldwide · All rights reserved</p>
           </div>
@@ -127,7 +127,7 @@ export function EmployeePortalLogin({ onLogin, themeMode, toggleTheme }: Employe
                 </div>
 
                 <div className="login-roles-list">
-                  {(['employee', 'admin', 'client'] as const).map((role) => (
+                  {(['employee', 'client', 'admin'] as const).map((role) => (
                     <button
                       key={role}
                       className="role-selection-card"
@@ -248,7 +248,7 @@ export function EmployeePortalLogin({ onLogin, themeMode, toggleTheme }: Employe
                     Sign In
                   </button>
                 </form>
-                
+
                 <div className="login-box-footer">
                   <p className="version-txt">Version 1.0.0</p>
                 </div>
@@ -257,7 +257,7 @@ export function EmployeePortalLogin({ onLogin, themeMode, toggleTheme }: Employe
           </div>
         </div>
       </div>
-      
+
       {toggleTheme && (
         <button
           type="button"
