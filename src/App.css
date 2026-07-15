@@ -4082,3 +4082,379 @@ body, .app-shell, .portal-layout, aside, section, header, table, tr, td, th, h1,
   background: #e5e7eb !important;
 }
 
+/* ══════════════════════════════════════════════════
+   LIGHT MODE — TIME ENTRY: Cards & Components
+   ══════════════════════════════════════════════════ */
+
+/* Shell default text color */
+.light-mode .time-entry-shell {
+  color: #111827 !important;
+}
+
+/* Summary / Status / Quick Actions cards */
+.light-mode .time-card {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+}
+.light-mode .time-card h3 {
+  color: #111827 !important;
+}
+
+/* Quick action buttons */
+.light-mode .quick-link {
+  background: #f3f4f6 !important;
+  color: #111827 !important;
+  border: 1px solid #e5e7eb !important;
+}
+.light-mode .quick-link:hover {
+  background: #e5e7eb !important;
+}
+.light-mode .quick-link span {
+  color: #6b7280 !important;
+}
+
+/* Legend bar at bottom of timesheet table */
+.light-mode .time-legend {
+  background: #f9fafb !important;
+  border-top-color: #e5e7eb !important;
+}
+.light-mode .time-legend span {
+  color: #374151 !important;
+}
+
+/* Time History tab */
+.light-mode .time-history-card {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+}
+.light-mode .time-history-table {
+  color: #111827 !important;
+}
+.light-mode .time-history-table th,
+.light-mode .time-history-table td {
+  border-bottom-color: #e5e7eb !important;
+  color: #111827 !important;
+}
+.light-mode .time-history-table th {
+  background: #f9fafb !important;
+  color: #374151 !important;
+}
+.light-mode .time-history-table td:first-child {
+  color: #111827 !important;
+}
+.light-mode .time-history-table tbody tr:hover {
+  background: #f3f4f6 !important;
+}
+
+/* Approvals tab */
+.light-mode .approval-card {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+}
+.light-mode .approval-summary-grid span {
+  color: #6b7280 !important;
+}
+.light-mode .approval-summary-grid strong {
+  color: #111827 !important;
+}
+.light-mode .approval-detail-table-wrap {
+  border-color: #e5e7eb !important;
+}
+.light-mode .approval-detail-table th,
+.light-mode .approval-detail-table td {
+  border-color: #e5e7eb !important;
+  color: #111827 !important;
+}
+.light-mode .approval-detail-table th {
+  background: #f9fafb !important;
+  color: #374151 !important;
+}
+.light-mode .approval-detail-table th small {
+  color: #9ca3af !important;
+}
+
+/* ══════════════════════════════════════════════════
+   LIGHT MODE — LEAVE TAB: All Components
+   ══════════════════════════════════════════════════ */
+
+/* Leave shell default text */
+.light-mode .leave-shell {
+  color: #111827 !important;
+}
+
+/* KPI stat cards at the top (Upcoming, Pending, Approved, Returned) */
+.light-mode .leave-kpi-card {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+}
+.light-mode .leave-kpi-card span {
+  color: #6b7280 !important;
+}
+.light-mode .leave-kpi-card strong {
+  color: #111827 !important;
+}
+
+/* Main leave card wrapper */
+.light-mode .leave-card {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+}
+
+/* Individual leave request rows */
+.light-mode .leave-request-item {
+  background: #f9fafb !important;
+  border-color: #e5e7eb !important;
+}
+.light-mode .leave-request-main h4 {
+  color: #111827 !important;
+}
+.light-mode .leave-request-main p {
+  color: #374151 !important;
+}
+.light-mode .leave-request-main small {
+  color: #6b7280 !important;
+}
+
+/* Ghost button (Cancel leave) */
+.light-mode .leave-ghost-btn {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+  color: #374151 !important;
+}
+.light-mode .leave-ghost-btn:hover {
+  border-color: var(--primary) !important;
+  color: var(--primary) !important;
+}
+
+/* Apply Leave form */
+.light-mode .leave-form-grid label {
+  color: #374151 !important;
+}
+.light-mode .leave-form-grid input,
+.light-mode .leave-form-grid select,
+.light-mode .leave-form-grid textarea {
+  background: #ffffff !important;
+  border-color: #d1d5db !important;
+  color: #111827 !important;
+}
+.light-mode .leave-form-meta p {
+  color: #6b7280 !important;
+}
+
+/* Leave Balance cards */
+.light-mode .leave-balance-card {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+}
+.light-mode .leave-balance-card h4 {
+  color: #111827 !important;
+}
+.light-mode .leave-balance-card p {
+  color: #6b7280 !important;
+}
+.light-mode .leave-balance-nums span {
+  color: #374151 !important;
+}
+.light-mode .leave-balance-progress {
+  background: #e5e7eb !important;
+}
+
+/* Leave History table */
+.light-mode .leave-history-table {
+  color: #111827 !important;
+}
+.light-mode .leave-history-table th,
+.light-mode .leave-history-table td {
+  border-bottom-color: #e5e7eb !important;
+  color: #111827 !important;
+}
+.light-mode .leave-history-table th {
+  background: #f9fafb !important;
+  color: #374151 !important;
+}
+.light-mode .leave-history-table tbody tr:hover {
+  background: #f3f4f6 !important;
+}
+
+/* ══════════════════════════════════════════════════
+   LIGHT MODE — TIME ENTRY: Remaining Dark Elements
+   ══════════════════════════════════════════════════ */
+
+/* Summary stat mini cards (Total Hours, Regular Hours, Overtime, Leave Hours) */
+.light-mode .summary-item {
+  background: #f3f4f6 !important;
+  border-color: #e5e7eb !important;
+}
+.light-mode .summary-item span {
+  color: #6b7280 !important;
+}
+.light-mode .summary-item strong {
+  color: #111827 !important;
+}
+.light-mode .summary-item small {
+  color: #9ca3af !important;
+}
+
+/* Status card text & progress */
+.light-mode .status-card p {
+  color: #6b7280 !important;
+}
+.light-mode .status-card small {
+  color: #374151 !important;
+}
+.light-mode .status-progress {
+  background: #e5e7eb !important;
+}
+
+/* Day card head (header bar of selected day panel in My Timesheet) */
+.light-mode .day-card-head {
+  border-bottom-color: #e5e7eb !important;
+}
+.light-mode .day-card-head h4 {
+  color: #111827 !important;
+}
+.light-mode .day-card-head button {
+  background: #f3f4f6 !important;
+  border-color: #d1d5db !important;
+  color: #374151 !important;
+}
+
+/* Date & week controls in toolbar */
+.light-mode .date-control {
+  color: #374151 !important;
+}
+.light-mode .date-control input {
+  background: #ffffff !important;
+  border-color: #d1d5db !important;
+  color: #111827 !important;
+}
+.light-mode .week-nav-btn {
+  background: #ffffff !important;
+  border-color: #d1d5db !important;
+  color: #374151 !important;
+}
+.light-mode .week-range {
+  background: #f9fafb !important;
+  border-color: #d1d5db !important;
+  color: #111827 !important;
+}
+
+/* History toolbar */
+.light-mode .history-range-label {
+  color: #6b7280 !important;
+}
+.light-mode .history-date-pill {
+  background: #ffffff !important;
+  border-color: #d1d5db !important;
+}
+.light-mode .history-date-pill input {
+  color: #111827 !important;
+}
+.light-mode .history-range-sep {
+  color: #6b7280 !important;
+}
+.light-mode .history-ghost-btn {
+  background: #ffffff !important;
+  border-color: #d1d5db !important;
+  color: #374151 !important;
+}
+.light-mode .history-ghost-btn.active {
+  background: #fff0f7 !important;
+  border-color: var(--primary) !important;
+  color: var(--primary) !important;
+}
+.light-mode .history-filter-popover {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.12) !important;
+}
+.light-mode .history-filter-chip {
+  background: #f3f4f6 !important;
+  border-color: #d1d5db !important;
+  color: #374151 !important;
+}
+.light-mode .history-filter-chip.active {
+  background: #fff0f7 !important;
+  border-color: var(--primary) !important;
+  color: var(--primary) !important;
+}
+.light-mode .history-range-note {
+  color: #6b7280 !important;
+}
+.light-mode .history-empty-row {
+  color: #6b7280 !important;
+}
+
+/* Approvals toolbar */
+.light-mode .approval-filter-chip {
+  background: #f3f4f6 !important;
+  border-color: #d1d5db !important;
+  color: #374151 !important;
+}
+.light-mode .approval-filter-chip.active {
+  background: #fff0f7 !important;
+  border-color: var(--primary) !important;
+  color: var(--primary) !important;
+}
+.light-mode .approval-toolbar-btn {
+  background: #ffffff !important;
+  border-color: #d1d5db !important;
+  color: #374151 !important;
+}
+.light-mode .approval-toolbar-btn.active {
+  background: #fff0f7 !important;
+  border-color: var(--primary) !important;
+  color: var(--primary) !important;
+}
+.light-mode .approval-filter-popover {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.12) !important;
+}
+
+/* Submit error message */
+.light-mode .submit-error {
+  background: #fef2f2 !important;
+  border-color: #fca5a5 !important;
+  color: #b91c1c !important;
+}
+
+/* ══════════════════════════════════════════════════
+   LIGHT MODE — TIME ENTRY: Day Detail Panel & Modal
+   ══════════════════════════════════════════════════ */
+
+/* Selected-day detail side panel */
+.light-mode .time-day-card {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+}
+.light-mode .time-day-card dt {
+  color: #6b7280 !important;
+}
+.light-mode .time-day-card dd {
+  color: #111827 !important;
+}
+
+/* Edit modal */
+.light-mode .time-modal {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+  box-shadow: 0 18px 48px rgba(0,0,0,0.12) !important;
+}
+.light-mode .time-modal h3 {
+  color: #111827 !important;
+}
+.light-mode .time-modal-grid label {
+  color: #374151 !important;
+}
+.light-mode .time-modal-grid input,
+.light-mode .time-modal-grid select,
+.light-mode .time-modal-grid textarea {
+  background: #ffffff !important;
+  border-color: #d1d5db !important;
+  color: #111827 !important;
+}
+.light-mode .time-modal-error {
+  color: #dc2626 !important;
+}
+
