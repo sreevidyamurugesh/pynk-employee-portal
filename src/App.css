@@ -4458,3 +4458,420 @@ body, .app-shell, .portal-layout, aside, section, header, table, tr, td, th, h1,
   color: #dc2626 !important;
 }
 
+/* ══════════════════════════════════════════════════
+   LIGHT MODE — MY PAY: Overview & Subtabs
+   ══════════════════════════════════════════════════ */
+
+.light-mode .pay-shell {
+  color: #111827 !important;
+}
+
+/* My Pay Generic Cards */
+.light-mode .pay-card {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+}
+.light-mode .pay-card:hover {
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.06) !important;
+}
+.light-mode .pay-card-label {
+  color: #4b5563 !important;
+}
+.light-mode .pay-month-badge,
+.light-mode .pay-fy-label {
+  color: #4b5563 !important;
+}
+
+/* Net Pay Details & Meta Row */
+.light-mode .pay-net-amount {
+  color: #111827 !important;
+}
+.light-mode .pay-meta-row span {
+  color: #6b7280 !important;
+}
+.light-mode .pay-meta-row strong {
+  color: #111827 !important;
+}
+
+/* Quick Actions buttons */
+.light-mode .pay-action-btn {
+  background: #f3f4f6 !important;
+  border-color: #d1d5db !important;
+  color: #374151 !important;
+}
+.light-mode .pay-action-btn:hover {
+  background: #e5e7eb !important;
+  border-color: #9ca3af !important;
+  color: #111827 !important;
+}
+
+/* Employment Details */
+.light-mode .pay-emp-dl dt {
+  color: #6b7280 !important;
+}
+.light-mode .pay-emp-dl dd {
+  color: #111827 !important;
+}
+
+/* YTD Section */
+.light-mode .pay-ytd-item {
+  background: #f9fafb !important;
+  border-color: #e5e7eb !important;
+}
+.light-mode .pay-ytd-item span {
+  color: #6b7280 !important;
+}
+.light-mode .pay-ytd-item strong {
+  color: #111827 !important;
+}
+.light-mode .pay-ytd-gross {
+  color: #374151 !important;
+}
+.light-mode .pay-ytd-net {
+  color: #16a34a !important;
+}
+.light-mode .pay-ytd-tax {
+  color: #d97706 !important;
+}
+
+/* Recent Payslips list */
+.light-mode .pay-recent-row {
+  border-bottom-color: #e5e7eb !important;
+}
+.light-mode .pay-recent-month {
+  color: #111827 !important;
+}
+.light-mode .pay-recent-date {
+  color: #6b7280 !important;
+}
+
+/* Filter controls (Select, Search input) */
+.light-mode .pay-filter-group {
+  color: #4b5563 !important;
+}
+.light-mode .pay-filter-group select {
+  background: #ffffff !important;
+  border-color: #d1d5db !important;
+  color: #111827 !important;
+}
+.light-mode .pay-search-input input {
+  background: #ffffff !important;
+  border-color: #d1d5db !important;
+  color: #111827 !important;
+}
+.light-mode .pay-search-icon {
+  color: #6b7280 !important;
+}
+
+/* Download button */
+.light-mode .pay-download-btn {
+  background: #f3f4f6 !important;
+  border-color: #d1d5db !important;
+  color: #374151 !important;
+}
+.light-mode .pay-download-btn:hover {
+  background: var(--primary) !important;
+  border-color: var(--primary) !important;
+  color: #ffffff !important;
+}
+
+/* Pagination */
+.light-mode .pay-pagination {
+  border-top-color: #e5e7eb !important;
+}
+.light-mode .pay-pagination-info {
+  color: #6b7280 !important;
+}
+.light-mode .pay-page-btn {
+  border-color: #d1d5db !important;
+  background: #ffffff !important;
+  color: #374151 !important;
+}
+.light-mode .pay-page-btn:hover:not(:disabled) {
+  background: #f3f4f6 !important;
+  border-color: #9ca3af !important;
+}
+
+/* My Pay Modal */
+.light-mode .pay-modal-backdrop {
+  background: rgba(0, 0, 0, 0.4) !important;
+}
+.light-mode .pay-modal {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.15) !important;
+}
+.light-mode .pay-modal-head h3 {
+  color: #111827 !important;
+}
+.light-mode .pay-modal-sub {
+  color: #6b7280 !important;
+}
+.light-mode .pay-modal-close {
+  background: #f3f4f6 !important;
+  color: #4b5563 !important;
+}
+.light-mode .pay-modal-close:hover {
+  background: var(--primary) !important;
+  color: #ffffff !important;
+}
+
+/* Payslip View Grid / Inner Section */
+.light-mode .payslip-section {
+  background: #f9fafb !important;
+  border-color: #e5e7eb !important;
+}
+.light-mode .payslip-section h4 {
+  color: #111827 !important;
+  border-bottom-color: #e5e7eb !important;
+}
+.light-mode .payslip-row {
+  border-bottom-color: #e5e7eb !important;
+}
+.light-mode .payslip-row span {
+  color: #374151 !important;
+}
+.light-mode .payslip-row strong {
+  color: #111827 !important;
+}
+.light-mode .payslip-total-row {
+  color: #111827 !important;
+}
+.light-mode .payslip-net-row {
+  background: #e5f7ee !important;
+  border-color: #b8e7cc !important;
+  color: #16a34a !important;
+}
+
+/* Salary Breakdown subtab */
+.light-mode .pay-breakdown-kpi {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+}
+.light-mode .pay-breakdown-kpi span {
+  color: #6b7280 !important;
+}
+.light-mode .pay-breakdown-kpi strong {
+  color: #111827 !important;
+}
+.light-mode .pay-breakdown-kpi.net strong {
+  color: #16a34a !important;
+}
+.light-mode .pay-breakdown-main h3 {
+  color: #111827 !important;
+}
+.light-mode .pay-breakdown-card {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+}
+.light-mode .pay-breakdown-card h4 {
+  color: #111827 !important;
+  border-bottom-color: #e5e7eb !important;
+}
+.light-mode .pay-breakdown-row {
+  border-bottom-color: #e5e7eb !important;
+}
+.light-mode .pay-breakdown-row span {
+  color: #374151 !important;
+}
+.light-mode .pay-breakdown-row strong {
+  color: #111827 !important;
+}
+.light-mode .pay-breakdown-total {
+  color: #111827 !important;
+  border-top-color: #e5e7eb !important;
+}
+.light-mode .pay-breakdown-note {
+  color: #6b7280 !important;
+}
+
+/* Tax Documents tab */
+.light-mode .pay-taxdocs-banner-left {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+}
+.light-mode .pay-taxdocs-fy-label {
+  color: #6b7280 !important;
+}
+.light-mode .pay-taxdocs-fy {
+  color: #111827 !important;
+}
+.light-mode .pay-taxdocs-help {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+}
+.light-mode .pay-taxdocs-help strong {
+  color: #111827 !important;
+}
+.light-mode .pay-taxdocs-help p {
+  color: #6b7280 !important;
+}
+
+/* Bank Details tab */
+.light-mode .pay-bank-card h3,
+.light-mode .pay-bank-update-card h3 {
+  color: #111827 !important;
+}
+.light-mode .pay-bank-verified {
+  color: #16a34a !important;
+}
+.light-mode .pay-bank-dl dt {
+  color: #6b7280 !important;
+}
+.light-mode .pay-bank-dl dd {
+  color: #111827 !important;
+}
+.light-mode .pay-bank-update-desc {
+  color: #4b5563 !important;
+}
+.light-mode .pay-bank-success {
+  background: #e5f7ee !important;
+  border-color: #b8e7cc !important;
+  color: #16a34a !important;
+}
+
+/* Bank details form */
+.light-mode .pay-bank-form-grid label {
+  color: #4b5563 !important;
+}
+.light-mode .pay-bank-form-grid input,
+.light-mode .pay-bank-form-grid textarea {
+  background: #ffffff !important;
+  border-color: #d1d5db !important;
+  color: #111827 !important;
+}
+.light-mode .pay-form-error {
+  color: #b91c1c !important;
+  background: #fef2f2 !important;
+  border-color: #fca5a5 !important;
+}
+
+/* Payment History tab */
+.light-mode .pay-history-chip {
+  border-color: #d1d5db !important;
+  background: #ffffff !important;
+  color: #374151 !important;
+}
+.light-mode .pay-history-chip:hover {
+  border-color: var(--primary) !important;
+  color: #111827 !important;
+}
+.light-mode .pay-history-chip.active {
+  background: linear-gradient(135deg, #FF1493, #EC1B8D) !important;
+  border-color: var(--primary) !important;
+  color: #ffffff !important;
+}
+
+/* ══════════════════════════════════════════════════
+   LIGHT MODE — DOCUMENTS MODULE: Overview & Tables
+   ══════════════════════════════════════════════════ */
+
+.light-mode .doc-shell {
+  color: #111827 !important;
+}
+
+/* Metrics stats cards at the top */
+.light-mode .doc-metric-card {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+}
+.light-mode .doc-metric-label {
+  color: #4b5563 !important;
+}
+.light-mode .doc-metric-value {
+  color: #111827 !important;
+}
+.light-mode .doc-metric-sub {
+  color: #6b7280 !important;
+}
+
+/* Generic Documents Cards */
+.light-mode .doc-card {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+}
+.light-mode .doc-card h3 {
+  color: #111827 !important;
+}
+
+/* Quick Actions buttons */
+.light-mode .doc-quick-btn {
+  background: #f3f4f6 !important;
+  border-color: #d1d5db !important;
+}
+.light-mode .doc-quick-btn:hover {
+  background: #e5e7eb !important;
+  border-color: var(--primary) !important;
+}
+.light-mode .doc-quick-text strong {
+  color: #111827 !important;
+}
+.light-mode .doc-quick-text span {
+  color: #6b7280 !important;
+}
+
+/* Recent Documents row items */
+.light-mode .doc-recent-row {
+  background: #f9fafb !important;
+  border-color: #e5e7eb !important;
+}
+.light-mode .doc-recent-name {
+  color: #111827 !important;
+}
+.light-mode .doc-recent-meta {
+  color: #6b7280 !important;
+}
+.light-mode .doc-recent-date {
+  color: #6b7280 !important;
+}
+
+/* Document tips banner */
+.light-mode .doc-info-tip {
+  background: #faf5ff !important;
+  border-color: #e9d5ff !important;
+  color: #6b21a8 !important;
+}
+
+/* Search input & Filter controls */
+.light-mode .doc-search-box input {
+  background: #ffffff !important;
+  border-color: #d1d5db !important;
+  color: #111827 !important;
+}
+.light-mode .doc-search-icon {
+  color: #6b7280 !important;
+}
+.light-mode .doc-filter-btn {
+  background: #ffffff !important;
+  border-color: #d1d5db !important;
+  color: #374151 !important;
+}
+.light-mode .doc-filter-group {
+  color: #4b5563 !important;
+}
+.light-mode .doc-filter-group select {
+  background: #ffffff !important;
+  border-color: #d1d5db !important;
+  color: #111827 !important;
+}
+
+/* Pagination */
+.light-mode .doc-pagination {
+  border-top-color: #e5e7eb !important;
+  color: #6b7280 !important;
+}
+
+/* Status chips/labels */
+.light-mode .doc-status.success {
+  background: #e5f7ee !important;
+  color: #16a34a !important;
+  border-color: #b8e7cc !important;
+}
+.light-mode .doc-status.warning {
+  background: #fff4de !important;
+  color: #ba7b0b !important;
+  border-color: #f6d998 !important;
+}
+
+
+
