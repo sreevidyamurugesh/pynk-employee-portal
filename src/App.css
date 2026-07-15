@@ -3922,6 +3922,163 @@ body, .app-shell, .portal-layout, aside, section, header, table, tr, td, th, h1,
   color: #111827 !important;
 }
 
+/* ── Light Mode: Time Entry Tabs & Tables ── */
+.light-mode .time-tab {
+  background: #f3f4f6 !important;
+  color: #374151 !important;
+}
+.light-mode .time-tab:hover {
+  background: #e5e7eb !important;
+  color: #111827 !important;
+}
+.light-mode .time-tab.active {
+  background: #fff0f7 !important;
+  color: var(--primary) !important;
+}
+.light-mode .time-table-card {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+}
+.light-mode .time-table th,
+.light-mode .time-table td {
+  border-color: #e5e7eb !important;
+  color: #111827 !important;
+}
+.light-mode .time-table thead th {
+  background: #f9fafb !important;
+  color: #374151 !important;
+}
+.light-mode .time-table thead th small {
+  color: #6b7280 !important;
+}
+.light-mode .time-table .selected {
+  background: #eff6ff !important;
+}
+.light-mode .time-entry-tabs::-webkit-scrollbar-thumb {
+  background: #d1d5db !important;
+}
 
+/* ── Light Mode: Leave Tabs ── */
+.light-mode .leave-tab {
+  background: #f3f4f6 !important;
+  color: #374151 !important;
+}
+.light-mode .leave-tab:hover {
+  background: #e5e7eb !important;
+  color: #111827 !important;
+}
+.light-mode .leave-tab.active {
+  background: #fff0f7 !important;
+  color: var(--primary) !important;
+}
 
+/* ── Light Mode: My Pay Tabs & Tables ── */
+.light-mode .pay-tab {
+  background: #f3f4f6 !important;
+  color: #374151 !important;
+}
+.light-mode .pay-tab:hover {
+  background: #e5e7eb !important;
+  color: #111827 !important;
+}
+.light-mode .pay-tab.active {
+  background: linear-gradient(135deg, #FF1493, #EC1B8D) !important;
+  color: #ffffff !important;
+}
+.light-mode .pay-table-card {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+}
+.light-mode .pay-table th {
+  background: #f9fafb !important;
+  color: #374151 !important;
+  border-color: #e5e7eb !important;
+}
+.light-mode .pay-table td {
+  border-color: #e5e7eb !important;
+  color: #111827 !important;
+}
+.light-mode .pay-table tbody tr:hover {
+  background: #f3f4f6 !important;
+}
+
+/* ── Light Mode: Documents Tabs & Tables ── */
+.light-mode .doc-tabs {
+  border-bottom-color: #e5e7eb !important;
+}
+.light-mode .doc-tab {
+  color: #6b7280 !important;
+}
+.light-mode .doc-tab:hover {
+  color: #111827 !important;
+}
+.light-mode .doc-tab.active {
+  color: var(--primary) !important;
+}
+.light-mode .doc-table-title h3 {
+  color: #111827 !important;
+}
+.light-mode .doc-table-title p {
+  color: #6b7280 !important;
+}
+.light-mode .doc-table-card {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+}
+.light-mode .doc-table th {
+  background: #f9fafb !important;
+  color: #374151 !important;
+  border-color: #e5e7eb !important;
+}
+.light-mode .doc-table td {
+  border-color: #e5e7eb !important;
+  color: #111827 !important;
+}
+.light-mode .doc-table tbody tr:hover {
+  background: #f3f4f6 !important;
+}
+
+/* ── Light Mode: Portal Sidebar & Layout ── */
+.light-mode .portal-sidebar {
+  background: #ffffff !important;
+  border-right-color: #e5e7eb !important;
+}
+.light-mode .module-btn {
+  color: #374151 !important;
+}
+.light-mode .module-btn:hover {
+  background: #f3f4f6 !important;
+  color: #111827 !important;
+}
+.light-mode .module-btn.active {
+  background: var(--primary) !important;
+  color: #ffffff !important;
+}
+.light-mode .portal-content {
+  background: #f3f4f6 !important;
+}
+
+/* ── Light Mode: Dashboard cards & shells ── */
+.light-mode .dash-shell {
+  background: #f3f4f6 !important;
+}
+.light-mode .dash-card {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+}
+.light-mode .dash-stat-card {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+}
+.light-mode .dash-stat-card:hover {
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08) !important;
+}
+.light-mode .dash-today-date {
+  background: #f9fafb !important;
+  border-color: #e5e7eb !important;
+  color: #374151 !important;
+}
+.light-mode .dash-progress-track {
+  background: #e5e7eb !important;
+}
 
