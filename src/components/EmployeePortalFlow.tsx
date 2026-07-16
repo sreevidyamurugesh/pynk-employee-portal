@@ -165,7 +165,7 @@ const leaveTabs = ['Leave Balance', 'Leave History'] as const
 const myPayTabs = ['Overview', 'Payslips', 'Salary Breakdown', 'Tax Documents', 'Bank Details', 'Payment History'] as const
 type MyPayTab = (typeof myPayTabs)[number]
 
-const documentTabs = ['My Documents', 'Employment Documents', 'Payroll Documents', 'Tax Documents', 'Uploaded Documents', 'Expiring Documents'] as const
+const documentTabs = ['My Documents', 'Payroll Documents', 'Tax Documents', 'Expiring Documents'] as const
 type DocumentTab = (typeof documentTabs)[number]
 
 const profileTabs = [
@@ -482,13 +482,11 @@ const paymentHistorySeed: PaymentHistoryItem[] = [
 ]
 
 // ── Documents Seed Data ──
-const employmentDocsSeed: PortalDocument[] = [
-  { id: 'ed-001', name: 'Offer Letter', description: 'Your offer letter at the time of joining', issuedOn: '12 Jun 2023', status: 'Available', size: '245 KB' },
-  { id: 'ed-002', name: 'Employment Contract', description: 'Employment agreement and terms', issuedOn: '01 Apr 2023', status: 'Available', size: '1.2 MB' },
-  { id: 'ed-003', name: 'Appointment Letter', description: 'Your appointment confirmation letter', issuedOn: '12 Jun 2023', status: 'Available', size: '300 KB' },
-  { id: 'ed-004', name: 'Promotion Letter', description: 'Promotion to Senior Product Designer', issuedOn: '15 Jan 2025', status: 'Available', size: '210 KB' },
-  { id: 'ed-005', name: 'Experience Letter', description: 'Experience letter for previous employment', issuedOn: '20 Dec 2024', status: 'Available', size: '150 KB' },
-]
+// const employmentDocsSeed: PortalDocument[] = [
+//   { id: 'ed-003', name: 'Appointment Letter', description: 'Your appointment confirmation letter', issuedOn: '12 Jun 2023', status: 'Available', size: '300 KB' },
+//   // { id: 'ed-004', name: 'Promotion Letter', description: 'Promotion to Senior Product Designer', issuedOn: '15 Jan 2025', status: 'Available', size: '210 KB' },
+//   { id: 'ed-005', name: 'Experience Letter', description: 'Experience letter for previous employment', issuedOn: '20 Dec 2024', status: 'Available', size: '150 KB' },
+// ]
 
 const payrollDocsSeed: PortalDocument[] = [
   { id: 'pd-001', name: 'Payslip - June 2025', description: 'Monthly salary payslip', monthYear: 'June 2025', status: 'Available', size: '230 KB' },
@@ -1321,7 +1319,6 @@ const moduleSteps: Record<Module, ModuleStep[]> = {
     { title: 'Payment History', tag: 'Record', content: 'Payment history and details' },
   ],
   documents: [
-    { title: 'Employment Contract', tag: 'Document', content: 'View your employment contract' },
     { title: 'Visa Documents', tag: 'Travel', content: 'Access visa-related documents' },
     { title: 'Tax Forms', tag: 'Taxes', content: 'Download tax forms' },
     { title: 'Company Policies', tag: 'Policies', content: 'Review company policies' },
@@ -2043,9 +2040,10 @@ export function EmployeePortalFlow({
     } else if (item.module === 'documents') {
       if (item.title.toLowerCase().includes('expiry')) {
         setActiveDocTab('Expiring Documents')
-      } else if (item.title.toLowerCase().includes('verification')) {
-        setActiveDocTab('Uploaded Documents')
       }
+      // else if (item.title.toLowerCase().includes('verification')) {
+      //   setActiveDocTab('Uploaded Documents')
+      // }
     } else if (item.module === 'profile') {
       if (item.title.toLowerCase().includes('bank')) {
         setActiveProfileTab('Bank')
@@ -2865,7 +2863,7 @@ export function EmployeePortalFlow({
   const handleExportExcel = () => {
     const employeeName = getPortalUserName()
     const period = getRangeLabel(activeRange.fromDateISO, activeRange.toDateISO)
-    
+
     const rows = [
       ['Timesheet Hours Report'],
       ['Employee Name', employeeName],
@@ -2917,7 +2915,7 @@ export function EmployeePortalFlow({
   const handleExportWord = () => {
     const employeeName = getPortalUserName()
     const period = getRangeLabel(activeRange.fromDateISO, activeRange.toDateISO)
-    
+
     let html = `
       <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
       <head>
@@ -3014,7 +3012,7 @@ export function EmployeePortalFlow({
   const handleExportPDF = () => {
     const employeeName = getPortalUserName()
     const period = getRangeLabel(activeRange.fromDateISO, activeRange.toDateISO)
-    
+
     const printWindow = window.open('', '_blank')
     if (!printWindow) {
       showToast('Popup blocked! Please allow popups to export PDF.')
@@ -5129,11 +5127,11 @@ export function EmployeePortalFlow({
                       const recentActivity = notifications.slice(0, 4)
 
                       // Company announcements (static)
-                      const announcements = [
-                        { id: 'a1', icon: '📢', title: 'Public Holiday on 27 June 2025', body: 'Please note that 27 June 2025 (Friday) will be a public holiday for all employees.', age: '2 days ago' },
-                        { id: 'a2', icon: '📋', title: 'Policy Update', body: 'We have updated our Remote Work Policy. Please read the updated policy.', age: '5 days ago' },
-                        { id: 'a3', icon: '🎤', title: 'Townhall Meeting', body: 'Quarterly townhall meeting is scheduled on 20 June 2025 at 4:00 PM IST.', age: '1 week ago' },
-                      ]
+                      // const announcements = [
+                      //   { id: 'a1', icon: '📢', title: 'Public Holiday on 27 June 2025', body: 'Please note that 27 June 2025 (Friday) will be a public holiday for all employees.', age: '2 days ago' },
+                      //   { id: 'a2', icon: '📋', title: 'Policy Update', body: 'We have updated our Remote Work Policy. Please read the updated policy.', age: '5 days ago' },
+                      //   { id: 'a3', icon: '🎤', title: 'Townhall Meeting', body: 'Quarterly townhall meeting is scheduled on 20 June 2025 at 4:00 PM IST.', age: '1 week ago' },
+                      // ]
 
                       // Reminders
                       const reminders = [
@@ -5419,7 +5417,7 @@ export function EmployeePortalFlow({
                                   </span>
                                   Log Time
                                 </button>
-                                <button type="button" className="dash-quick-btn" onClick={() => { setCurrentModule('documents'); setActiveDocTab('Uploaded Documents') }}>
+                                {/* <button type="button" className="dash-quick-btn" onClick={() => { setCurrentModule('documents'); setActiveDocTab('Uploaded Documents') }}>
                                   <span className="dash-quick-icon dash-qi--purple">
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -5427,7 +5425,7 @@ export function EmployeePortalFlow({
                                     </svg>
                                   </span>
                                   Upload Document
-                                </button>
+                                </button> */}
                                 <button type="button" className="dash-quick-btn" onClick={() => { setCurrentModule('my-pay'); setActivePayTab('Payslips') }}>
                                   <span className="dash-quick-icon dash-qi--red">
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -5465,7 +5463,7 @@ export function EmployeePortalFlow({
                             </div>
 
                             {/* Company Announcements */}
-                            <div className="dash-card dash-announce-card">
+                            {/* <div className="dash-card dash-announce-card">
                               <div className="dash-card-header-row">
                                 <h3 className="dash-card-title">Company Announcements</h3>
                                 <button type="button" className="dash-view-all-btn" onClick={() => setIsNotificationDrawerOpen(true)}>View All</button>
@@ -5482,7 +5480,7 @@ export function EmployeePortalFlow({
                                   </div>
                                 ))}
                               </div>
-                            </div>
+                            </div> */}
 
                           </div>
 
@@ -5986,15 +5984,15 @@ export function EmployeePortalFlow({
                                   <div className="export-group">
                                     <span className="export-label">Export:</span>
                                     <button type="button" className="export-btn pdf" onClick={handleExportPDF} title="Export to PDF">
-                                      <svg viewBox="0 0 384 512" style={{ width: '12px', height: '12px', fill: 'currentColor' }}><path d="M181.9 256.1c-5-16-4.9-46.9-2-46.9 8.4 0 7.6 36.9 2 46.9zm-1.7 47.2c-7.7 20.2-17.3 43.3-28.4 62.7 18.3-7 39-17.2 50.8-24.7-17.6 1.7-18.4 16-22.4 22zm-78.2 92.5c-4.3 0-8.2-2.5-9.4-6.6-4.9-16.7 13.9-38.3 35.8-51.4-17 19.8-24.1 40-26.4 58zm191.1-131.6c-4.4 9.1-16.1 19.9-29.2 27.2 26.6-2.5 35.2-19.8 29.2-27.2zm112.9-96.2c0-10.7-3.9-20.7-11-28.4L284.4 28.9c-7.6-8.3-18.4-13-29.6-13H48C21.5 15.9 0 37.4 0 63.9v384.3C0 474.7 21.5 496 48 496h288c26.5 0 48-21.3 48-47.8V168zm-121.7 66.8c0 29.1-13.6 57.2-27.2 78.4-11.7 18.2-28.2 41.2-40 60.1-5.7 9.1-12.7 19.1-17.1 27.5-6.8 12.9-17.6 22-26.8 22-9.7 0-21.4-12.6-28.4-36.9-1.9-6.7-2.2-25 10-53.7 2.4-5.6 5.8-12.4 9.4-19 12.5-23.3 27.8-52.4 34.4-75.9-4.2-18.1-10.1-47.4-10.1-66.2 0-35.3 12.4-54.8 35.3-54.8 22.9 0 29.5 28.5 25.1 63.4 12.4 24.4 26.2 47.2 38.6 68.2 12.7-7.2 26.9-13.8 35.3-13.8 17.5 0 26 10.1 26 23.9 0 20.2-14.7 34.6-28.2 40.3z"/></svg>
+                                      <svg viewBox="0 0 384 512" style={{ width: '12px', height: '12px', fill: 'currentColor' }}><path d="M181.9 256.1c-5-16-4.9-46.9-2-46.9 8.4 0 7.6 36.9 2 46.9zm-1.7 47.2c-7.7 20.2-17.3 43.3-28.4 62.7 18.3-7 39-17.2 50.8-24.7-17.6 1.7-18.4 16-22.4 22zm-78.2 92.5c-4.3 0-8.2-2.5-9.4-6.6-4.9-16.7 13.9-38.3 35.8-51.4-17 19.8-24.1 40-26.4 58zm191.1-131.6c-4.4 9.1-16.1 19.9-29.2 27.2 26.6-2.5 35.2-19.8 29.2-27.2zm112.9-96.2c0-10.7-3.9-20.7-11-28.4L284.4 28.9c-7.6-8.3-18.4-13-29.6-13H48C21.5 15.9 0 37.4 0 63.9v384.3C0 474.7 21.5 496 48 496h288c26.5 0 48-21.3 48-47.8V168zm-121.7 66.8c0 29.1-13.6 57.2-27.2 78.4-11.7 18.2-28.2 41.2-40 60.1-5.7 9.1-12.7 19.1-17.1 27.5-6.8 12.9-17.6 22-26.8 22-9.7 0-21.4-12.6-28.4-36.9-1.9-6.7-2.2-25 10-53.7 2.4-5.6 5.8-12.4 9.4-19 12.5-23.3 27.8-52.4 34.4-75.9-4.2-18.1-10.1-47.4-10.1-66.2 0-35.3 12.4-54.8 35.3-54.8 22.9 0 29.5 28.5 25.1 63.4 12.4 24.4 26.2 47.2 38.6 68.2 12.7-7.2 26.9-13.8 35.3-13.8 17.5 0 26 10.1 26 23.9 0 20.2-14.7 34.6-28.2 40.3z" /></svg>
                                       PDF
                                     </button>
                                     <button type="button" className="export-btn excel" onClick={handleExportExcel} title="Export to Excel">
-                                      <svg viewBox="0 0 384 512" style={{ width: '12px', height: '12px', fill: 'currentColor' }}><path d="M224 136V0H24C10.7 0 0 10.7 0 24v464c0 13.3 10.7 24 24 24h336c13.3 0 24-10.7 24-24V160H248c-13.2 0-24-10.8-24-24zm60.1 106.5L224 336l60.1 93.5c5.1 8-2.6 18.5-11.9 18.5h-31.9c-5.9 0-11.2-3.2-14-8.4L192 385.3l-34.3 54.3c-2.8 5.2-8.1 8.4-14 8.4H111.8c-9.3 0-17-10.5-11.9-18.5L160 336l-60.1-93.5c-5.1-8 2.6-18.5 11.9-18.5h31.9c5.9 0 11.2 3.2 14 8.4L192 286.7l34.3-54.3c2.8-5.2 8.1-8.4 14-8.4H272.2c9.3 0 17 10.5 11.9 18.5zM384 121.9v6.1H256V0h6.1c6.4 0 12.5 2.5 17 7l97.9 98c4.5 4.5 7 10.6 7 16.9z"/></svg>
+                                      <svg viewBox="0 0 384 512" style={{ width: '12px', height: '12px', fill: 'currentColor' }}><path d="M224 136V0H24C10.7 0 0 10.7 0 24v464c0 13.3 10.7 24 24 24h336c13.3 0 24-10.7 24-24V160H248c-13.2 0-24-10.8-24-24zm60.1 106.5L224 336l60.1 93.5c5.1 8-2.6 18.5-11.9 18.5h-31.9c-5.9 0-11.2-3.2-14-8.4L192 385.3l-34.3 54.3c-2.8 5.2-8.1 8.4-14 8.4H111.8c-9.3 0-17-10.5-11.9-18.5L160 336l-60.1-93.5c-5.1-8 2.6-18.5 11.9-18.5h31.9c5.9 0 11.2 3.2 14 8.4L192 286.7l34.3-54.3c2.8-5.2 8.1-8.4 14-8.4H272.2c9.3 0 17 10.5 11.9 18.5zM384 121.9v6.1H256V0h6.1c6.4 0 12.5 2.5 17 7l97.9 98c4.5 4.5 7 10.6 7 16.9z" /></svg>
                                       Excel
                                     </button>
                                     <button type="button" className="export-btn word" onClick={handleExportWord} title="Export to Word">
-                                      <svg viewBox="0 0 384 512" style={{ width: '12px', height: '12px', fill: 'currentColor' }}><path d="M224 136V0H24C10.7 0 0 10.7 0 24v464c0 13.3 10.7 24 24 24h336c13.3 0 24-10.7 24-24V160H248c-13.2 0-24-10.8-24-24zm39 123.9c.4 5.3-2.5 10.4-7.4 12.5L224 336l31.6 63.6c2.4 4.8 1.9 10.6-1.5 14.9s-9 6.9-14.3 6.9H208c-5.8 0-11.1-3.1-13.9-8.3L168 360l-26.1 53.1c-2.8 5.2-8.1 8.3-13.9 8.3H95.8c-5.3 0-10.1-2.6-12.5-6.9s-1.9-9.7 1.5-14.9L116 336l-31.6-63.6c-2.4-4.8-1.9-10.6 1.5-14.9s9-6.9 14.3-6.9H128c5.8 0 11.1 3.1 13.9 8.3L168 312l26.1-53.1c2.8-5.2 8.1-8.3 13.9-8.3h32.2c5.3 0 10.1 2.6 12.5 6.9s1.9 9.7-1.5 14.9zM384 121.9v6.1H256V0h6.1c6.4 0 12.5 2.5 17 7l97.9 98c4.5 4.5 7 10.6 7 16.9z"/></svg>
+                                      <svg viewBox="0 0 384 512" style={{ width: '12px', height: '12px', fill: 'currentColor' }}><path d="M224 136V0H24C10.7 0 0 10.7 0 24v464c0 13.3 10.7 24 24 24h336c13.3 0 24-10.7 24-24V160H248c-13.2 0-24-10.8-24-24zm39 123.9c.4 5.3-2.5 10.4-7.4 12.5L224 336l31.6 63.6c2.4 4.8 1.9 10.6-1.5 14.9s-9 6.9-14.3 6.9H208c-5.8 0-11.1-3.1-13.9-8.3L168 360l-26.1 53.1c-2.8 5.2-8.1 8.3-13.9 8.3H95.8c-5.3 0-10.1-2.6-12.5-6.9s-1.9-9.7 1.5-14.9L116 336l-31.6-63.6c-2.4-4.8-1.9-10.6 1.5-14.9s9-6.9 14.3-6.9H128c5.8 0 11.1 3.1 13.9 8.3L168 312l26.1-53.1c2.8-5.2 8.1-8.3 13.9-8.3h32.2c5.3 0 10.1 2.6 12.5 6.9s1.9 9.7-1.5 14.9zM384 121.9v6.1H256V0h6.1c6.4 0 12.5 2.5 17 7l97.9 98c4.5 4.5 7 10.6 7 16.9z" /></svg>
                                       Word
                                     </button>
                                   </div>
@@ -6975,20 +6973,14 @@ export function EmployeePortalFlow({
                               <section className="doc-card" aria-label="Quick Actions">
                                 <h3>Quick Actions</h3>
                                 <div className="doc-quick-actions-grid">
-                                  <button type="button" className="doc-quick-btn" onClick={() => setActiveDocTab('Uploaded Documents')}>
+                                  {/* <button type="button" className="doc-quick-btn" onClick={() => setActiveDocTab('Uploaded Documents')}>
                                     <div className="doc-quick-icon blue">📤</div>
                                     <div className="doc-quick-text">
                                       <strong>Upload Document</strong>
                                       <span>Upload new document</span>
                                     </div>
-                                  </button>
-                                  <button type="button" className="doc-quick-btn" onClick={() => setActiveDocTab('Employment Documents')}>
-                                    <div className="doc-quick-icon blue">📄</div>
-                                    <div className="doc-quick-text">
-                                      <strong>View Employment Contract</strong>
-                                      <span>View your contract</span>
-                                    </div>
-                                  </button>
+                                  </button> */}
+
                                   <button type="button" className="doc-quick-btn" onClick={() => setActiveDocTab('Payroll Documents')}>
                                     <div className="doc-quick-icon green">💵</div>
                                     <div className="doc-quick-text">
@@ -7007,12 +6999,12 @@ export function EmployeePortalFlow({
                               </section>
 
                               <section className="doc-card" aria-label="Recent Documents">
-                                <div className="doc-card-head">
+                                {/* <div className="doc-card-head">
                                   <h3>Recent Documents</h3>
                                   <button type="button" className="doc-view-all" onClick={() => setActiveDocTab('Employment Documents')}>View All</button>
-                                </div>
+                                </div> */}
                                 <div className="doc-recent-list">
-                                  {[employmentDocsSeed[0], employmentDocsSeed[1], uploadedDocsSeed[0], payrollDocsSeed[0], taxDocsSeed[0]].map((doc, idx) => (
+                                  {[payrollDocsSeed[0], taxDocsSeed[0]].map((doc, idx) => (
                                     <div key={idx} className="doc-recent-row">
                                       <span className="doc-recent-icon">📄</span>
                                       <span className="doc-recent-name">{doc.name}</span>
@@ -7025,9 +7017,9 @@ export function EmployeePortalFlow({
                               </section>
                             </div>
 
-                            <div className="doc-info-tip">
+                            {/* <div className="doc-info-tip">
                               <span>ℹ️</span> Tip: You can upload documents in PDF, JPG, PNG format. Max file size 10MB.
-                            </div>
+                            </div> */}
                           </div>
                         )}
 
@@ -7038,10 +7030,10 @@ export function EmployeePortalFlow({
                               <div className="doc-table-title">
                                 <h3>{activeDocTab}</h3>
                                 <p>
-                                  {activeDocTab === 'Employment Documents' && 'Documents issued by your employer.'}
+                                  {/* {activeDocTab === 'Employment Documents' && 'Documents issued by your employer.'} */}
                                   {activeDocTab === 'Payroll Documents' && 'Payroll related documents and salary information.'}
                                   {activeDocTab === 'Tax Documents' && 'Tax related documents and certificates.'}
-                                  {activeDocTab === 'Uploaded Documents' && 'Documents uploaded by you for verification.'}
+                                  {/* {activeDocTab === 'Uploaded Documents' && 'Documents uploaded by you for verification.'} */}
                                   {activeDocTab === 'Expiring Documents' && 'Documents that are expiring soon.'}
                                 </p>
                               </div>
@@ -7067,9 +7059,9 @@ export function EmployeePortalFlow({
                                   </div>
                                 )}
 
-                                {activeDocTab === 'Uploaded Documents' && (
+                                {/* {activeDocTab === 'Uploaded Documents' && (
                                   <button type="button" className="doc-upload-btn" onClick={() => setIsDocUploadModalOpen(true)}>📤 Upload Document</button>
-                                )}
+                                )} */}
                                 <select className="doc-filter-btn" value={docStatusFilter} onChange={(e) => { setDocStatusFilter(e.target.value); setDocCurrentPage(1); }} style={{ appearance: 'auto' }}>
                                   <option value="All">All Status</option>
                                   <option value="Available">Available</option>
@@ -7085,27 +7077,28 @@ export function EmployeePortalFlow({
                                   <thead>
                                     <tr>
                                       <th>Document Name</th>
-                                      {activeDocTab === 'Uploaded Documents' ? (
+                                      {/* {
+                                      activeDocTab === 'Uploaded Documents' ? (
                                         <th>Category</th>
                                       ) : (
                                         <th>Description</th>
-                                      )}
-                                      {activeDocTab === 'Employment Documents' && <th>Issued On</th>}
+                                      )} */}
+                                      <th>Description</th>
+                                      {/* {activeDocTab === 'Employment Documents' && <th>Issued On</th>} */}
                                       {activeDocTab === 'Payroll Documents' && <th>Month / Year</th>}
                                       {activeDocTab === 'Tax Documents' && <th>Financial Year</th>}
-                                      {activeDocTab === 'Uploaded Documents' && <th>Uploaded On</th>}
+                                      {/* {activeDocTab === 'Uploaded Documents' && <th>Uploaded On</th>} */}
                                       <th>Status</th>
-                                      {activeDocTab === 'Uploaded Documents' && <th>Verified On</th>}
+                                      {/* {activeDocTab === 'Uploaded Documents' && <th>Verified On</th>} */}
                                       <th>Actions</th>
                                     </tr>
                                   </thead>
                                   <tbody>
                                     {(() => {
                                       let source: PortalDocument[] = []
-                                      if (activeDocTab === 'Employment Documents') source = employmentDocsSeed
-                                      else if (activeDocTab === 'Payroll Documents') source = payrollDocsSeed
+                                      if (activeDocTab === 'Payroll Documents') source = payrollDocsSeed
                                       else if (activeDocTab === 'Tax Documents') source = taxDocsSeed
-                                      else if (activeDocTab === 'Uploaded Documents') source = uploadedDocsState
+                                      // else if (activeDocTab === 'Uploaded Documents') source = uploadedDocsState
                                       else if (activeDocTab === 'Expiring Documents') source = [uploadedDocsState[1]]
 
                                       let filtered = source.filter(d => d.name.toLowerCase().includes(docSearchQuery.toLowerCase()))
@@ -7134,16 +7127,16 @@ export function EmployeePortalFlow({
                                         <tr key={doc.id}>
                                           <td className="doc-cell-name">{doc.name}</td>
 
-                                          {activeDocTab === 'Uploaded Documents' ? (
+                                          {/* {activeDocTab === 'Uploaded Documents' ? (
                                             <td>{doc.category}</td>
                                           ) : (
                                             <td>{doc.description}</td>
-                                          )}
-
-                                          {activeDocTab === 'Employment Documents' && <td>{doc.issuedOn}</td>}
+                                          )} */}
+                                          <td>{doc.description}</td>
+                                          {/* {activeDocTab === 'Employment Documents' && <td>{doc.issuedOn}</td>} */}
                                           {activeDocTab === 'Payroll Documents' && <td>{doc.monthYear}</td>}
                                           {activeDocTab === 'Tax Documents' && <td>{doc.financialYear}</td>}
-                                          {activeDocTab === 'Uploaded Documents' && <td>{doc.uploadedOn}</td>}
+                                          {/* {activeDocTab === 'Uploaded Documents' && <td>{doc.uploadedOn}</td>} */}
 
                                           <td>
                                             <span className={`doc-status ${doc.status === 'Available' || doc.status === 'Verified' ? 'success' : 'warning'}`}>
@@ -7151,7 +7144,7 @@ export function EmployeePortalFlow({
                                             </span>
                                           </td>
 
-                                          {activeDocTab === 'Uploaded Documents' && <td>{doc.verifiedOn}</td>}
+                                          {/* {activeDocTab === 'Uploaded Documents' && <td>{doc.verifiedOn}</td>} */}
 
                                           <td>
                                             <div className="doc-table-actions">
@@ -7169,10 +7162,9 @@ export function EmployeePortalFlow({
                                 <span className="doc-pagination-info">
                                   {(() => {
                                     let source: PortalDocument[] = []
-                                    if (activeDocTab === 'Employment Documents') source = employmentDocsSeed
-                                    else if (activeDocTab === 'Payroll Documents') source = payrollDocsSeed
+                                    if (activeDocTab === 'Payroll Documents') source = payrollDocsSeed
                                     else if (activeDocTab === 'Tax Documents') source = taxDocsSeed
-                                    else if (activeDocTab === 'Uploaded Documents') source = uploadedDocsState
+                                    // else if (activeDocTab === 'Uploaded Documents') source = uploadedDocsState
                                     else if (activeDocTab === 'Expiring Documents') source = [uploadedDocsState[1]]
 
                                     let filtered = source.filter(d => d.name.toLowerCase().includes(docSearchQuery.toLowerCase()))
@@ -7195,10 +7187,9 @@ export function EmployeePortalFlow({
                                   <button type="button" className="btn" disabled={
                                     (() => {
                                       let source: PortalDocument[] = []
-                                      if (activeDocTab === 'Employment Documents') source = employmentDocsSeed
-                                      else if (activeDocTab === 'Payroll Documents') source = payrollDocsSeed
+                                      if (activeDocTab === 'Payroll Documents') source = payrollDocsSeed
                                       else if (activeDocTab === 'Tax Documents') source = taxDocsSeed
-                                      else if (activeDocTab === 'Uploaded Documents') source = uploadedDocsState
+                                      // else if (activeDocTab === 'Uploaded Documents') source = uploadedDocsState
                                       else if (activeDocTab === 'Expiring Documents') source = [uploadedDocsState[1]]
 
                                       let filtered = source.filter(d => d.name.toLowerCase().includes(docSearchQuery.toLowerCase()))
@@ -7215,11 +7206,11 @@ export function EmployeePortalFlow({
                               </div>
                             </div>
 
-                            {activeDocTab === 'Uploaded Documents' && (
+                            {/* {activeDocTab === 'Uploaded Documents' && (
                               <div className="doc-info-tip" style={{ marginTop: '14px' }}>
                                 <span>ℹ️</span> You will be notified once your documents are verified by HR.
                               </div>
-                            )}
+                            )} */}
 
                             {isDocUploadModalOpen && (
                               <div className="time-modal-backdrop" role="presentation" onClick={() => setIsDocUploadModalOpen(false)}>
