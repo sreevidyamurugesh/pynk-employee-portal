@@ -1488,6 +1488,12 @@ export function EmployeePortalFlow({
     return rows
   })
   const [reconciliationDimension, setReconciliationDimension] = useState<'client' | 'employee' | 'paygroup' | 'payment'>('client')
+
+  useEffect(() => {
+    setSelectedReconcileKeys(new Set())
+    setSubmittedReconcileKeys(new Set())
+  }, [reconciliationDimension])
+
   const [searchEmployeeQuery, setSearchEmployeeQuery] = useState('')
   const [filterClientName, setFilterClientName] = useState('All')
   const [isPayrollSubmitted, setIsPayrollSubmitted] = useState(false)
@@ -1527,6 +1533,13 @@ export function EmployeePortalFlow({
   const [isOffcycleModalOpen, setIsOffcycleModalOpen] = useState(false)
   const [isRefreshingLock, setIsRefreshingLock] = useState(false)
   const [activeOffcycleDetailsModal, setActiveOffcycleDetailsModal] = useState<{ employeeName: string; payments: ClientOffcyclePayment[] } | null>(null)
+  const [lockedEmployeeIds, setLockedEmployeeIds] = useState<Set<string>>(new Set())
+  const [selectedLockEmployeeIds, setSelectedLockEmployeeIds] = useState<Set<string>>(new Set())
+  const [showLockConfirmModal, setShowLockConfirmModal] = useState(false)
+  const [showPayrollSubmitConfirmModal, setShowPayrollSubmitConfirmModal] = useState(false)
+  const [selectedReconcileKeys, setSelectedReconcileKeys] = useState<Set<string>>(new Set())
+  const [submittedReconcileKeys, setSubmittedReconcileKeys] = useState<Set<string>>(new Set())
+  const [showReconcileConfirmModal, setShowReconcileConfirmModal] = useState(false)
   const [offcycleForm, setOffcycleForm] = useState({
     employeeId: 'EMP-001',
     code: 'Monthly Bonus',
@@ -4475,9 +4488,76 @@ export function EmployeePortalFlow({
   }
 
   const renderClientLock = () => {
+    const allIds = adminEmployees.map(emp => emp.id)
+    const pendingLockIds = allIds.filter(id => !lockedEmployeeIds.has(id))
+    const selectedLockCount = selectedLockEmployeeIds.size
+    const isAllLockSelected = pendingLockIds.length > 0 && pendingLockIds.every(id => selectedLockEmployeeIds.has(id))
+    const isLockIndeterminate = selectedLockEmployeeIds.size > 0 && !isAllLockSelected
+
+    const handleSelectAllLock = () => {
+      if (isAllLockSelected) {
+        setSelectedLockEmployeeIds(new Set())
+      } else {
+        setSelectedLockEmployeeIds(new Set(pendingLockIds))
+      }
+    }
+
+    const handleToggleOneLock = (id: string) => {
+      if (lockedEmployeeIds.has(id)) return
+      setSelectedLockEmployeeIds(prev => {
+        const next = new Set(prev)
+        if (next.has(id)) next.delete(id)
+        else next.add(id)
+        return next
+      })
+    }
+
+    const handleConfirmLock = () => {
+      const nextLocked = new Set([...lockedEmployeeIds, ...selectedLockEmployeeIds])
+      setLockedEmployeeIds(nextLocked)
+      setSelectedLockEmployeeIds(new Set())
+      setShowLockConfirmModal(false)
+
+      const allLockedNow = allIds.every(id => nextLocked.has(id))
+      if (allLockedNow) {
+        setIsPeriodLocked(true)
+        setDismissedPeriodLocked(false)
+      }
+
+      showToast(`Locked pay period & submitted for ${selectedLockCount} employee(s) - OK.`)
+    }
+
     return (
       <div className="dash-shell">
-        <div className="dash-welcome-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        {/* Lock Confirmation Modal */}
+        {showLockConfirmModal && (
+          <div className="time-modal-backdrop" role="presentation" onClick={() => setShowLockConfirmModal(false)}>
+            <div className="modal-caution-box" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <span style={{ fontSize: '2.2rem', lineHeight: 1 }}>🔒</span>
+                <div>
+                  <h2 style={{ color: 'var(--ink)' }}>Confirm Final Lock & Submit</h2>
+                  <p className="time-confirm-message" style={{ margin: '6px 0 0 0', fontSize: '0.95rem' }}>
+                    Are you sure you want to final lock the pay period and submit payroll data for the selected <strong>{selectedLockCount}</strong> employee(s) to Pynk?
+                  </p>
+                  <p style={{ color: 'var(--muted)', fontSize: '0.85rem', margin: '4px 0 0 0' }}>
+                    This action will freeze all timesheet entries and calculations. It cannot be undone.
+                  </p>
+                </div>
+              </div>
+              <div className="modal-caution-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
+                <button type="button" className="btn btn-secondary" onClick={() => setShowLockConfirmModal(false)}>
+                  Cancel
+                </button>
+                <button type="button" className="btn btn-primary" onClick={handleConfirmLock}>
+                  Yes, Lock & Submit
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="dash-welcome-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
               <h1 className="dash-welcome-title" style={{ margin: 0 }}>Final Approval & Locking Workflows 🔒</h1>
@@ -4511,6 +4591,19 @@ export function EmployeePortalFlow({
             </div>
             <p className="dash-welcome-sub">Validate periods variance differences, lock time entries, and submit payroll logs.</p>
           </div>
+          {!isPeriodLocked && (
+            <button
+              type="button"
+              className="btn btn-primary"
+              disabled={selectedLockCount === 0}
+              onClick={() => {
+                setShowLockConfirmModal(true)
+              }}
+              style={{ whiteSpace: 'nowrap', alignSelf: 'flex-start' }}
+            >
+              🔒 Lock Selected ({selectedLockCount}) & Submit
+            </button>
+          )}
         </div>
 
         {isPeriodLocked ? (
@@ -4548,6 +4641,18 @@ export function EmployeePortalFlow({
             <table>
               <thead>
                 <tr>
+                  <th style={{ width: '44px', textAlign: 'center' }}>
+                    {pendingLockIds.length > 0 && (
+                      <input
+                        type="checkbox"
+                        checked={isAllLockSelected}
+                        ref={el => { if (el) el.indeterminate = isLockIndeterminate }}
+                        onChange={handleSelectAllLock}
+                        title="Select all pending employees for locking"
+                        style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#6c63ff' }}
+                      />
+                    )}
+                  </th>
                   <th>Employee Name</th>
                   <th className="num">June volume (INR)</th>
                   <th className="num">Offcycle Bonus (INR)</th>
@@ -4558,13 +4663,37 @@ export function EmployeePortalFlow({
               </thead>
               <tbody>
                 {adminEmployees.map(e => {
+                  const isEmpLocked = lockedEmployeeIds.has(e.id)
+                  const isChecked = selectedLockEmployeeIds.has(e.id)
                   const bonus = offcyclePaymentsList.filter(o => o.employeeId === e.id).reduce((sum, o) => sum + o.amount, 0)
                   const julyTotal = e.currGross + bonus
                   const diff = julyTotal - e.prevGross
                   const pct = e.prevGross > 0 ? (diff / e.prevGross) * 100 : 0
                   const rowClass = diff > 0 ? 'increase' : diff < 0 ? 'decrease' : 'neutral'
                   return (
-                    <tr key={e.id}>
+                    <tr key={e.id}
+                      onClick={() => { if (!isEmpLocked) handleToggleOneLock(e.id) }}
+                      style={{
+                        cursor: isEmpLocked ? 'default' : 'pointer',
+                        background: isEmpLocked
+                          ? 'rgba(46,204,113,0.06)'
+                          : isChecked ? 'rgba(108,99,255,0.1)' : undefined,
+                        opacity: isEmpLocked ? 0.75 : 1,
+                        transition: 'background 0.2s'
+                      }}
+                    >
+                      <td style={{ textAlign: 'center' }} onClick={e => e.stopPropagation()}>
+                        {isEmpLocked ? (
+                          <span title="Locked & Submitted" style={{ color: '#2ecc71', fontSize: '1rem' }}>🔒</span>
+                        ) : (
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => handleToggleOneLock(e.id)}
+                            style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#6c63ff' }}
+                          />
+                        )}
+                      </td>
                       <td><strong>{e.name}</strong></td>
                       <td className="num">₹ {e.prevGross.toLocaleString('en-IN')}</td>
                       <td className="num" style={{ color: bonus > 0 ? '#2ecc71' : 'var(--muted)', fontWeight: 600 }}>
@@ -4606,15 +4735,7 @@ export function EmployeePortalFlow({
           </div>
         </div>
 
-        {!isPeriodLocked && (
-          <button type="button" className="btn btn-primary" onClick={() => {
-            setIsPeriodLocked(true)
-            setDismissedPeriodLocked(false)
-            showToast('Current pay period locked - Submissions frozen.')
-          }} style={{ width: 'fit-content', marginTop: '16px' }}>
-            Lock Pay Period & Final Submit to Pynk
-          </button>
-        )}
+
 
       </div>
     )
@@ -4942,6 +5063,60 @@ export function EmployeePortalFlow({
         </div>
       )}
 
+      {/* Payroll Submit Confirmation Modal */}
+      {showPayrollSubmitConfirmModal && (() => {
+        const regularGross = adminEmployees.reduce((sum, e) => sum + e.currGross, 0)
+        const offcycleBonus = offcyclePaymentsList.reduce((sum, o) => sum + o.amount, 0)
+        const grandTotal = regularGross + offcycleBonus
+        return (
+          <div className="time-modal-backdrop" role="presentation" onClick={() => setShowPayrollSubmitConfirmModal(false)}>
+            <div className="modal-caution-box" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <span style={{ fontSize: '2.2rem', lineHeight: 1 }}>📤</span>
+                <div>
+                  <h2 style={{ color: 'var(--ink)' }}>Confirm Final Payroll Transmission</h2>
+                  <p className="time-confirm-message" style={{ margin: '6px 0 0 0', fontSize: '0.95rem' }}>
+                    Are you sure you want to final submit the compiled payroll data to Pynk partner processing systems?
+                  </p>
+
+                  {/* Summary list */}
+                  <div style={{ marginTop: '14px', padding: '12px', borderRadius: '8px', border: '1px solid var(--line)', background: 'rgba(255,255,255,0.01)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
+                      <span style={{ color: 'var(--muted)' }}>Total Employees:</span>
+                      <strong style={{ color: 'var(--ink)' }}>{adminEmployees.length}</strong>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
+                      <span style={{ color: 'var(--muted)' }}>Regular Gross Pay:</span>
+                      <strong style={{ color: 'var(--ink)' }}>₹ {regularGross.toLocaleString('en-IN')}</strong>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
+                      <span style={{ color: 'var(--muted)' }}>Special / Offcycle Payments:</span>
+                      <strong style={{ color: 'var(--ink)' }}>₹ {offcycleBonus.toLocaleString('en-IN')}</strong>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', borderTop: '1px solid var(--line)', paddingTop: '6px', marginTop: '4px' }}>
+                      <span style={{ color: 'var(--muted)', fontWeight: 600 }}>Grand Payroll Total:</span>
+                      <strong style={{ color: '#2ecc71' }}>₹ {grandTotal.toLocaleString('en-IN')}</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="modal-caution-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
+                <button type="button" className="btn btn-secondary" onClick={() => setShowPayrollSubmitConfirmModal(false)}>
+                  Cancel
+                </button>
+                <button type="button" className="btn btn-primary" onClick={() => {
+                  setIsPayrollSubmitted(true);
+                  setDismissedPayrollSubmitted(false);
+                  setShowPayrollSubmitConfirmModal(false);
+                  showToast('Current pay period payroll data submitted successfully - OK');
+                }}>
+                  Yes, Final Submit
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
 
       <div className="portal-layout">
         <aside className="portal-sidebar" aria-label="Modules">
@@ -5056,6 +5231,28 @@ export function EmployeePortalFlow({
                             {/* Alert: Cutoff warning */}
                             <div className="dash-card dash-time-card">
                               <h3 className="dash-card-title">Processing Timeline Warning</h3>
+
+                              {/* Payroll details summary */}
+                              <div style={{ margin: '12px 0', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--line)' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '6px' }}>
+                                  <span style={{ color: 'var(--muted)' }}>Approved Employees:</span>
+                                  <strong style={{ color: 'var(--ink)' }}>{approvedEmployeeIds.size} / {adminEmployees.length}</strong>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '6px' }}>
+                                  <span style={{ color: 'var(--muted)' }}>Locked Employees:</span>
+                                  <strong style={{ color: 'var(--ink)' }}>{lockedEmployeeIds.size} / {adminEmployees.length}</strong>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                                  <span style={{ color: 'var(--muted)' }}>Total Payroll Gross:</span>
+                                  <strong style={{ color: '#2ecc71' }}>
+                                    ₹ {(
+                                      adminEmployees.reduce((sum, e) => sum + e.currGross, 0) +
+                                      offcyclePaymentsList.reduce((sum, o) => sum + o.amount, 0)
+                                    ).toLocaleString('en-IN')}
+                                  </strong>
+                                </div>
+                              </div>
+
                               {isPayrollSubmitted ? (
                                 !dismissedPayrollSubmitted && (
                                   <div className="admin-toast-backdrop" role="alertdialog" aria-modal="true" aria-label="Submitted">
@@ -5083,15 +5280,17 @@ export function EmployeePortalFlow({
                                   </div>
                                 )
                               )}
+
                               {!isPayrollSubmitted && (
-                                <button type="button" className="btn btn-primary" style={{ width: 'fit-content', marginTop: '10px' }}
-                                  onClick={() => {
-                                    setIsPayrollSubmitted(true);
-                                    setDismissedPayrollSubmitted(false);
-                                    showToast('Current pay period payroll data submitted - OK');
-                                  }}>
-                                  Submit Current Payroll Data
-                                </button>
+                                <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                  <p style={{ color: '#f39c12', fontSize: '0.82rem', margin: 0 }}>
+                                    ⚠️ Reconciled payroll details must be verified and sent to partners in the Reconciliation tab.
+                                  </p>
+                                  <button type="button" className="btn btn-secondary" style={{ width: 'fit-content' }}
+                                    onClick={() => setCurrentModule('admin-reconciliation')}>
+                                    ➡️ Go to Reconciliation & Variance Reviews
+                                  </button>
+                                </div>
                               )}
                             </div>
 
@@ -5164,8 +5363,74 @@ export function EmployeePortalFlow({
                         </div>
                       )
                     })() : currentModule === 'admin-reconciliation' ? (() => {
+                      const allReconcileKeys = reconciliationData.map(row => row.name)
+                      const pendingReconcileKeys = allReconcileKeys.filter(key => !submittedReconcileKeys.has(key))
+                      const selectedReconcileCount = selectedReconcileKeys.size
+                      const isAllReconcileSelected = pendingReconcileKeys.length > 0 && pendingReconcileKeys.every(key => selectedReconcileKeys.has(key))
+                      const isReconcileIndeterminate = selectedReconcileKeys.size > 0 && !isAllReconcileSelected
+
+                      const handleSelectAllReconcile = () => {
+                        if (isAllReconcileSelected) {
+                          setSelectedReconcileKeys(new Set())
+                        } else {
+                          setSelectedReconcileKeys(new Set(pendingReconcileKeys))
+                        }
+                      }
+
+                      const handleToggleOneReconcile = (key: string) => {
+                        if (submittedReconcileKeys.has(key)) return
+                        setSelectedReconcileKeys(prev => {
+                          const next = new Set(prev)
+                          if (next.has(key)) next.delete(key)
+                          else next.add(key)
+                          return next
+                        })
+                      }
+
+                      const handleConfirmSendToPartners = () => {
+                        const nextSubmitted = new Set([...submittedReconcileKeys, ...selectedReconcileKeys])
+                        setSubmittedReconcileKeys(nextSubmitted)
+                        setSelectedReconcileKeys(new Set())
+                        setShowReconcileConfirmModal(false)
+
+                        const allSubmittedNow = allReconcileKeys.every(key => nextSubmitted.has(key))
+                        if (allSubmittedNow) {
+                          setIsPayrollSubmitted(true)
+                        }
+
+                        showToast(`Sent reconciled details to partners for ${selectedReconcileCount} groups successfully!`)
+                      }
+
                       return (
                         <div className="dash-shell">
+                          {/* Reconcile Send Confirmation Modal */}
+                          {showReconcileConfirmModal && (
+                            <div className="time-modal-backdrop" role="presentation" onClick={() => setShowReconcileConfirmModal(false)}>
+                              <div className="modal-caution-box" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                                  <span style={{ fontSize: '2.2rem', lineHeight: 1 }}>✈️</span>
+                                  <div>
+                                    <h2 style={{ color: 'var(--ink)' }}>Confirm Transmission to Partners</h2>
+                                    <p className="time-confirm-message" style={{ margin: '6px 0 0 0', fontSize: '0.95rem' }}>
+                                      Are you sure you want to send the reconciled payroll and variance details to processing partners for the selected <strong>{selectedReconcileCount}</strong> groups?
+                                    </p>
+                                    <p style={{ color: 'var(--muted)', fontSize: '0.85rem', margin: '4px 0 0 0' }}>
+                                      This will lock the selected groups and transmit the reconciled variance sheet to partner organizations.
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="modal-caution-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
+                                  <button type="button" className="btn btn-secondary" onClick={() => setShowReconcileConfirmModal(false)}>
+                                    Cancel
+                                  </button>
+                                  <button type="button" className="btn btn-primary" onClick={handleConfirmSendToPartners}>
+                                    Yes, Reconcile & Send
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
                           <div className="dash-welcome-row">
                             <div>
                               <h1 className="dash-welcome-title">Payroll Reconciliation & Variance Reviews ⚖️</h1>
@@ -5175,12 +5440,12 @@ export function EmployeePortalFlow({
                               <button type="button" className="btn btn-secondary" onClick={handleExportCSV}>
                                 📥 Export CSV
                               </button>
-                              <button type="button" className="btn btn-primary" disabled={isPayrollSubmitted}
+                              <button type="button" className="btn btn-primary"
+                                disabled={selectedReconcileCount === 0 || isPayrollSubmitted}
                                 onClick={() => {
-                                  setIsPayrollSubmitted(true);
-                                  showToast('Reconciled payroll details sent to partners successfully!');
+                                  setShowReconcileConfirmModal(true)
                                 }}>
-                                ✈️ Send to Partners
+                                ✈️ Send Selected ({selectedReconcileCount}) to Partners
                               </button>
                             </div>
                           </div>
@@ -5205,6 +5470,18 @@ export function EmployeePortalFlow({
                               <table>
                                 <thead>
                                   <tr>
+                                    <th style={{ width: '44px', textAlign: 'center' }}>
+                                      {pendingReconcileKeys.length > 0 && (
+                                        <input
+                                          type="checkbox"
+                                          checked={isAllReconcileSelected}
+                                          ref={el => { if (el) el.indeterminate = isReconcileIndeterminate }}
+                                          onChange={handleSelectAllReconcile}
+                                          title="Select all pending groups for sending"
+                                          style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#6c63ff' }}
+                                        />
+                                      )}
+                                    </th>
                                     <th>{reconciliationDimension.charAt(0).toUpperCase() + reconciliationDimension.slice(1)} Group / Name</th>
                                     <th className="num">June 2025 completed (Prev)</th>
                                     <th className="num">July 2025 in-progress (Curr)</th>
@@ -5215,6 +5492,8 @@ export function EmployeePortalFlow({
                                 </thead>
                                 <tbody>
                                   {reconciliationData.map((row, idx) => {
+                                    const isRowSubmitted = submittedReconcileKeys.has(row.name)
+                                    const isChecked = selectedReconcileKeys.has(row.name)
                                     const diff = row.curr - row.prev
                                     const pct = row.prev > 0 ? (diff / row.prev) * 100 : 0
                                     let statusLabel = 'Equal'
@@ -5223,7 +5502,29 @@ export function EmployeePortalFlow({
                                     else if (diff < 0) { statusLabel = 'Decreased ↘'; statusClass = 'decrease' }
 
                                     return (
-                                      <tr key={idx}>
+                                      <tr key={idx}
+                                        onClick={() => { if (!isRowSubmitted) handleToggleOneReconcile(row.name) }}
+                                        style={{
+                                          cursor: isRowSubmitted ? 'default' : 'pointer',
+                                          background: isRowSubmitted
+                                            ? 'rgba(46,204,113,0.06)'
+                                            : isChecked ? 'rgba(108,99,255,0.1)' : undefined,
+                                          opacity: isRowSubmitted ? 0.75 : 1,
+                                          transition: 'background 0.2s'
+                                        }}
+                                      >
+                                        <td style={{ textAlign: 'center' }} onClick={e => e.stopPropagation()}>
+                                          {isRowSubmitted ? (
+                                            <span title="Submitted" style={{ color: '#2ecc71', fontSize: '1rem' }}>✓</span>
+                                          ) : (
+                                            <input
+                                              type="checkbox"
+                                              checked={isChecked}
+                                              onChange={() => handleToggleOneReconcile(row.name)}
+                                              style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#6c63ff' }}
+                                            />
+                                          )}
+                                        </td>
                                         <td><strong>{row.name}</strong></td>
                                         <td className="num">₹ {row.prev.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                                         <td className="num">₹ {row.curr.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
@@ -5240,6 +5541,7 @@ export function EmployeePortalFlow({
                                 </tbody>
                                 <tfoot>
                                   <tr>
+                                    <td></td>
                                     <td><strong>Grand Total:</strong></td>
                                     <td className="num"><strong>₹ {totalsAdmin.prev.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong></td>
                                     <td className="num"><strong>₹ {totalsAdmin.curr.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong></td>
