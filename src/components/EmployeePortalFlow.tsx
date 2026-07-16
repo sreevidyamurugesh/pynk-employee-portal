@@ -1494,23 +1494,39 @@ export function EmployeePortalFlow({
   const [isSecondApprovalNotified, setIsSecondApprovalNotified] = useState(false)
   const [selectedEmployeeForPayslipModal, setSelectedEmployeeForPayslipModal] = useState<AdminEmployee | null>(null)
   const [successToastMessage, setSuccessToastMessage] = useState<string | null>(null)
+  const [alertModal, setAlertModal] = useState<{ type: 'success' | 'info' | 'warning' | 'error', title: string, message: string } | null>(null)
 
   const showToast = (msg: string) => {
     setSuccessToastMessage(msg)
-    setTimeout(() => setSuccessToastMessage(null), 3000)
   }
+
 
   // Client Portal States
 
   const [clientPayGroupFilter, setClientPayGroupFilter] = useState<'Monthly' | 'Weekly' | 'Bi-Weekly' | 'Semi-Monthly'>('Monthly')
   const [offcyclePaymentsList, setOffcyclePaymentsList] = useState<ClientOffcyclePayment[]>(clientOffcyclesSeed)
   const [portalAccessLogs] = useState<PortalAccessLog[]>(portalAccessLogsSeed)
-  const [isPeriodApproved, setIsPeriodApproved] = useState(false)
   const [isPeriodLocked, setIsPeriodLocked] = useState(false)
+  const [approvedEmployeeIds, setApprovedEmployeeIds] = useState<Set<string>>(new Set())
+  const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<Set<string>>(new Set())
+  const [showApproveConfirmModal, setShowApproveConfirmModal] = useState(false)
   const [isBulkUploading, setIsBulkUploading] = useState(false)
+
+  // Alert Modal Dismissal States
+  const [dismissedAllApproved, setDismissedAllApproved] = useState(false)
+  const [dismissedApprovedCount, setDismissedApprovedCount] = useState(false)
+  const [dismissedPendingClient, setDismissedPendingClient] = useState(false)
+  const [dismissedPeriodLocked, setDismissedPeriodLocked] = useState(false)
+  const [dismissedPeriodOpen, setDismissedPeriodOpen] = useState(false)
+  const [dismissedPayrollSubmitted, setDismissedPayrollSubmitted] = useState(false)
+  const [dismissedPayrollWarning, setDismissedPayrollWarning] = useState(false)
+  const [dismissedSecondApprovalNotified, setDismissedSecondApprovalNotified] = useState(false)
+  const [dismissedSecondApprovalRequired, setDismissedSecondApprovalRequired] = useState(false)
 
   // Client Offcycle Modal
   const [isOffcycleModalOpen, setIsOffcycleModalOpen] = useState(false)
+  const [isRefreshingLock, setIsRefreshingLock] = useState(false)
+  const [activeOffcycleDetailsModal, setActiveOffcycleDetailsModal] = useState<{ employeeName: string; payments: ClientOffcyclePayment[] } | null>(null)
   const [offcycleForm, setOffcycleForm] = useState({
     employeeId: 'EMP-001',
     code: 'Monthly Bonus',
@@ -2196,8 +2212,8 @@ export function EmployeePortalFlow({
       return [
         { id: 'client-dashboard' as Module, label: 'Client Dashboard', icon: '📊' },
         { id: 'client-payroll-control' as Module, label: 'Payroll Control', icon: '⚙️' },
-        { id: 'client-payroll-period' as Module, label: 'Payroll Period', icon: '📅' },
         { id: 'client-offcycles' as Module, label: 'Offcycles / Bonus', icon: '💸' },
+        { id: 'client-payroll-period' as Module, label: 'Payroll Period', icon: '📅' },
         { id: 'client-lock' as Module, label: 'Approval & Lock', icon: '🔒' },
         { id: 'client-reports' as Module, label: 'Reports', icon: '📈' },
       ]
@@ -3980,7 +3996,7 @@ export function EmployeePortalFlow({
                           <input
                             type="number"
                             min={0}
-                            style={{ width: '90px', padding: '4px 8px', background: 'var(--surface)', color: '#fff', border: '1px solid var(--line)', borderRadius: '4px', textAlign: 'right' }}
+                            style={{ width: '90px', padding: '4px 8px', background: 'var(--surface)', color: 'var(--ink)', border: '1px solid var(--line)', borderRadius: '4px', textAlign: 'right' }}
                             value={row.hours}
                             disabled={isPeriodLocked}
                             onChange={(e) => {
@@ -3993,7 +4009,7 @@ export function EmployeePortalFlow({
                           <input
                             type="number"
                             min={0}
-                            style={{ width: '140px', padding: '4px 8px', background: 'var(--surface)', color: '#fff', border: '1px solid var(--line)', borderRadius: '4px', textAlign: 'right' }}
+                            style={{ width: '140px', padding: '4px 8px', background: 'var(--surface)', color: 'var(--ink)', border: '1px solid var(--line)', borderRadius: '4px', textAlign: 'right' }}
                             value={row.fullSalary}
                             disabled={isPeriodLocked}
                             onChange={(e) => {
@@ -4029,40 +4045,144 @@ export function EmployeePortalFlow({
   }
 
   const renderClientPayrollPeriod = () => {
+    const allIds = adminEmployees.map(e => e.id)
+    // Only non-approved employees are eligible for selection
+    const pendingIds = allIds.filter(id => !approvedEmployeeIds.has(id))
+    const allApproved = allIds.length > 0 && allIds.every(id => approvedEmployeeIds.has(id))
+
+    const isAllSelected = pendingIds.length > 0 && pendingIds.every(id => selectedEmployeeIds.has(id))
+    const isIndeterminate = pendingIds.some(id => selectedEmployeeIds.has(id)) && !isAllSelected
+    const selectedCount = selectedEmployeeIds.size
+    const approvedCount = approvedEmployeeIds.size
+
+    const handleSelectAll = () => {
+      if (isAllSelected) {
+        setSelectedEmployeeIds(new Set())
+      } else {
+        setSelectedEmployeeIds(new Set(pendingIds))
+      }
+    }
+
+    const handleToggleOne = (id: string) => {
+      if (approvedEmployeeIds.has(id)) return // can't toggle approved
+      setSelectedEmployeeIds(prev => {
+        const next = new Set(prev)
+        if (next.has(id)) next.delete(id)
+        else next.add(id)
+        return next
+      })
+    }
+
+    const handleConfirmApprove = () => {
+      const nowApproved = new Set([...approvedEmployeeIds, ...selectedEmployeeIds])
+      setApprovedEmployeeIds(nowApproved)
+      setSelectedEmployeeIds(new Set())
+      setShowApproveConfirmModal(false)
+
+      if (nowApproved.size === allIds.length) {
+        setDismissedAllApproved(false)
+      } else {
+        setDismissedApprovedCount(false)
+      }
+
+      showToast(`Timesheet entries approved for ${selectedCount} employee${selectedCount > 1 ? 's' : ''}!`)
+    }
+
     return (
       <div className="dash-shell">
+        {/* Confirmation Modal */}
+        {showApproveConfirmModal && (
+          <div className="time-modal-backdrop" role="presentation" onClick={() => setShowApproveConfirmModal(false)}>
+            <div className="modal-caution-box" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <span style={{ fontSize: '2.2rem', lineHeight: 1 }}>⚠️</span>
+                <div>
+                  <h2>Confirm Approval</h2>
+                  <p className="modal-caution-sub">This action cannot be undone</p>
+                </div>
+              </div>
+              <div className="modal-caution-content">
+                You are about to <strong style={{ color: '#f39c12' }}>approve timesheet entries</strong> for{' '}
+                <strong>{selectedCount} employee{selectedCount > 1 ? 's' : ''}</strong>.
+                Once approved, submissions will be <strong style={{ color: '#e74c3c' }}>frozen</strong> and forwarded for payroll processing.
+              </div>
+              <p className="modal-caution-footer">Are you sure you want to proceed?</p>
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                <button type="button" className="btn" onClick={() => setShowApproveConfirmModal(false)}>
+                  Cancel
+                </button>
+                <button type="button" className="btn btn-primary" onClick={handleConfirmApprove}
+                  style={{ background: 'linear-gradient(135deg,#f39c12,#e67e22)', border: 'none', fontWeight: 700 }}>
+                  ✓ Yes, Approve
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+
         <div className="dash-welcome-row">
           <div>
             <h1 className="dash-welcome-title">Payroll Area & Time Approval Checklist 📅</h1>
             <p className="dash-welcome-sub">Manage processing periods, approve employee logs, and run validation audits.</p>
           </div>
-          <div className="filter-input-group">
-            <select value={clientPayGroupFilter} onChange={e => setClientPayGroupFilter(e.target.value as any)} className="btn" style={{ background: 'var(--surface)', color: '#fff' }}>
+          <div className="filter-input-group" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+            <select value={clientPayGroupFilter} onChange={e => setClientPayGroupFilter(e.target.value as any)} className="btn" style={{ background: 'var(--surface)', color: 'var(--ink)' }}>
               <option value="Monthly">Monthly Pay Period</option>
               <option value="Weekly">Weekly Pay Period</option>
               <option value="Bi-Weekly">Bi-Weekly Pay Period</option>
               <option value="Semi-Monthly">Semi-Monthly Pay Period</option>
             </select>
+            {!allApproved && selectedCount > 0 && (
+              <button type="button" className="btn btn-primary"
+                onClick={() => setShowApproveConfirmModal(true)}
+                style={{ width: 'fit-content', background: 'linear-gradient(135deg,#f39c12,#e67e22)', border: 'none' }}>
+                ✓ Approve Selected ({selectedCount}) Employee Time {selectedCount > 1 ? 'Entries' : 'Entry'}
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Alert Cards */}
-        {isPeriodApproved ? (
-          <div className="admin-alert-banner success" style={{ marginBottom: '16px' }}>
-            <span className="alert-ico">✓</span>
-            <div className="alert-text">
-              <strong>Timesheet entries APPROVED for all staff!</strong>
-              <p>Staff hours are approved. Details are forwarded for secondary payroll verification audits.</p>
+        {/* Modal Alert Banner */}
+        {allApproved ? (
+          !dismissedAllApproved && (
+            <div className="admin-toast-backdrop" role="alertdialog" aria-modal="true" aria-label="Approved">
+              <div className="admin-toast-message">
+                <span className="admin-toast-icon" style={{ background: 'linear-gradient(135deg,#2ecc71,#27ae60)', boxShadow: '0 6px 20px rgba(46,204,113,0.4)' }}>✓</span>
+                <span className="admin-toast-text" style={{ fontWeight: 700, fontSize: '1.05rem' }}>All Timesheet entries APPROVED!</span>
+                <span style={{ fontSize: '0.875rem', color: 'var(--muted)', lineHeight: 1.5, textAlign: 'center' }}>
+                  All staff hours are approved. Details are forwarded for secondary payroll verification audits.
+                </span>
+                <button type="button" className="admin-toast-ok" style={{ background: 'linear-gradient(135deg,#2ecc71,#27ae60)', boxShadow: '0 4px 14px rgba(46,204,113,0.4)' }} onClick={() => setDismissedAllApproved(true)}>OK</button>
+              </div>
             </div>
-          </div>
+          )
+        ) : approvedCount > 0 ? (
+          !dismissedApprovedCount && (
+            <div className="admin-toast-backdrop" role="alertdialog" aria-modal="true" aria-label="Approvals info">
+              <div className="admin-toast-message">
+                <span className="admin-toast-icon" style={{ background: 'linear-gradient(135deg,#3b82f6,#2563eb)', boxShadow: '0 6px 20px rgba(59,130,246,0.4)' }}>ℹ</span>
+                <span className="admin-toast-text" style={{ fontWeight: 700, fontSize: '1.05rem' }}>{approvedCount} of {allIds.length} employees approved</span>
+                <span style={{ fontSize: '0.875rem', color: 'var(--muted)', lineHeight: 1.5, textAlign: 'center' }}>
+                  {pendingIds.length} employee{pendingIds.length > 1 ? 's' : ''} still pending. Select and approve their entries below.
+                </span>
+                <button type="button" className="admin-toast-ok" style={{ background: 'linear-gradient(135deg,#3b82f6,#2563eb)', boxShadow: '0 4px 14px rgba(59,130,246,0.4)' }} onClick={() => setDismissedApprovedCount(true)}>OK</button>
+              </div>
+            </div>
+          )
         ) : (
-          <div className="admin-alert-banner warning" style={{ marginBottom: '16px' }}>
-            <span className="alert-ico">⚠️</span>
-            <div className="alert-text">
-              <strong>Pending Client Approval (Cut-off close)</strong>
-              <p>Please audit employee logged timesheet hours for current period. Tapping "Approve time entries" will freeze submissions.</p>
+          !dismissedPendingClient && (
+            <div className="admin-toast-backdrop" role="alertdialog" aria-modal="true" aria-label="Pending approvals">
+              <div className="admin-toast-message">
+                <span className="admin-toast-icon" style={{ background: 'linear-gradient(135deg,#f39c12,#e67e22)', boxShadow: '0 6px 20px rgba(243,156,18,0.4)' }}>⚠</span>
+                <span className="admin-toast-text" style={{ fontWeight: 700, fontSize: '1.05rem' }}>Pending Client Approval (Cut-off close)</span>
+                <span style={{ fontSize: '0.875rem', color: 'var(--muted)', lineHeight: 1.5, textAlign: 'center' }}>
+                  Select employees below and click "Approve Selected" to freeze and submit their timesheet entries.
+                </span>
+                <button type="button" className="admin-toast-ok" style={{ background: 'linear-gradient(135deg,#f39c12,#e67e22)', boxShadow: '0 4px 14px rgba(243,156,18,0.4)' }} onClick={() => setDismissedPendingClient(true)}>OK</button>
+              </div>
             </div>
-          </div>
+          )
         )}
 
         {/* Employees checklist */}
@@ -4071,44 +4191,111 @@ export function EmployeePortalFlow({
             <table>
               <thead>
                 <tr>
+                  <th style={{ width: '44px', textAlign: 'center' }}>
+                    {pendingIds.length > 0 && (
+                      <input
+                        type="checkbox"
+                        checked={isAllSelected}
+                        ref={el => { if (el) el.indeterminate = isIndeterminate }}
+                        onChange={handleSelectAll}
+                        title="Select all pending employees"
+                        style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#6c63ff' }}
+                      />
+                    )}
+                  </th>
                   <th>Employee ID</th>
                   <th>Full Name</th>
                   <th>Department / Group</th>
                   <th>Logged Hours (Regular + OT)</th>
                   <th>Leave Hours (Sick/Earned)</th>
+                  <th className="num">Offcycle Bonus</th>
                   <th>Timesheet Status</th>
                   <th>Audit Check</th>
+                  <th>Approval</th>
                 </tr>
               </thead>
               <tbody>
-                {adminEmployees.map(emp => (
-                  <tr key={emp.id}>
-                    <td><code>{emp.id}</code></td>
-                    <td><strong>{emp.name}</strong></td>
-                    <td>{emp.paygroup}</td>
-                    <td>40 hours</td>
-                    <td>8 hours</td>
-                    <td>
-                      <span className="badge done">Submitted</span>
-                    </td>
-                    <td>
-                      <span className="badge ok" style={{ background: 'rgba(46,204,113,0.1)', color: '#2ecc71', border: '1px solid rgba(46,204,113,0.2)' }}>✓ Validated</span>
-                    </td>
-                  </tr>
-                ))}
+                {adminEmployees.map(emp => {
+                  const isEmpApproved = approvedEmployeeIds.has(emp.id)
+                  const isChecked = selectedEmployeeIds.has(emp.id)
+                  const bonus = offcyclePaymentsList.filter(o => o.employeeId === emp.id).reduce((sum, o) => sum + o.amount, 0)
+                  return (
+                    <tr key={emp.id}
+                      onClick={() => { if (!isEmpApproved) handleToggleOne(emp.id) }}
+                      style={{
+                        cursor: isEmpApproved ? 'default' : 'pointer',
+                        background: isEmpApproved
+                          ? 'rgba(46,204,113,0.06)'
+                          : isChecked ? 'rgba(108,99,255,0.1)' : undefined,
+                        opacity: isEmpApproved ? 0.75 : 1,
+                        transition: 'background 0.2s'
+                      }}
+                    >
+                      <td style={{ textAlign: 'center' }} onClick={e => e.stopPropagation()}>
+                        {isEmpApproved ? (
+                          <span title="Approved" style={{ color: '#2ecc71', fontSize: '1rem' }}>✓</span>
+                        ) : (
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => handleToggleOne(emp.id)}
+                            style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#6c63ff' }}
+                          />
+                        )}
+                      </td>
+                      <td><code>{emp.id}</code></td>
+                      <td><strong>{emp.name}</strong></td>
+                      <td>{emp.paygroup}</td>
+                      <td>40 hours</td>
+                      <td>8 hours</td>
+                      <td className="num" style={{ fontWeight: 600, color: bonus > 0 ? '#2ecc71' : 'var(--muted)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px' }}>
+                          <span>₹ {bonus.toLocaleString('en-IN')}</span>
+                          {bonus > 0 && (
+                            <span
+                              title="View Bonus Details"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const payments = offcyclePaymentsList.filter(o => o.employeeId === emp.id);
+                                setActiveOffcycleDetailsModal({ employeeName: emp.name, payments });
+                              }}
+                              style={{
+                                cursor: 'pointer',
+                                color: 'var(--primary)',
+                                fontSize: '0.9rem',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                padding: '2px',
+                                borderRadius: '4px',
+                                background: 'rgba(108,99,255,0.08)'
+                              }}
+                            >
+                              ⓘ
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td>
+                        <span className="badge done">Submitted</span>
+                      </td>
+                      <td>
+                        <span className="badge ok" style={{ background: 'rgba(46,204,113,0.1)', color: '#2ecc71', border: '1px solid rgba(46,204,113,0.2)' }}>✓ Validated</span>
+                      </td>
+                      <td>
+                        {isEmpApproved ? (
+                          <span className="badge ok" style={{ background: 'rgba(46,204,113,0.15)', color: '#2ecc71', border: '1px solid rgba(46,204,113,0.3)', fontWeight: 600 }}>✓ Approved</span>
+                        ) : (
+                          <span className="badge" style={{ background: 'rgba(243,156,18,0.1)', color: '#f39c12', border: '1px solid rgba(243,156,18,0.25)' }}>⏳ Pending</span>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
         </div>
-
-        {!isPeriodApproved && (
-          <button type="button" className="btn btn-primary" onClick={() => {
-            setIsPeriodApproved(true)
-            showToast('Timesheet entries approved for all staff!')
-          }} style={{ width: 'fit-content', marginTop: '16px' }}>
-            Approve All Employee Time Entries
-          </button>
-        )}
 
       </div>
     )
@@ -4207,8 +4394,8 @@ export function EmployeePortalFlow({
           <div className="time-modal-backdrop" role="dialog" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 9999, display: 'grid', placeItems: 'center' }}>
             <div className="time-modal-content" style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '24px', width: '90%', maxWidth: '500px' }}>
               <div className="time-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--line)', paddingBottom: '12px' }}>
-                <h3 style={{ margin: 0, color: '#fff' }}>Add One-Time Special Payment</h3>
-                <button type="button" style={{ background: 'none', border: 'none', color: '#fff', fontSize: '20px', cursor: 'pointer' }}
+                <h3 style={{ margin: 0, color: 'var(--ink)' }}>Add One-Time Special Payment</h3>
+                <button type="button" style={{ background: 'none', border: 'none', color: 'var(--ink)', fontSize: '20px', cursor: 'pointer' }}
                   onClick={() => setIsOffcycleModalOpen(false)}>✕</button>
               </div>
               <form onSubmit={handleAddOffcyclePayment} style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '16px' }}>
@@ -4216,7 +4403,7 @@ export function EmployeePortalFlow({
                   <label>Select Recipient Employee</label>
                   <select
                     className="btn"
-                    style={{ width: '100%', padding: '8px 12px', background: 'var(--surface)', color: '#fff', border: '1px solid var(--line)' }}
+                    style={{ width: '100%', padding: '8px 12px', background: 'var(--surface)', color: 'var(--ink)', border: '1px solid var(--line)' }}
                     value={offcycleForm.employeeId}
                     onChange={(e) => setOffcycleForm(prev => ({ ...prev, employeeId: e.target.value }))}
                   >
@@ -4228,7 +4415,7 @@ export function EmployeePortalFlow({
                   <label>One-Time Code Component</label>
                   <select
                     className="btn"
-                    style={{ width: '100%', padding: '8px 12px', background: 'var(--surface)', color: '#fff', border: '1px solid var(--line)' }}
+                    style={{ width: '100%', padding: '8px 12px', background: 'var(--surface)', color: 'var(--ink)', border: '1px solid var(--line)' }}
                     value={offcycleForm.code}
                     onChange={(e) => setOffcycleForm(prev => ({ ...prev, code: e.target.value }))}
                   >
@@ -4255,7 +4442,7 @@ export function EmployeePortalFlow({
                   <input
                     type="number"
                     className="btn"
-                    style={{ width: '100%', padding: '8px 12px', background: 'var(--surface)', color: '#fff', border: '1px solid var(--line)', textAlign: 'left', cursor: 'text' }}
+                    style={{ width: '100%', padding: '8px 12px', background: 'var(--surface)', color: 'var(--ink)', border: '1px solid var(--line)', textAlign: 'left', cursor: 'text' }}
                     placeholder="Enter amount in INR"
                     required
                     value={offcycleForm.amount}
@@ -4268,7 +4455,7 @@ export function EmployeePortalFlow({
                   <input
                     type="text"
                     className="btn"
-                    style={{ width: '100%', padding: '8px 12px', background: 'var(--surface)', color: '#fff', border: '1px solid var(--line)', textAlign: 'left', cursor: 'text' }}
+                    style={{ width: '100%', padding: '8px 12px', background: 'var(--surface)', color: 'var(--ink)', border: '1px solid var(--line)', textAlign: 'left', cursor: 'text' }}
                     placeholder="e.g. Project completion bonus"
                     value={offcycleForm.remarks}
                     onChange={(e) => setOffcycleForm(prev => ({ ...prev, remarks: e.target.value }))}
@@ -4290,29 +4477,68 @@ export function EmployeePortalFlow({
   const renderClientLock = () => {
     return (
       <div className="dash-shell">
-        <div className="dash-welcome-row">
+        <div className="dash-welcome-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <h1 className="dash-welcome-title">Final Approval & Locking Workflows 🔒</h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+              <h1 className="dash-welcome-title" style={{ margin: 0 }}>Final Approval & Locking Workflows 🔒</h1>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                disabled={isRefreshingLock}
+                onClick={() => {
+                  setIsRefreshingLock(true)
+                  setTimeout(() => {
+                    setIsRefreshingLock(false)
+                    showToast('Variance analysis and off-cycle volumes recalculated!')
+                  }, 600)
+                }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '6px 14px',
+                  fontSize: '0.85rem',
+                  borderRadius: '50px',
+                  cursor: 'pointer',
+                  border: '1px solid var(--line)',
+                  background: 'var(--surface)',
+                  color: 'var(--ink)'
+                }}
+              >
+                <span className={isRefreshingLock ? 'refresh-spin' : ''} style={{ fontSize: '0.9rem' }}>🔄</span>
+                {isRefreshingLock ? 'Recalculating...' : 'Refresh Amounts'}
+              </button>
+            </div>
             <p className="dash-welcome-sub">Validate periods variance differences, lock time entries, and submit payroll logs.</p>
           </div>
         </div>
 
         {isPeriodLocked ? (
-          <div className="admin-alert-banner success" style={{ marginBottom: '16px' }}>
-            <span className="alert-ico">✓</span>
-            <div className="alert-text">
-              <strong>Now data is getting final submitted and no modification can be done after final submit - OK</strong>
-              <p>Current pay period payroll logs are locked and transmitted to processing partners. Client changes are disabled.</p>
+          !dismissedPeriodLocked && (
+            <div className="admin-toast-backdrop" role="alertdialog" aria-modal="true" aria-label="Period Locked">
+              <div className="admin-toast-message">
+                <span className="admin-toast-icon" style={{ background: 'linear-gradient(135deg,#2ecc71,#27ae60)', boxShadow: '0 6px 20px rgba(46,204,113,0.4)' }}>✓</span>
+                <span className="admin-toast-text" style={{ fontWeight: 700, fontSize: '1.05rem' }}>Now data is getting final submitted and no modification can be done after final submit - OK</span>
+                <span style={{ fontSize: '0.875rem', color: 'var(--muted)', lineHeight: 1.5, textAlign: 'center' }}>
+                  Current pay period payroll logs are locked and transmitted to processing partners. Client changes are disabled.
+                </span>
+                <button type="button" className="admin-toast-ok" style={{ background: 'linear-gradient(135deg,#2ecc71,#27ae60)', boxShadow: '0 4px 14px rgba(46,204,113,0.4)' }} onClick={() => setDismissedPeriodLocked(true)}>OK</button>
+              </div>
             </div>
-          </div>
+          )
         ) : (
-          <div className="admin-alert-banner warning" style={{ marginBottom: '16px' }}>
-            <span className="alert-ico">⚠️</span>
-            <div className="alert-text">
-              <strong>Period Open - Submissions editable</strong>
-              <p>Lock the pay period to compile variance reconciliation sheets and freeze timesheets. Lock action cannot be undone.</p>
+          !dismissedPeriodOpen && (
+            <div className="admin-toast-backdrop" role="alertdialog" aria-modal="true" aria-label="Period Open">
+              <div className="admin-toast-message">
+                <span className="admin-toast-icon" style={{ background: 'linear-gradient(135deg,#f39c12,#e67e22)', boxShadow: '0 6px 20px rgba(243,156,18,0.4)' }}>⚠</span>
+                <span className="admin-toast-text" style={{ fontWeight: 700, fontSize: '1.05rem' }}>Period Open - Submissions editable</span>
+                <span style={{ fontSize: '0.875rem', color: 'var(--muted)', lineHeight: 1.5, textAlign: 'center' }}>
+                  Lock the pay period to compile variance reconciliation sheets and freeze timesheets. Lock action cannot be undone.
+                </span>
+                <button type="button" className="admin-toast-ok" style={{ background: 'linear-gradient(135deg,#f39c12,#e67e22)', boxShadow: '0 4px 14px rgba(243,156,18,0.4)' }} onClick={() => setDismissedPeriodOpen(true)}>OK</button>
+              </div>
             </div>
-          </div>
+          )
         )}
 
         {/* Variance stats table */}
@@ -4324,21 +4550,52 @@ export function EmployeePortalFlow({
                 <tr>
                   <th>Employee Name</th>
                   <th className="num">June volume (INR)</th>
-                  <th className="num">July volume (INR)</th>
+                  <th className="num">Offcycle Bonus (INR)</th>
+                  <th className="num">July Total volume (INR)</th>
                   <th className="num">Variance Amt</th>
                   <th className="num">Variance %</th>
                 </tr>
               </thead>
               <tbody>
                 {adminEmployees.map(e => {
-                  const diff = e.currGross - e.prevGross
+                  const bonus = offcyclePaymentsList.filter(o => o.employeeId === e.id).reduce((sum, o) => sum + o.amount, 0)
+                  const julyTotal = e.currGross + bonus
+                  const diff = julyTotal - e.prevGross
                   const pct = e.prevGross > 0 ? (diff / e.prevGross) * 100 : 0
                   const rowClass = diff > 0 ? 'increase' : diff < 0 ? 'decrease' : 'neutral'
                   return (
                     <tr key={e.id}>
                       <td><strong>{e.name}</strong></td>
                       <td className="num">₹ {e.prevGross.toLocaleString('en-IN')}</td>
-                      <td className="num">₹ {e.currGross.toLocaleString('en-IN')}</td>
+                      <td className="num" style={{ color: bonus > 0 ? '#2ecc71' : 'var(--muted)', fontWeight: 600 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px' }}>
+                          <span>₹ {bonus.toLocaleString('en-IN')}</span>
+                          {bonus > 0 && (
+                            <span
+                              title="View Bonus Details"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                const payments = offcyclePaymentsList.filter(o => o.employeeId === e.id);
+                                setActiveOffcycleDetailsModal({ employeeName: e.name, payments });
+                              }}
+                              style={{
+                                cursor: 'pointer',
+                                color: 'var(--primary)',
+                                fontSize: '0.9rem',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                padding: '2px',
+                                borderRadius: '4px',
+                                background: 'rgba(108,99,255,0.08)'
+                              }}
+                            >
+                              ⓘ
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="num" style={{ fontWeight: 700 }}>₹ {julyTotal.toLocaleString('en-IN')}</td>
                       <td className={`num ${rowClass}`}>{diff > 0 ? '+' : ''}₹ {diff.toLocaleString('en-IN')}</td>
                       <td className={`num ${rowClass}`}>{pct.toFixed(2)}%</td>
                     </tr>
@@ -4352,6 +4609,7 @@ export function EmployeePortalFlow({
         {!isPeriodLocked && (
           <button type="button" className="btn btn-primary" onClick={() => {
             setIsPeriodLocked(true)
+            setDismissedPeriodLocked(false)
             showToast('Current pay period locked - Submissions frozen.')
           }} style={{ width: 'fit-content', marginTop: '16px' }}>
             Lock Pay Period & Final Submit to Pynk
@@ -4595,10 +4853,95 @@ export function EmployeePortalFlow({
       )}
 
       {successToastMessage && (
-        <div className="admin-toast-message">
-          <span>✓ {successToastMessage}</span>
+        <div
+          className="admin-toast-backdrop"
+          role="alertdialog"
+          aria-modal="true"
+          aria-label="Notification"
+        >
+          <div className="admin-toast-message">
+            <span className="admin-toast-icon">✓</span>
+            <span className="admin-toast-text">{successToastMessage}</span>
+            <button
+              type="button"
+              className="admin-toast-ok"
+              onClick={() => setSuccessToastMessage(null)}
+              autoFocus
+            >
+              OK
+            </button>
+          </div>
         </div>
       )}
+
+      {/* Global Alert Modal — replaces all inline admin-alert-banner */}
+      {alertModal && (() => {
+        const cfg = {
+          success: { icon: '✓', color: '#2ecc71', gradient: 'linear-gradient(135deg,#2ecc71,#27ae60)', shadow: 'rgba(46,204,113,0.4)', okGrad: 'linear-gradient(135deg,#2ecc71,#27ae60)' },
+          info: { icon: 'ℹ', color: '#3b82f6', gradient: 'linear-gradient(135deg,#3b82f6,#2563eb)', shadow: 'rgba(59,130,246,0.4)', okGrad: 'linear-gradient(135deg,#3b82f6,#2563eb)' },
+          warning: { icon: '⚠', color: '#f39c12', gradient: 'linear-gradient(135deg,#f39c12,#e67e22)', shadow: 'rgba(243,156,18,0.4)', okGrad: 'linear-gradient(135deg,#f39c12,#e67e22)' },
+          error: { icon: '✕', color: '#e74c3c', gradient: 'linear-gradient(135deg,#e74c3c,#c0392b)', shadow: 'rgba(231,76,60,0.4)', okGrad: 'linear-gradient(135deg,#e74c3c,#c0392b)' },
+        }[alertModal.type]
+        return (
+          <div className="admin-toast-backdrop" role="alertdialog" aria-modal="true" aria-label={alertModal.title}>
+            <div className="admin-toast-message">
+              <span className="admin-toast-icon" style={{ background: cfg.gradient, boxShadow: `0 6px 20px ${cfg.shadow}` }}>
+                {cfg.icon}
+              </span>
+              <span className="admin-toast-text" style={{ fontWeight: 700, fontSize: '1.05rem' }}>{alertModal.title}</span>
+              {alertModal.message && (
+                <span style={{ fontSize: '0.875rem', color: 'var(--muted)', lineHeight: 1.5, textAlign: 'center' }}>
+                  {alertModal.message}
+                </span>
+              )}
+              <button
+                type="button"
+                className="admin-toast-ok"
+                style={{ background: cfg.okGrad, boxShadow: `0 4px 14px ${cfg.shadow}` }}
+                onClick={() => setAlertModal(null)}
+                autoFocus
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        )
+      })()}
+
+      {/* Bonus Details Popup Modal */}
+      {activeOffcycleDetailsModal && (
+        <div className="admin-toast-backdrop" role="dialog" aria-modal="true" onClick={() => setActiveOffcycleDetailsModal(null)}>
+          <div className="time-modal-content" style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '24px', width: '90%', maxWidth: '500px' }} onClick={e => e.stopPropagation()}>
+            <div className="time-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--line)', paddingBottom: '12px' }}>
+              <h3 style={{ margin: 0, color: 'var(--ink)' }}>Bonus Details: {activeOffcycleDetailsModal.employeeName}</h3>
+              <button type="button" style={{ background: 'none', border: 'none', color: 'var(--ink)', fontSize: '20px', cursor: 'pointer' }}
+                onClick={() => setActiveOffcycleDetailsModal(null)}>✕</button>
+            </div>
+            <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '300px', overflowY: 'auto' }}>
+              {activeOffcycleDetailsModal.payments.length === 0 ? (
+                <p style={{ color: 'var(--muted)', margin: 0 }}>No off-cycle payments found.</p>
+              ) : (
+                activeOffcycleDetailsModal.payments.map((p, idx) => (
+                  <div key={p.id || idx} style={{ border: '1px solid var(--line)', borderRadius: '8px', padding: '12px', background: 'rgba(255,255,255,0.02)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600, color: 'var(--ink)' }}>
+                      <span>{p.code}</span>
+                      <span style={{ color: '#2ecc71' }}>₹ {p.amount.toLocaleString('en-IN')}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--muted)', marginTop: '6px' }}>
+                      <span>Remarks: {p.remarks}</span>
+                      <span>Date: {p.date || 'Pending'}</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+            <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
+              <button type="button" className="btn btn-secondary" onClick={() => setActiveOffcycleDetailsModal(null)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
 
       <div className="portal-layout">
         <aside className="portal-sidebar" aria-label="Modules">
@@ -4714,26 +5057,37 @@ export function EmployeePortalFlow({
                             <div className="dash-card dash-time-card">
                               <h3 className="dash-card-title">Processing Timeline Warning</h3>
                               {isPayrollSubmitted ? (
-                                <div className="admin-alert-banner success">
-                                  <span className="alert-ico">✓</span>
-                                  <div className="alert-text">
-                                    <strong>Submission Completed!</strong>
-                                    <p>Current pay period payroll data has been validated and submitted to partner systems (OK).</p>
+                                !dismissedPayrollSubmitted && (
+                                  <div className="admin-toast-backdrop" role="alertdialog" aria-modal="true" aria-label="Submitted">
+                                    <div className="admin-toast-message">
+                                      <span className="admin-toast-icon" style={{ background: 'linear-gradient(135deg,#2ecc71,#27ae60)', boxShadow: '0 6px 20px rgba(46,204,113,0.4)' }}>✓</span>
+                                      <span className="admin-toast-text" style={{ fontWeight: 700, fontSize: '1.05rem' }}>Submission Completed!</span>
+                                      <span style={{ fontSize: '0.875rem', color: 'var(--muted)', lineHeight: 1.5, textAlign: 'center' }}>
+                                        Current pay period payroll data has been validated and submitted to partner systems (OK).
+                                      </span>
+                                      <button type="button" className="admin-toast-ok" style={{ background: 'linear-gradient(135deg,#2ecc71,#27ae60)', boxShadow: '0 4px 14px rgba(46,204,113,0.4)' }} onClick={() => setDismissedPayrollSubmitted(true)}>OK</button>
+                                    </div>
                                   </div>
-                                </div>
+                                )
                               ) : (
-                                <div className="admin-alert-banner warning">
-                                  <span className="alert-ico">⚠️</span>
-                                  <div className="alert-text">
-                                    <strong>Partner Portal Submission Window Expiring</strong>
-                                    <p>Pynk should send data to processing partners by 15 July 2025 cut-off. Please complete comparison and reconciliation reviews first.</p>
+                                !dismissedPayrollWarning && (
+                                  <div className="admin-toast-backdrop" role="alertdialog" aria-modal="true" aria-label="Warning">
+                                    <div className="admin-toast-message">
+                                      <span className="admin-toast-icon" style={{ background: 'linear-gradient(135deg,#f39c12,#e67e22)', boxShadow: '0 6px 20px rgba(243,156,18,0.4)' }}>⚠</span>
+                                      <span className="admin-toast-text" style={{ fontWeight: 700, fontSize: '1.05rem' }}>Partner Portal Submission Window Expiring</span>
+                                      <span style={{ fontSize: '0.875rem', color: 'var(--muted)', lineHeight: 1.5, textAlign: 'center' }}>
+                                        Pynk should send data to processing partners by 15 July 2025 cut-off. Please complete comparison and reconciliation reviews first.
+                                      </span>
+                                      <button type="button" className="admin-toast-ok" style={{ background: 'linear-gradient(135deg,#f39c12,#e67e22)', boxShadow: '0 4px 14px rgba(243,156,18,0.4)' }} onClick={() => setDismissedPayrollWarning(true)}>OK</button>
+                                    </div>
                                   </div>
-                                </div>
+                                )
                               )}
                               {!isPayrollSubmitted && (
                                 <button type="button" className="btn btn-primary" style={{ width: 'fit-content', marginTop: '10px' }}
                                   onClick={() => {
                                     setIsPayrollSubmitted(true);
+                                    setDismissedPayrollSubmitted(false);
                                     showToast('Current pay period payroll data submitted - OK');
                                   }}>
                                   Submit Current Payroll Data
@@ -4745,26 +5099,37 @@ export function EmployeePortalFlow({
                             <div className="dash-card dash-leave-card">
                               <h3 className="dash-card-title">Pending Secondary Approvals</h3>
                               {isSecondApprovalNotified ? (
-                                <div className="admin-alert-banner success">
-                                  <span className="alert-ico">✓</span>
-                                  <div className="alert-text">
-                                    <strong>Approver Notified!</strong>
-                                    <p>Second approval request has been broadcasted to Wayne Enterprises partner manager.</p>
+                                !dismissedSecondApprovalNotified && (
+                                  <div className="admin-toast-backdrop" role="alertdialog" aria-modal="true" aria-label="Notified">
+                                    <div className="admin-toast-message">
+                                      <span className="admin-toast-icon" style={{ background: 'linear-gradient(135deg,#2ecc71,#27ae60)', boxShadow: '0 6px 20px rgba(46,204,113,0.4)' }}>✓</span>
+                                      <span className="admin-toast-text" style={{ fontWeight: 700, fontSize: '1.05rem' }}>Approver Notified!</span>
+                                      <span style={{ fontSize: '0.875rem', color: 'var(--muted)', lineHeight: 1.5, textAlign: 'center' }}>
+                                        Second approval request has been broadcasted to Wayne Enterprises partner manager.
+                                      </span>
+                                      <button type="button" className="admin-toast-ok" style={{ background: 'linear-gradient(135deg,#2ecc71,#27ae60)', boxShadow: '0 4px 14px rgba(46,204,113,0.4)' }} onClick={() => setDismissedSecondApprovalNotified(true)}>OK</button>
+                                    </div>
                                   </div>
-                                </div>
+                                )
                               ) : (
-                                <div className="admin-alert-banner info">
-                                  <span className="alert-ico">🔔</span>
-                                  <div className="alert-text">
-                                    <strong>Timesheet Stage 2 Approvals Required</strong>
-                                    <p>Timesheet 1st approval is DONE for Stark Industries, but 2nd approval is needed from partner manager before submission.</p>
+                                !dismissedSecondApprovalRequired && (
+                                  <div className="admin-toast-backdrop" role="alertdialog" aria-modal="true" aria-label="Approvals Required">
+                                    <div className="admin-toast-message">
+                                      <span className="admin-toast-icon" style={{ background: 'linear-gradient(135deg,#3b82f6,#2563eb)', boxShadow: '0 6px 20px rgba(59,130,246,0.4)' }}>ℹ</span>
+                                      <span className="admin-toast-text" style={{ fontWeight: 700, fontSize: '1.05rem' }}>Timesheet Stage 2 Approvals Required</span>
+                                      <span style={{ fontSize: '0.875rem', color: 'var(--muted)', lineHeight: 1.5, textAlign: 'center' }}>
+                                        Timesheet 1st approval is DONE for Stark Industries, but 2nd approval is needed from partner manager before submission.
+                                      </span>
+                                      <button type="button" className="admin-toast-ok" style={{ background: 'linear-gradient(135deg,#3b82f6,#2563eb)', boxShadow: '0 4px 14px rgba(59,130,246,0.4)' }} onClick={() => setDismissedSecondApprovalRequired(true)}>OK</button>
+                                    </div>
                                   </div>
-                                </div>
+                                )
                               )}
                               {!isSecondApprovalNotified && (
                                 <button type="button" className="btn btn-secondary" style={{ width: 'fit-content', marginTop: '10px' }}
                                   onClick={() => {
                                     setIsSecondApprovalNotified(true);
+                                    setDismissedSecondApprovalNotified(false);
                                     showToast('Second approver notified for Step 2 approval.');
                                   }}>
                                   Notify Wayne Enterprises 2nd Approver
@@ -4915,7 +5280,7 @@ export function EmployeePortalFlow({
                           <div className="admin-filters-bar" style={{ display: 'flex', gap: '16px', background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '10px', border: '1px solid var(--line)' }}>
                             <div className="filter-input-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px', minWidth: '200px' }}>
                               <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--muted)' }}>Filter Client Corporate</label>
-                              <select value={filterClientName} onChange={(e) => setFilterClientName(e.target.value)} className="btn" style={{ padding: '8px 12px', background: 'var(--surface)', color: '#fff', border: '1px solid var(--line)' }}>
+                              <select value={filterClientName} onChange={(e) => setFilterClientName(e.target.value)} className="btn" style={{ padding: '8px 12px', background: 'var(--surface)', color: 'var(--ink)', border: '1px solid var(--line)' }}>
                                 {clientNames.map((c) => <option key={c} value={c}>{c}</option>)}
                               </select>
                             </div>
@@ -4925,7 +5290,7 @@ export function EmployeePortalFlow({
                               <input
                                 type="text"
                                 className="btn"
-                                style={{ padding: '8px 12px', background: 'var(--surface)', color: '#fff', border: '1px solid var(--line)', textAlign: 'left', cursor: 'text' }}
+                                style={{ padding: '8px 12px', background: 'var(--surface)', color: 'var(--ink)', border: '1px solid var(--line)', textAlign: 'left', cursor: 'text' }}
                                 placeholder="Type employee name or ID..."
                                 value={searchEmployeeQuery}
                                 onChange={(e) => setSearchEmployeeQuery(e.target.value)}
@@ -7402,8 +7767,8 @@ export function EmployeePortalFlow({
                                   </div>
                                   <div className="time-modal-body" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', padding: '32px' }}>
                                     <span style={{ fontSize: '48px' }}>📄</span>
-                                    <p style={{ textAlign: 'center', color: '#9ea2bd', margin: 0 }}>This is a preview of the document.<br />(Preview not available in demo)</p>
-                                    <div style={{ marginTop: '16px', display: 'flex', gap: '8px', fontSize: '13px', color: '#c6c8de' }}>
+                                    <p style={{ textAlign: 'center', color: 'var(--muted)', margin: 0 }}>This is a preview of the document.<br />(Preview not available in demo)</p>
+                                    <div style={{ marginTop: '16px', display: 'flex', gap: '8px', fontSize: '13px', color: 'var(--muted)' }}>
                                       <span>Size: {docPreview.size}</span>
                                       <span>|</span>
                                       <span>Status: {docPreview.status}</span>
@@ -8335,7 +8700,7 @@ export function EmployeePortalFlow({
                                     <select
                                       value={profilePreferences.preferredLanguage}
                                       onChange={(e) => setProfilePreferences({ ...profilePreferences, preferredLanguage: e.target.value })}
-                                      style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px', fontSize: '13px' }}
+                                      style={{ background: 'var(--surface)', border: '1px solid var(--line)', color: 'var(--ink)', padding: '8px 12px', borderRadius: '6px', fontSize: '13px' }}
                                     >
                                       <option value="English">English</option>
                                       <option value="Spanish">Spanish</option>
@@ -8349,7 +8714,7 @@ export function EmployeePortalFlow({
                                     <select
                                       value={profilePreferences.timeZone}
                                       onChange={(e) => setProfilePreferences({ ...profilePreferences, timeZone: e.target.value })}
-                                      style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px', fontSize: '13px' }}
+                                      style={{ background: 'var(--surface)', border: '1px solid var(--line)', color: 'var(--ink)', padding: '8px 12px', borderRadius: '6px', fontSize: '13px' }}
                                     >
                                       <option value="(GMT+05:30) Asia/Kolkata">(GMT+05:30) Asia/Kolkata</option>
                                       <option value="(GMT-05:00) EST">(GMT-05:00) EST</option>
@@ -8362,7 +8727,7 @@ export function EmployeePortalFlow({
                                     <select
                                       value={profilePreferences.dateFormat}
                                       onChange={(e) => setProfilePreferences({ ...profilePreferences, dateFormat: e.target.value })}
-                                      style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px', fontSize: '13px' }}
+                                      style={{ background: 'var(--surface)', border: '1px solid var(--line)', color: 'var(--ink)', padding: '8px 12px', borderRadius: '6px', fontSize: '13px' }}
                                     >
                                       <option value="DD MMM YYYY">DD MMM YYYY</option>
                                       <option value="YYYY-MM-DD">YYYY-MM-DD</option>
@@ -8375,7 +8740,7 @@ export function EmployeePortalFlow({
                                     <select
                                       value={profilePreferences.timeFormat}
                                       onChange={(e) => setProfilePreferences({ ...profilePreferences, timeFormat: e.target.value })}
-                                      style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px', fontSize: '13px' }}
+                                      style={{ background: 'var(--surface)', border: '1px solid var(--line)', color: 'var(--ink)', padding: '8px 12px', borderRadius: '6px', fontSize: '13px' }}
                                     >
                                       <option value="12 Hour">12 Hour</option>
                                       <option value="24 Hour">24 Hour</option>
@@ -8583,7 +8948,7 @@ export function EmployeePortalFlow({
                                     value={emergencyForm.name}
                                     onChange={(e) => setEmergencyForm({ ...emergencyForm, name: e.target.value })}
                                     placeholder="e.g. Jane Doe"
-                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                    className="modal-field"
                                   />
                                 </label>
                                 <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
@@ -8593,7 +8958,7 @@ export function EmployeePortalFlow({
                                     value={emergencyForm.relationship}
                                     onChange={(e) => setEmergencyForm({ ...emergencyForm, relationship: e.target.value })}
                                     placeholder="e.g. Sister, Father"
-                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                    className="modal-field"
                                   />
                                 </label>
                                 <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
@@ -8603,7 +8968,7 @@ export function EmployeePortalFlow({
                                     value={emergencyForm.phone}
                                     onChange={(e) => setEmergencyForm({ ...emergencyForm, phone: e.target.value })}
                                     placeholder="e.g. +91 98765 11111"
-                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                    className="modal-field"
                                   />
                                 </label>
                                 <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
@@ -8613,7 +8978,7 @@ export function EmployeePortalFlow({
                                     value={emergencyForm.email}
                                     onChange={(e) => setEmergencyForm({ ...emergencyForm, email: e.target.value })}
                                     placeholder="e.g. jane.doe@gmail.com"
-                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                    className="modal-field"
                                   />
                                 </label>
                               </div>
@@ -8643,7 +9008,7 @@ export function EmployeePortalFlow({
                                   <select
                                     value={requestChangeField}
                                     onChange={(e) => setRequestChangeField(e.target.value)}
-                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                    className="modal-field"
                                   >
                                     <option value="First Name">First Name</option>
                                     <option value="Middle Name">Middle Name</option>
@@ -8664,7 +9029,7 @@ export function EmployeePortalFlow({
                                     value={requestChangeNewValue}
                                     onChange={(e) => setRequestChangeNewValue(e.target.value)}
                                     placeholder="Enter new details"
-                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                    className="modal-field"
                                   />
                                 </label>
                                 <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
@@ -8674,7 +9039,7 @@ export function EmployeePortalFlow({
                                     value={requestChangeReason}
                                     onChange={(e) => setRequestChangeReason(e.target.value)}
                                     placeholder="Why are you making this change request?"
-                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px', resize: 'none' }}
+                                    className="modal-field" style={{ resize: 'none' }}
                                   />
                                 </label>
                               </div>
@@ -8711,7 +9076,7 @@ export function EmployeePortalFlow({
                                     value={bankChangeForm.bankName}
                                     onChange={(e) => setBankChangeForm({ ...bankChangeForm, bankName: e.target.value })}
                                     placeholder="e.g. HDFC Bank"
-                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                    className="modal-field"
                                   />
                                 </label>
                                 <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
@@ -8721,7 +9086,7 @@ export function EmployeePortalFlow({
                                     value={bankChangeForm.accountNumber}
                                     onChange={(e) => setBankChangeForm({ ...bankChangeForm, accountNumber: e.target.value })}
                                     placeholder="Enter account number"
-                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                    className="modal-field"
                                   />
                                 </label>
                                 <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
@@ -8731,7 +9096,7 @@ export function EmployeePortalFlow({
                                     value={bankChangeForm.ifscCode}
                                     onChange={(e) => setBankChangeForm({ ...bankChangeForm, ifscCode: e.target.value })}
                                     placeholder="Enter IFSC code"
-                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                    className="modal-field"
                                   />
                                 </label>
                                 <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
@@ -8741,7 +9106,7 @@ export function EmployeePortalFlow({
                                     value={bankChangeForm.accountHolderName}
                                     onChange={(e) => setBankChangeForm({ ...bankChangeForm, accountHolderName: e.target.value })}
                                     placeholder="John Doe"
-                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                    className="modal-field"
                                   />
                                 </label>
                                 <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
@@ -8751,7 +9116,7 @@ export function EmployeePortalFlow({
                                     value={bankChangeForm.reason}
                                     onChange={(e) => setBankChangeForm({ ...bankChangeForm, reason: e.target.value })}
                                     placeholder="Why are you updating your bank details?"
-                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px', resize: 'none' }}
+                                    className="modal-field" style={{ resize: 'none' }}
                                   />
                                 </label>
                               </div>
@@ -8787,7 +9152,7 @@ export function EmployeePortalFlow({
                                     value={skillForm.name}
                                     onChange={(e) => setSkillForm({ ...skillForm, name: e.target.value })}
                                     placeholder="e.g. JavaScript"
-                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                    className="modal-field"
                                   />
                                 </label>
                                 <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
@@ -8795,7 +9160,7 @@ export function EmployeePortalFlow({
                                   <select
                                     value={skillForm.proficiency}
                                     onChange={(e) => setSkillForm({ ...skillForm, proficiency: e.target.value as any })}
-                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                    className="modal-field"
                                   >
                                     <option value="Beginner">Beginner</option>
                                     <option value="Intermediate">Intermediate</option>
@@ -8809,7 +9174,7 @@ export function EmployeePortalFlow({
                                     type="number"
                                     value={skillForm.experience}
                                     onChange={(e) => setSkillForm({ ...skillForm, experience: Number(e.target.value) })}
-                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                    className="modal-field"
                                   />
                                 </label>
                               </div>
@@ -8840,7 +9205,7 @@ export function EmployeePortalFlow({
                                     value={educationForm.degree}
                                     onChange={(e) => setEducationForm({ ...educationForm, degree: e.target.value })}
                                     placeholder="e.g. Bachelor of Engineering"
-                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                    className="modal-field"
                                   />
                                 </label>
                                 <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
@@ -8850,7 +9215,7 @@ export function EmployeePortalFlow({
                                     value={educationForm.institution}
                                     onChange={(e) => setEducationForm({ ...educationForm, institution: e.target.value })}
                                     placeholder="e.g. VTU"
-                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                    className="modal-field"
                                   />
                                 </label>
                                 <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
@@ -8860,7 +9225,7 @@ export function EmployeePortalFlow({
                                     value={educationForm.fieldOfStudy}
                                     onChange={(e) => setEducationForm({ ...educationForm, fieldOfStudy: e.target.value })}
                                     placeholder="e.g. Computer Science"
-                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                    className="modal-field"
                                   />
                                 </label>
                                 <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
@@ -8870,7 +9235,7 @@ export function EmployeePortalFlow({
                                     value={educationForm.yearOfPassing}
                                     onChange={(e) => setEducationForm({ ...educationForm, yearOfPassing: e.target.value })}
                                     placeholder="e.g. 2014"
-                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                    className="modal-field"
                                   />
                                 </label>
                               </div>
@@ -8901,7 +9266,7 @@ export function EmployeePortalFlow({
                                     value={certificationForm.name}
                                     onChange={(e) => setCertificationForm({ ...certificationForm, name: e.target.value })}
                                     placeholder="e.g. AWS Solutions Architect"
-                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                    className="modal-field"
                                   />
                                 </label>
                                 <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
@@ -8911,7 +9276,7 @@ export function EmployeePortalFlow({
                                     value={certificationForm.issuingOrg}
                                     onChange={(e) => setCertificationForm({ ...certificationForm, issuingOrg: e.target.value })}
                                     placeholder="e.g. Amazon Web Services"
-                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                    className="modal-field"
                                   />
                                 </label>
                                 <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
@@ -8921,7 +9286,7 @@ export function EmployeePortalFlow({
                                     value={certificationForm.issueDate}
                                     onChange={(e) => setCertificationForm({ ...certificationForm, issueDate: e.target.value })}
                                     placeholder="e.g. 12 Dec 2024"
-                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                    className="modal-field"
                                   />
                                 </label>
                                 <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
@@ -8931,7 +9296,7 @@ export function EmployeePortalFlow({
                                     value={certificationForm.expiryDate}
                                     onChange={(e) => setCertificationForm({ ...certificationForm, expiryDate: e.target.value })}
                                     placeholder="e.g. 12 Dec 2027 or -"
-                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                    className="modal-field"
                                   />
                                 </label>
                                 <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
@@ -8941,7 +9306,7 @@ export function EmployeePortalFlow({
                                     value={certificationForm.credentialId}
                                     onChange={(e) => setCertificationForm({ ...certificationForm, credentialId: e.target.value })}
                                     placeholder="e.g. AWS-12345 or -"
-                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                    className="modal-field"
                                   />
                                 </label>
                               </div>
@@ -8972,7 +9337,7 @@ export function EmployeePortalFlow({
                                     value={languageForm.name}
                                     onChange={(e) => setLanguageForm({ ...languageForm, name: e.target.value })}
                                     placeholder="e.g. English"
-                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                    className="modal-field"
                                   />
                                 </label>
                                 <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
@@ -8980,7 +9345,7 @@ export function EmployeePortalFlow({
                                   <select
                                     value={languageForm.proficiency}
                                     onChange={(e) => setLanguageForm({ ...languageForm, proficiency: e.target.value as any })}
-                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                    className="modal-field"
                                   >
                                     <option value="Beginner">Beginner</option>
                                     <option value="Conversational">Conversational</option>

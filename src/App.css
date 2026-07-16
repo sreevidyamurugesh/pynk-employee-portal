@@ -9226,19 +9226,104 @@ html:not(.light-mode) .btn-sso-outline:hover {
    ADMIN PORTAL & ROLE-BASED ACCESS STYLES
    ========================================================================== */
 
-/* Toast notification */
-.admin-toast-message {
+/* Toast alert — centered backdrop */
+.admin-toast-backdrop {
   position: fixed;
-  bottom: 24px;
-  right: 24px;
-  background: var(--success);
-  color: #fff;
-  padding: 12px 24px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  font-weight: 600;
+  inset: 0;
   z-index: 10000;
-  animation: slideInUp 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(3px);
+  animation: toastFadeIn 0.2s ease;
+}
+
+/* Toast alert card */
+.admin-toast-message {
+  background: #fff;
+  color: #111827;
+  border-radius: 18px;
+  padding: 36px 40px 28px;
+  min-width: 320px;
+  max-width: 480px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25), 0 4px 16px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  animation: toastPopIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Big green check icon */
+.admin-toast-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  color: #fff;
+  font-size: 1.6rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4);
+  flex-shrink: 0;
+}
+
+/* Message text */
+.admin-toast-text {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  line-height: 1.5;
+}
+
+/* OK button */
+.admin-toast-ok {
+  margin-top: 6px;
+  padding: 10px 40px;
+  border-radius: 50px;
+  border: none;
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  box-shadow: 0 4px 14px rgba(46, 204, 113, 0.35);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.admin-toast-ok:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(46, 204, 113, 0.45);
+}
+
+.admin-toast-ok:active {
+  transform: translateY(0);
+}
+
+@keyframes toastFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes toastPopIn {
+  from { opacity: 0; transform: scale(0.88) translateY(16px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0); }
+}
+
+@keyframes toastSlideDown {
+  from {
+    transform: translateX(-50%) translateY(-28px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
 }
 
 @keyframes slideInUp {
@@ -9252,6 +9337,30 @@ html:not(.light-mode) .btn-sso-outline:hover {
     opacity: 1;
   }
 }
+
+/* Light mode — toast card stays white by default, just boost shadow */
+.light-mode .admin-toast-message {
+  background: #ffffff !important;
+  color: #111827 !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 4px 16px rgba(0, 0, 0, 0.08) !important;
+}
+
+.light-mode .admin-toast-text {
+  color: #111827 !important;
+}
+
+/* Dark mode — dark card */
+html:not(.light-mode) .admin-toast-message {
+  background: #1e2130;
+  color: #f3f4f6;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+html:not(.light-mode) .admin-toast-text {
+  color: #f3f4f6;
+}
+
+
 
 /* Impersonation bar */
 .admin-preview-banner {
@@ -11082,3 +11191,282 @@ input {
   color: #111827 !important;
   border-color: #d1d5db !important;
 }
+
+/* ══════════════════════════════════════════════════
+   MODAL SYSTEM — Base Styles (Dark + Light Theme)
+   ══════════════════════════════════════════════════ */
+
+/* Backdrop overlay */
+.time-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+/* Modal box */
+.time-modal {
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 28px 28px 24px;
+  width: 90%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+  animation: modalSlideIn 0.18s ease;
+}
+
+@keyframes modalSlideIn {
+  from { opacity: 0; transform: translateY(-12px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)     scale(1); }
+}
+
+/* Modal headings */
+.time-modal h3 {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.time-modal p {
+  color: var(--ink-soft);
+}
+
+/* Modal header strip (used in doc-upload, doc-preview) */
+.time-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 14px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--line);
+}
+
+.time-modal-head h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* ✕ close button in header */
+.time-modal-head > button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  color: var(--muted);
+  padding: 4px 8px;
+  border-radius: 6px;
+  line-height: 1;
+  transition: background 0.15s, color 0.15s;
+}
+
+.time-modal-head > button:hover {
+  background: var(--line);
+  color: var(--ink);
+}
+
+/* Modal body */
+.time-modal-body {
+  color: var(--ink);
+}
+
+/* Footer / action row */
+.time-modal-foot,
+.time-modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+/* Form fields inside modals — override the hardcoded dark inline styles */
+.time-modal .modal-field {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font: inherit;
+  width: 100%;
+  transition: border-color 0.15s;
+}
+
+.time-modal .modal-field:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.time-modal .modal-field::placeholder {
+  color: var(--muted);
+}
+
+/* Confirm / caution modal box (approve-confirm overlay) */
+.modal-caution-box {
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid rgba(243, 156, 18, 0.35);
+  border-radius: 16px;
+  padding: 36px 32px;
+  max-width: 460px;
+  width: 90%;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  animation: modalSlideIn 0.18s ease;
+}
+
+.modal-caution-box h2 {
+  color: var(--ink);
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.modal-caution-box .modal-caution-sub {
+  margin: 4px 0 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.modal-caution-content {
+  background: rgba(243, 156, 18, 0.08);
+  border: 1px solid rgba(243, 156, 18, 0.25);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  line-height: 1.6;
+}
+
+.modal-caution-footer {
+  font-size: 0.83rem;
+  color: var(--muted);
+  text-align: center;
+  margin: 0;
+}
+
+/* Label text in modal form grids */
+.time-modal .leave-form-grid label {
+  color: var(--ink-soft);
+}
+
+/* ── Light Mode: Modal Overrides ── */
+.light-mode .time-modal {
+  background: #ffffff !important;
+  color: #111827 !important;
+  border-color: #e5e7eb !important;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12) !important;
+}
+
+.light-mode .time-modal h3 {
+  color: #111827 !important;
+}
+
+.light-mode .time-modal p {
+  color: #374151 !important;
+}
+
+.light-mode .time-modal-head {
+  border-bottom-color: #e5e7eb !important;
+}
+
+.light-mode .time-modal-head h3 {
+  color: #111827 !important;
+}
+
+.light-mode .time-modal-head > button {
+  color: #6b7280 !important;
+}
+
+.light-mode .time-modal-head > button:hover {
+  background: #f3f4f6 !important;
+  color: #111827 !important;
+}
+
+.light-mode .time-modal-foot,
+.light-mode .time-modal-actions {
+  border-top-color: #e5e7eb !important;
+}
+
+.light-mode .time-modal .leave-form-grid label {
+  color: #374151 !important;
+}
+
+.light-mode .time-modal .modal-field {
+  background: #ffffff !important;
+  border-color: #d1d5db !important;
+  color: #111827 !important;
+}
+
+.light-mode .time-modal .modal-field::placeholder {
+  color: #9ca3af !important;
+}
+
+.light-mode .modal-caution-box {
+  background: #ffffff !important;
+  color: #111827 !important;
+  border-color: rgba(245, 158, 11, 0.4) !important;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12) !important;
+}
+
+.light-mode .modal-caution-box h2 {
+  color: #111827 !important;
+}
+
+.light-mode .modal-caution-box .modal-caution-sub {
+  color: #6b7280 !important;
+}
+
+.light-mode .modal-caution-content {
+  background: rgba(245, 158, 11, 0.06) !important;
+  border-color: rgba(245, 158, 11, 0.2) !important;
+  color: #374151 !important;
+}
+
+.light-mode .modal-caution-footer {
+  color: #6b7280 !important;
+}
+
+/* time-modal-body text in light mode */
+.light-mode .time-modal-body {
+  color: #111827 !important;
+}
+
+/* doc-preview modal muted text */
+.light-mode .time-modal-body p {
+  color: #374151 !important;
+}
+
+/* Confirm message inside modal */
+.light-mode .time-confirm-message {
+  color: #374151 !important;
+}
+
+/* Refresh spin animation */
+.refresh-spin {
+  display: inline-block;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
