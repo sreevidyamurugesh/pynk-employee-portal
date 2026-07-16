@@ -1540,6 +1540,8 @@ export function EmployeePortalFlow({
   const [selectedReconcileKeys, setSelectedReconcileKeys] = useState<Set<string>>(new Set())
   const [submittedReconcileKeys, setSubmittedReconcileKeys] = useState<Set<string>>(new Set())
   const [showReconcileConfirmModal, setShowReconcileConfirmModal] = useState(false)
+  const [reconcileClientFilter, setReconcileClientFilter] = useState<string>('All')
+  const [reconcileSearchQuery, setReconcileSearchQuery] = useState<string>('')
   const [offcycleForm, setOffcycleForm] = useState({
     employeeId: 'EMP-001',
     code: 'Monthly Bonus',
@@ -3497,39 +3499,65 @@ export function EmployeePortalFlow({
 
   // ── Admin Panel Aggregations and Sub-Renders ──
   const reconciliationData = useMemo(() => {
+    const clientFiltered = adminEmployees.filter(emp => reconcileClientFilter === 'All' || emp.clientName === reconcileClientFilter)
+
+    let rows: Array<{ name: string; prev: number; curr: number; clientName: string }> = []
+
     if (reconciliationDimension === 'client') {
-      const groups: Record<string, { prev: number; curr: number }> = {}
-      adminEmployees.forEach((emp) => {
-        if (!groups[emp.clientName]) groups[emp.clientName] = { prev: 0, curr: 0 }
+      const groups: Record<string, { prev: number; curr: number; clientName: string }> = {}
+      clientFiltered.forEach((emp) => {
+        if (!groups[emp.clientName]) groups[emp.clientName] = { prev: 0, curr: 0, clientName: emp.clientName }
         groups[emp.clientName].prev += emp.prevGross
         groups[emp.clientName].curr += emp.currGross
       })
-      return Object.entries(groups).map(([name, val]) => ({ name, prev: val.prev, curr: val.curr }))
-    }
-    if (reconciliationDimension === 'employee') {
-      return adminEmployees.map((emp) => ({ name: `${emp.name} (${emp.id})`, prev: emp.prevGross, curr: emp.currGross }))
-    }
-    if (reconciliationDimension === 'paygroup') {
-      const groups: Record<string, { prev: number; curr: number }> = {}
-      adminEmployees.forEach((emp) => {
-        if (!groups[emp.paygroup]) groups[emp.paygroup] = { prev: 0, curr: 0 }
+      rows = Object.entries(groups).map(([name, val]) => ({ name, prev: val.prev, curr: val.curr, clientName: val.clientName }))
+    } else if (reconciliationDimension === 'employee') {
+      rows = clientFiltered.map((emp) => ({ name: `${emp.name} (${emp.id})`, prev: emp.prevGross, curr: emp.currGross, clientName: emp.clientName }))
+    } else if (reconciliationDimension === 'paygroup') {
+      const groups: Record<string, { prev: number; curr: number; clientNames: Set<string> }> = {}
+      clientFiltered.forEach((emp) => {
+        if (!groups[emp.paygroup]) groups[emp.paygroup] = { prev: 0, curr: 0, clientNames: new Set() }
         groups[emp.paygroup].prev += emp.prevGross
         groups[emp.paygroup].curr += emp.currGross
+        groups[emp.paygroup].clientNames.add(emp.clientName)
       })
-      return Object.entries(groups).map(([name, val]) => ({ name, prev: val.prev, curr: val.curr }))
+      rows = Object.entries(groups).map(([name, val]) => ({
+        name,
+        prev: val.prev,
+        curr: val.curr,
+        clientName: Array.from(val.clientNames).join(', ')
+      }))
+    } else {
+      // payment mode
+      const groups: Record<string, { prev: number; curr: number; clientNames: Set<string> }> = {}
+      clientFiltered.forEach((emp) => {
+        if (!groups[emp.paymentMode]) groups[emp.paymentMode] = { prev: 0, curr: 0, clientNames: new Set() }
+        groups[emp.paymentMode].prev += emp.prevGross
+        groups[emp.paymentMode].curr += emp.currGross
+        groups[emp.paymentMode].clientNames.add(emp.clientName)
+      })
+      rows = Object.entries(groups).map(([name, val]) => ({
+        name,
+        prev: val.prev,
+        curr: val.curr,
+        clientName: Array.from(val.clientNames).join(', ')
+      }))
     }
-    // payment mode
-    const groups: Record<string, { prev: number; curr: number }> = {}
-    adminEmployees.forEach((emp) => {
-      if (!groups[emp.paymentMode]) groups[emp.paymentMode] = { prev: 0, curr: 0 }
-      groups[emp.paymentMode].prev += emp.prevGross
-      groups[emp.paymentMode].curr += emp.currGross
-    })
-    return Object.entries(groups).map(([name, val]) => ({ name, prev: val.prev, curr: val.curr }))
-  }, [adminEmployees, reconciliationDimension])
+
+    if (reconcileSearchQuery) {
+      const query = reconcileSearchQuery.toLowerCase()
+      rows = rows.filter(r =>
+        r.name.toLowerCase().includes(query) ||
+        r.clientName.toLowerCase().includes(query)
+      )
+    }
+
+    return rows
+  }, [adminEmployees, reconciliationDimension, reconcileClientFilter, reconcileSearchQuery])
 
   const totalsAdmin = useMemo(() => {
-    return adminEmployees.reduce(
+    const clientFiltered = adminEmployees.filter(emp => reconcileClientFilter === 'All' || emp.clientName === reconcileClientFilter)
+    return clientFiltered.reduce(
       (acc, emp) => {
         acc.prev += emp.prevGross
         acc.curr += emp.currGross
@@ -3537,7 +3565,7 @@ export function EmployeePortalFlow({
       },
       { prev: 0, curr: 0 }
     )
-  }, [adminEmployees])
+  }, [adminEmployees, reconcileClientFilter])
 
   const handleExportCSV = () => {
     let csv = 'Dimension / Name,Previous Gross (INR),Current Gross (INR),Difference (INR),Variance (%)\n'
@@ -5450,18 +5478,43 @@ export function EmployeePortalFlow({
                             </div>
                           </div>
 
-                          {/* Dimension Toggles */}
-                          <div className="reconciliation-dimensions-tabs" style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--line)', paddingBottom: '12px' }}>
-                            {(['client', 'employee', 'paygroup', 'payment'] as const).map((dim) => (
-                              <button
-                                key={dim}
-                                type="button"
-                                className={`btn ${reconciliationDimension === dim ? 'btn-primary' : ''}`}
-                                onClick={() => setReconciliationDimension(dim)}
+                          {/* Dimension Toggles and Filter Toolbar */}
+                          <div className="reconciliation-toolbar" style={{ display: 'flex', gap: '12px', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', borderBottom: '1px solid var(--line)', paddingBottom: '12px', marginBottom: '16px' }}>
+                            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                              {(['client', 'employee', 'paygroup', 'payment'] as const).map((dim) => (
+                                <button
+                                  key={dim}
+                                  type="button"
+                                  className={`btn ${reconciliationDimension === dim ? 'btn-primary' : ''}`}
+                                  onClick={() => setReconciliationDimension(dim)}
+                                  style={{ padding: '6px 12px', fontSize: '0.85rem' }}
+                                >
+                                  {dim.charAt(0).toUpperCase() + dim.slice(1)} Wise
+                                </button>
+                              ))}
+                            </div>
+                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                              <select
+                                value={reconcileClientFilter}
+                                onChange={(e) => setReconcileClientFilter(e.target.value)}
+                                className="btn"
+                                style={{ padding: '6px 12px', fontSize: '0.85rem', background: 'var(--surface)', color: 'var(--ink)', border: '1px solid var(--line)', borderRadius: '6px' }}
                               >
-                                {dim.charAt(0).toUpperCase() + dim.slice(1)} Wise
-                              </button>
-                            ))}
+                                <option value="All">All Clients</option>
+                                <option value="Acme Corp">Acme Corp</option>
+                                <option value="Stark Industries">Stark Industries</option>
+                                <option value="Wayne Enterprises">Wayne Enterprises</option>
+                                <option value="Globex Corp">Globex Corp</option>
+                              </select>
+                              <input
+                                type="text"
+                                placeholder="Search..."
+                                value={reconcileSearchQuery}
+                                onChange={(e) => setReconcileSearchQuery(e.target.value)}
+                                className="btn"
+                                style={{ padding: '6px 12px', fontSize: '0.85rem', background: 'var(--surface)', color: 'var(--ink)', border: '1px solid var(--line)', borderRadius: '6px', width: '180px', textAlign: 'left', cursor: 'text' }}
+                              />
+                            </div>
                           </div>
 
                           {/* Main Table */}
@@ -5483,6 +5536,7 @@ export function EmployeePortalFlow({
                                       )}
                                     </th>
                                     <th>{reconciliationDimension.charAt(0).toUpperCase() + reconciliationDimension.slice(1)} Group / Name</th>
+                                    <th>Client Name</th>
                                     <th className="num">June 2025 completed (Prev)</th>
                                     <th className="num">July 2025 in-progress (Curr)</th>
                                     <th className="num">Difference (Amt)</th>
@@ -5526,6 +5580,11 @@ export function EmployeePortalFlow({
                                           )}
                                         </td>
                                         <td><strong>{row.name}</strong></td>
+                                        <td>
+                                          <span style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>
+                                            {row.clientName || 'N/A'}
+                                          </span>
+                                        </td>
                                         <td className="num">₹ {row.prev.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                                         <td className="num">₹ {row.curr.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                                         <td className={`num ${statusClass}`}>
@@ -5543,6 +5602,7 @@ export function EmployeePortalFlow({
                                   <tr>
                                     <td></td>
                                     <td><strong>Grand Total:</strong></td>
+                                    <td></td>
                                     <td className="num"><strong>₹ {totalsAdmin.prev.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong></td>
                                     <td className="num"><strong>₹ {totalsAdmin.curr.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong></td>
                                     <td className={`num ${totalsAdmin.curr - totalsAdmin.prev >= 0 ? 'increase' : 'decrease'}`}>
