@@ -165,7 +165,7 @@ const leaveTabs = ['Leave Balance', 'Leave History'] as const
 const myPayTabs = ['Overview', 'Payslips', 'Salary Breakdown', 'Tax Documents', 'Bank Details', 'Payment History'] as const
 type MyPayTab = (typeof myPayTabs)[number]
 
-const documentTabs = ['My Documents', 'Payroll Documents', 'Tax Documents', 'Expiring Documents'] as const
+const documentTabs = ['My Documents', 'Payroll Documents', 'Expiring Documents'] as const
 type DocumentTab = (typeof documentTabs)[number]
 
 const profileTabs = [
@@ -458,6 +458,13 @@ const salaryDeductions: SalaryDeduction[] = [
 ]
 
 const taxDocumentSeedData: TaxDocument[] = [
+  { id: 'td-w4', name: 'W-4', financialYear: '2024-25', description: "Employee's Withholding Certificate for federal income tax withholding." },
+  { id: 'td-i9', name: 'I-9', financialYear: '2024-25', description: 'Employment Eligibility Verification form to verify identity and work authorization.' },
+  { id: 'td-w2', name: 'W-2', financialYear: '2024-25', description: 'Wage and Tax Statement reporting annual wages and taxes withheld.' },
+  { id: 'td-w2c', name: 'W-2C', financialYear: '2024-25', description: 'Corrected Wage and Tax Statement to rectify errors on previously filed W-2 forms.' },
+  { id: 'td-w3', name: 'W-3', financialYear: '2024-25', description: 'Transmittal of Wage and Tax Statements summarizing W-2 forms.' },
+  { id: 'td-t4', name: 'T-4', financialYear: '2024-25', description: 'Statement of Remuneration Paid for Canadian tax reporting.' },
+  { id: 'td-garn', name: 'Garnishment - Court order', financialYear: '2024-25', description: 'Court order details regarding garnishment of wages or salary withholding.' },
   { id: 'td-001', name: 'Form 16', financialYear: '2024-25', description: 'Annual tax statement as per income tax act.' },
   { id: 'td-002', name: 'Tax Certificate', financialYear: '2024-25', description: 'Certificate for tax deducted at source.' },
   { id: 'td-003', name: 'Annual Income Statement', financialYear: '2024-25', description: 'Summary of your income for the year.' },
@@ -1632,7 +1639,7 @@ export function EmployeePortalFlow({
   const [activeDocTab, setActiveDocTab] = useState<DocumentTab>('My Documents')
   const [docSearchQuery, setDocSearchQuery] = useState('')
   const [docCurrentPage, setDocCurrentPage] = useState(1)
-  const [taxYearFilter, setTaxYearFilter] = useState('2024-25')
+  // const [taxYearFilter, setTaxYearFilter] = useState('2024-25')
   const [docStatusFilter, setDocStatusFilter] = useState('All')
 
   const [uploadedDocsState, setUploadedDocsState] = useState<PortalDocument[]>(uploadedDocsSeed)
@@ -6988,13 +6995,13 @@ export function EmployeePortalFlow({
                                       <span>June 2025</span>
                                     </div>
                                   </button>
-                                  <button type="button" className="doc-quick-btn" onClick={() => setActiveDocTab('Tax Documents')}>
+                                  {/* <button type="button" className="doc-quick-btn" onClick={() => setActiveDocTab('Tax Documents')}>
                                     <div className="doc-quick-icon purple">🧾</div>
                                     <div className="doc-quick-text">
                                       <strong>View Tax Documents</strong>
                                       <span>Download tax files</span>
                                     </div>
-                                  </button>
+                                  </button> */}
                                 </div>
                               </section>
 
@@ -7032,14 +7039,14 @@ export function EmployeePortalFlow({
                                 <p>
                                   {/* {activeDocTab === 'Employment Documents' && 'Documents issued by your employer.'} */}
                                   {activeDocTab === 'Payroll Documents' && 'Payroll related documents and salary information.'}
-                                  {activeDocTab === 'Tax Documents' && 'Tax related documents and certificates.'}
+                                  {/* {activeDocTab === 'Tax Documents' && 'Tax related documents and certificates.'} */}
                                   {/* {activeDocTab === 'Uploaded Documents' && 'Documents uploaded by you for verification.'} */}
                                   {activeDocTab === 'Expiring Documents' && 'Documents that are expiring soon.'}
                                 </p>
                               </div>
 
                               <div className="doc-table-controls">
-                                {activeDocTab === 'Tax Documents' ? (
+                                {/* {activeDocTab === 'Tax Documents' ? (
                                   <div className="doc-filter-group">
                                     <label>Financial Year</label>
                                     <select value={taxYearFilter} onChange={(e) => { setTaxYearFilter(e.target.value); setDocCurrentPage(1); }}>
@@ -7047,17 +7054,17 @@ export function EmployeePortalFlow({
                                       <option value="2023-24">2023-24 (Apr 2023 - Mar 2024)</option>
                                     </select>
                                   </div>
-                                ) : (
-                                  <div className="doc-search-box">
-                                    <input
-                                      type="text"
-                                      placeholder="Search document"
-                                      value={docSearchQuery}
-                                      onChange={(e) => { setDocSearchQuery(e.target.value); setDocCurrentPage(1); }}
-                                    />
-                                    <span className="doc-search-icon">🔍</span>
-                                  </div>
-                                )}
+                                ) : ( */}
+                                <div className="doc-search-box">
+                                  <input
+                                    type="text"
+                                    placeholder="Search document"
+                                    value={docSearchQuery}
+                                    onChange={(e) => { setDocSearchQuery(e.target.value); setDocCurrentPage(1); }}
+                                  />
+                                  <span className="doc-search-icon">🔍</span>
+                                </div>
+                                {/* )} */}
 
                                 {/* {activeDocTab === 'Uploaded Documents' && (
                                   <button type="button" className="doc-upload-btn" onClick={() => setIsDocUploadModalOpen(true)}>📤 Upload Document</button>
@@ -7086,7 +7093,7 @@ export function EmployeePortalFlow({
                                       <th>Description</th>
                                       {/* {activeDocTab === 'Employment Documents' && <th>Issued On</th>} */}
                                       {activeDocTab === 'Payroll Documents' && <th>Month / Year</th>}
-                                      {activeDocTab === 'Tax Documents' && <th>Financial Year</th>}
+                                      {/* {activeDocTab === 'Tax Documents' && <th>Financial Year</th>} */}
                                       {/* {activeDocTab === 'Uploaded Documents' && <th>Uploaded On</th>} */}
                                       <th>Status</th>
                                       {/* {activeDocTab === 'Uploaded Documents' && <th>Verified On</th>} */}
@@ -7097,15 +7104,15 @@ export function EmployeePortalFlow({
                                     {(() => {
                                       let source: PortalDocument[] = []
                                       if (activeDocTab === 'Payroll Documents') source = payrollDocsSeed
-                                      else if (activeDocTab === 'Tax Documents') source = taxDocsSeed
+                                      // else if (activeDocTab === 'Tax Documents') source = taxDocsSeed
                                       // else if (activeDocTab === 'Uploaded Documents') source = uploadedDocsState
                                       else if (activeDocTab === 'Expiring Documents') source = [uploadedDocsState[1]]
 
                                       let filtered = source.filter(d => d.name.toLowerCase().includes(docSearchQuery.toLowerCase()))
 
-                                      if (activeDocTab === 'Tax Documents') {
-                                        filtered = filtered.filter(d => d.financialYear === taxYearFilter)
-                                      }
+                                      // if (activeDocTab === 'Tax Documents') {
+                                      //   filtered = filtered.filter(d => d.financialYear === taxYearFilter)
+                                      // }
 
                                       if (docStatusFilter !== 'All') {
                                         filtered = filtered.filter(d => {
@@ -7135,7 +7142,7 @@ export function EmployeePortalFlow({
                                           <td>{doc.description}</td>
                                           {/* {activeDocTab === 'Employment Documents' && <td>{doc.issuedOn}</td>} */}
                                           {activeDocTab === 'Payroll Documents' && <td>{doc.monthYear}</td>}
-                                          {activeDocTab === 'Tax Documents' && <td>{doc.financialYear}</td>}
+                                          {/* {activeDocTab === 'Tax Documents' && <td>{doc.financialYear}</td>} */}
                                           {/* {activeDocTab === 'Uploaded Documents' && <td>{doc.uploadedOn}</td>} */}
 
                                           <td>
@@ -7163,14 +7170,14 @@ export function EmployeePortalFlow({
                                   {(() => {
                                     let source: PortalDocument[] = []
                                     if (activeDocTab === 'Payroll Documents') source = payrollDocsSeed
-                                    else if (activeDocTab === 'Tax Documents') source = taxDocsSeed
+                                    // else if (activeDocTab === 'Tax Documents') source = taxDocsSeed
                                     // else if (activeDocTab === 'Uploaded Documents') source = uploadedDocsState
                                     else if (activeDocTab === 'Expiring Documents') source = [uploadedDocsState[1]]
 
                                     let filtered = source.filter(d => d.name.toLowerCase().includes(docSearchQuery.toLowerCase()))
-                                    if (activeDocTab === 'Tax Documents') {
-                                      filtered = filtered.filter(d => d.financialYear === taxYearFilter)
-                                    }
+                                    // if (activeDocTab === 'Tax Documents') {
+                                    //   filtered = filtered.filter(d => d.financialYear === taxYearFilter)
+                                    // }
                                     if (docStatusFilter !== 'All') {
                                       filtered = filtered.filter(d => d.status === (docStatusFilter === 'Pending' ? 'Pending Verification' : docStatusFilter))
                                     }
@@ -7188,14 +7195,14 @@ export function EmployeePortalFlow({
                                     (() => {
                                       let source: PortalDocument[] = []
                                       if (activeDocTab === 'Payroll Documents') source = payrollDocsSeed
-                                      else if (activeDocTab === 'Tax Documents') source = taxDocsSeed
+                                      // else if (activeDocTab === 'Tax Documents') source = taxDocsSeed
                                       // else if (activeDocTab === 'Uploaded Documents') source = uploadedDocsState
                                       else if (activeDocTab === 'Expiring Documents') source = [uploadedDocsState[1]]
 
                                       let filtered = source.filter(d => d.name.toLowerCase().includes(docSearchQuery.toLowerCase()))
-                                      if (activeDocTab === 'Tax Documents') {
-                                        filtered = filtered.filter(d => d.financialYear === taxYearFilter)
-                                      }
+                                      // if (activeDocTab === 'Tax Documents') {
+                                      //   filtered = filtered.filter(d => d.financialYear === taxYearFilter)
+                                      // }
                                       if (docStatusFilter !== 'All') {
                                         filtered = filtered.filter(d => d.status === (docStatusFilter === 'Pending' ? 'Pending Verification' : docStatusFilter))
                                       }
