@@ -1438,6 +1438,8 @@ export function EmployeePortalFlow({
   setIsNotificationDrawerOpen
 }: EmployeePortalFlowProps) {
   const [previewRoleMode, setPreviewRoleMode] = useState<UserType | null>(null)
+  const [simulatedEmployeeId, setSimulatedEmployeeId] = useState<string>('EMP-001')
+  const [simulatedClientName, setSimulatedClientName] = useState<string>('Acme Corp')
 
   const activeUserType = previewRoleMode || userType
 
@@ -1488,6 +1490,20 @@ export function EmployeePortalFlow({
     return rows
   })
   const [reconciliationDimension, setReconciliationDimension] = useState<'client' | 'employee' | 'paygroup' | 'payment'>('client')
+
+  const currentEmployeeInfo = useMemo(() => {
+    const emp = adminEmployees.find(e => e.id === simulatedEmployeeId)
+    if (!emp) return { name: 'John Doe', preferredName: 'John', clientName: 'Acme Corp', role: 'Senior Developer', id: 'EMP-001', paygroup: 'Engineering' }
+    const firstName = emp.name.split(' ')[0]
+    return {
+      name: emp.name,
+      preferredName: firstName,
+      clientName: emp.clientName,
+      role: emp.role,
+      id: emp.id,
+      paygroup: emp.paygroup
+    }
+  }, [adminEmployees, simulatedEmployeeId])
 
   useEffect(() => {
     setSelectedReconcileKeys(new Set())
@@ -2923,6 +2939,13 @@ export function EmployeePortalFlow({
   }
 
   const getPortalUserName = (): string => {
+    if (previewRoleMode === 'employee') {
+      const emp = adminEmployees.find(e => e.id === simulatedEmployeeId)
+      if (emp) return emp.name
+    }
+    if (previewRoleMode === 'client') {
+      return simulatedClientName
+    }
     const names: Record<'employee' | 'admin' | 'client', string> = {
       employee: 'John Doe',
       admin: 'Admin User',
@@ -4986,18 +5009,82 @@ export function EmployeePortalFlow({
 
   return (
     <>
-      {previewRoleMode && (
-        <div className="admin-preview-banner">
-          <div className="preview-banner-content">
-            <span className="preview-pulse-dot"></span>
-            <span>Active Preview Mode: <strong>{previewRoleMode.toUpperCase()} VIEW</strong></span>
+      {userType === 'admin' && (
+        <div className="admin-preview-banner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', padding: '8px 16px', background: 'var(--surface)', borderBottom: '1px solid var(--line)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span className="preview-pulse-dot" style={{ background: previewRoleMode ? '#f39c12' : '#2ecc71' }}></span>
+            <span style={{ fontSize: '0.85rem', color: 'var(--ink)' }}>
+              {previewRoleMode ? (
+                <>
+                  Active Preview: <strong>{previewRoleMode === 'client' ? `Client Portal (${simulatedClientName})` : `Employee Portal (${currentEmployeeInfo.name})`}</strong>
+                </>
+              ) : (
+                <>
+                  🟢 System Control Mode: <strong>Administrator View</strong>
+                </>
+              )}
+            </span>
           </div>
-          <button type="button" className="btn btn-primary btn-exit-preview" onClick={() => {
-            setPreviewRoleMode(null)
-            setCurrentModule('admin-access')
-          }}>
-            Return to Admin View
-          </button>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            {/* Client Portal simulator */}
+            <select
+              value={previewRoleMode === 'client' ? simulatedClientName : ''}
+              onChange={(e) => {
+                const val = e.target.value
+                if (!val) return
+                setPreviewRoleMode('client')
+                setSimulatedClientName(val)
+                setCurrentModule('client-dashboard')
+                showToast(`Simulating Client View for ${val} - OK`)
+              }}
+              className="btn"
+              style={{ padding: '6px 12px', fontSize: '0.82rem', background: 'rgba(255,255,255,0.02)', color: 'var(--ink)', border: '1px solid var(--line)', borderRadius: '6px', cursor: 'pointer' }}
+            >
+              <option value="">🏢 Simulate Client View...</option>
+              <option value="Acme Corp">Acme Corp</option>
+              <option value="Stark Industries">Stark Industries</option>
+              <option value="Wayne Enterprises">Wayne Enterprises</option>
+              <option value="Globex Corp">Globex Corp</option>
+            </select>
+
+            {/* Employee Portal simulator */}
+            <select
+              value={previewRoleMode === 'employee' ? simulatedEmployeeId : ''}
+              onChange={(e) => {
+                const val = e.target.value
+                if (!val) return
+                setPreviewRoleMode('employee')
+                setSimulatedEmployeeId(val)
+                setCurrentModule('dashboard')
+                const emp = adminEmployees.find(emp => emp.id === val)
+                showToast(`Simulating Employee View for ${emp ? emp.name : val} - OK`)
+              }}
+              className="btn"
+              style={{ padding: '6px 12px', fontSize: '0.82rem', background: 'rgba(255,255,255,0.02)', color: 'var(--ink)', border: '1px solid var(--line)', borderRadius: '6px', cursor: 'pointer' }}
+            >
+              <option value="">👤 Simulate Employee View...</option>
+              {adminEmployees.map(emp => (
+                <option key={emp.id} value={emp.id}>{emp.name} ({emp.id})</option>
+              ))}
+            </select>
+
+            {/* Exit simulation button */}
+            {previewRoleMode && (
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => {
+                  setPreviewRoleMode(null)
+                  setCurrentModule('admin-dashboard')
+                  showToast('Returned to system administrator view - OK')
+                }}
+                style={{ padding: '6px 14px', fontSize: '0.82rem', background: 'var(--line)', color: 'var(--ink)', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+              >
+                🔌 Exit Preview
+              </button>
+            )}
+          </div>
         </div>
       )}
 
@@ -5835,7 +5922,7 @@ export function EmployeePortalFlow({
                         <div className="dash-shell">
                           <div className="dash-welcome-row">
                             <div>
-                              <h1 className="dash-welcome-title">Acme & Stark Industries - Corporate Client Dashboard 🏢</h1>
+                              <h1 className="dash-welcome-title">{previewRoleMode === 'client' ? simulatedClientName : 'Acme & Stark Industries'} - Corporate Client Dashboard 🏢</h1>
                               <p className="dash-welcome-sub">View overall staff lists, aggregate gross pay volume, and timesheet processing status.</p>
                             </div>
                           </div>
@@ -6009,7 +6096,7 @@ export function EmployeePortalFlow({
                           {/* ── Welcome Row ── */}
                           <div className="dash-welcome-row">
                             <div>
-                              <h1 className="dash-welcome-title">Welcome back, {personalInfo.preferredName || personalInfo.firstName}! 👋</h1>
+                              <h1 className="dash-welcome-title">Welcome back, {previewRoleMode === 'employee' ? currentEmployeeInfo.preferredName : (personalInfo.preferredName || personalInfo.firstName)}! 👋</h1>
                               <p className="dash-welcome-sub">Here's what's happening with your work today.</p>
                             </div>
                             <div className="dash-today-date">
@@ -8194,9 +8281,9 @@ export function EmployeePortalFlow({
                                 <div className="profile-avatar-large">
                                   <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&h=256&q=80" alt="John Doe" />
                                 </div>
-                                <h2 className="profile-name">{personalInfo.firstName} {personalInfo.lastName}</h2>
-                                <p className="profile-title">Software Engineer</p>
-                                <p className="profile-emp-id">EMP001245</p>
+                                <h2 className="profile-name">{previewRoleMode === 'employee' ? currentEmployeeInfo.name : `${personalInfo.firstName} ${personalInfo.lastName}`}</h2>
+                                <p className="profile-title">{previewRoleMode === 'employee' ? currentEmployeeInfo.role : 'Software Engineer'}</p>
+                                <p className="profile-emp-id">{previewRoleMode === 'employee' ? currentEmployeeInfo.id : 'EMP001245'}</p>
                                 <span className="profile-status-badge active">Active</span>
                               </div>
 
@@ -8206,7 +8293,7 @@ export function EmployeePortalFlow({
                                 <div className="profile-details-list">
                                   <div className="profile-detail-row">
                                     <span className="label">Department</span>
-                                    <span className="value">Engineering</span>
+                                    <span className="value">{previewRoleMode === 'employee' ? currentEmployeeInfo.paygroup : 'Engineering'}</span>
                                   </div>
                                   <div className="profile-detail-row">
                                     <span className="label">Manager</span>
