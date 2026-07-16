@@ -5032,10 +5032,10 @@ export function EmployeePortalFlow({
   return (
     <>
       {userType === 'admin' && (
-        <div className="admin-preview-banner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', padding: '8px 16px', background: 'var(--surface)', borderBottom: '1px solid var(--line)' }}>
+        <div className="admin-preview-banner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', padding: '8px 16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span className="preview-pulse-dot" style={{ background: previewRoleMode ? '#f39c12' : '#2ecc71' }}></span>
-            <span style={{ fontSize: '0.85rem', color: 'var(--ink)' }}>
+            <span className="preview-pulse-dot" style={{ background: '#ffffff' }}></span>
+            <span style={{ fontSize: '0.85rem', color: '#ffffff' }}>
               {previewRoleMode ? (
                 <>
                   Active Preview: <strong>{previewRoleMode === 'client' ? `Client Portal (${simulatedClientName})` : `Employee Portal (${currentEmployeeInfo.name})`}</strong>

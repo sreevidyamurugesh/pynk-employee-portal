@@ -9364,14 +9364,15 @@ html:not(.light-mode) .admin-toast-text {
 
 /* Impersonation bar */
 .admin-preview-banner {
-  background: linear-gradient(90deg, #f39c12 0%, #d35400 100%);
+  background: linear-gradient(90deg, #EC1B8D 0%, #a2105c 100%) !important;
   color: #fff;
   padding: 10px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-size: 13.5px;
-  z-index: 999;
+  position: relative;
+  z-index: 10;
   border-bottom: 1px solid rgba(0, 0, 0, 0.2);
 }
 
@@ -9755,7 +9756,7 @@ select {
 }
 
 .light-mode .admin-preview-banner {
-  background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%) !important;
+  background: linear-gradient(90deg, #EC1B8D 0%, #f74d9e 100%) !important;
 }
 
 .light-mode .time-modal-content {
