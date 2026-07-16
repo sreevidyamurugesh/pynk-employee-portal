@@ -4641,12 +4641,12 @@ html:not(.light-mode) .btn-sso-outline:hover {
 .time-modal-grid input,
 .time-modal-grid select,
 .time-modal-grid textarea {
-  background: #2f2f56;
+  background-color: #2f2f56;
   border: 1px solid #484872;
   border-radius: 8px;
   color: #fff;
   padding: 9px 10px;
-  font: inherit
+  font: inherit;
 }
 
 .time-modal-grid textarea {
@@ -10677,7 +10677,7 @@ select {
 .light-mode .time-modal-grid input,
 .light-mode .time-modal-grid select,
 .light-mode .time-modal-grid textarea {
-  background: #ffffff !important;
+  background-color: #ffffff !important;
   border-color: #d1d5db !important;
   color: #111827 !important;
 }
