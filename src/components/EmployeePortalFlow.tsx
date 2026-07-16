@@ -2853,6 +2853,427 @@ export function EmployeePortalFlow({
     URL.revokeObjectURL(url)
   }
 
+  const getPortalUserName = (): string => {
+    const names: Record<'employee' | 'admin' | 'client', string> = {
+      employee: 'John Doe',
+      admin: 'Admin User',
+      client: 'Client Corp',
+    }
+    return activeUserType ? names[activeUserType] : 'User'
+  }
+
+  const handleExportExcel = () => {
+    const employeeName = getPortalUserName()
+    const period = getRangeLabel(activeRange.fromDateISO, activeRange.toDateISO)
+    
+    const rows = [
+      ['Timesheet Hours Report'],
+      ['Employee Name', employeeName],
+      ['Period', period],
+      ['Overall Status', rangeStatus],
+      [],
+      ['Date', 'Day', 'Status', 'Work Location', 'Start Time', 'End Time', 'Break (min)', 'Regular Hours', 'Overtime Hours', 'Total Hours', 'Notes']
+    ]
+
+    activeRange.days.forEach((day) => {
+      const dayStatus = day.isLeave ? (day.leaveType ? leaveTypeLabel[day.leaveType] : 'Leave') : statusLabel[day.status]
+      const breakMin = day.isLeave ? '' : day.breakDuration
+      const regHrs = day.isLeave ? 0 : day.regularHours
+      const otHrs = day.isLeave ? 0 : day.overtimeHours
+      const totalHrs = day.isLeave ? 8 : day.hours
+
+      rows.push([
+        day.key,
+        day.label + ' ' + day.dateLabel,
+        dayStatus,
+        day.isLeave ? '--' : day.workLocation,
+        day.isLeave ? '--' : day.startTime,
+        day.isLeave ? '--' : day.endTime,
+        String(breakMin),
+        String(regHrs),
+        String(otHrs),
+        String(totalHrs),
+        day.notes || ''
+      ])
+    })
+
+    rows.push([])
+    rows.push(['Totals', '', '', '', '', '', '', String(totals.regularHours), String(totals.overtimeHours), String(totals.totalHours)])
+
+    const csvContent = rows
+      .map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(','))
+      .join('\n')
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.download = `timesheet_${employeeName.toLowerCase().replace(/\s+/g, '_')}_${activeRange.fromDateISO}.csv`
+    anchor.click()
+    URL.revokeObjectURL(url)
+    showToast('Timesheet exported to Excel successfully!')
+  }
+
+  const handleExportWord = () => {
+    const employeeName = getPortalUserName()
+    const period = getRangeLabel(activeRange.fromDateISO, activeRange.toDateISO)
+    
+    let html = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+      <head>
+        <title>Timesheet Report</title>
+        <style>
+          body { font-family: Arial, sans-serif; color: #333; margin: 20px; }
+          h2 { color: #EC1B8D; border-bottom: 2px solid #EC1B8D; padding-bottom: 5px; }
+          .meta-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+          .meta-table td { padding: 6px; font-size: 13px; }
+          .meta-label { font-weight: bold; width: 150px; color: #555; }
+          .data-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+          .data-table th, .data-table td { border: 1px solid #ddd; padding: 8px; font-size: 11px; text-align: left; }
+          .data-table th { background-color: #f2f2f2; font-weight: bold; color: #111; }
+          .totals-row { font-weight: bold; background-color: #fafafa; }
+        </style>
+      </head>
+      <body>
+        <h2>Timesheet Details Report</h2>
+        <table class="meta-table">
+          <tr><td class="meta-label">Employee Name:</td><td>${employeeName}</td></tr>
+          <tr><td class="meta-label">Period:</td><td>${period}</td></tr>
+          <tr><td class="meta-label">Overall Status:</td><td>${rangeStatus}</td></tr>
+          <tr><td class="meta-label">Total Hours:</td><td>${formatHours(totals.totalHours)} hrs (Regular: ${formatHours(totals.regularHours)} hrs, Overtime: ${formatHours(totals.overtimeHours)} hrs)</td></tr>
+        </table>
+        
+        <h3>Daily Time Entries</h3>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Day</th>
+              <th>Status</th>
+              <th>Work Location</th>
+              <th>Start Time</th>
+              <th>End Time</th>
+              <th>Break (min)</th>
+              <th>Reg. Hours</th>
+              <th>OT Hours</th>
+              <th>Total Hours</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+    `
+
+    activeRange.days.forEach((day) => {
+      const dayStatus = day.isLeave ? (day.leaveType ? leaveTypeLabel[day.leaveType] : 'Leave') : statusLabel[day.status]
+      const breakMin = day.isLeave ? '--' : day.breakDuration
+      const regHrs = day.isLeave ? '0.0' : formatHours(day.regularHours)
+      const otHrs = day.isLeave ? '0.0' : formatHours(day.overtimeHours)
+      const totalHrs = day.isLeave ? '8.0' : formatHours(day.hours)
+
+      html += `
+        <tr>
+          <td>${day.key}</td>
+          <td>${day.label} ${day.dateLabel}</td>
+          <td>${dayStatus}</td>
+          <td>${day.isLeave ? '--' : day.workLocation}</td>
+          <td>${day.isLeave ? '--' : day.startTime}</td>
+          <td>${day.isLeave ? '--' : day.endTime}</td>
+          <td>${breakMin}</td>
+          <td>${regHrs}</td>
+          <td>${otHrs}</td>
+          <td>${totalHrs}</td>
+          <td>${day.notes || ''}</td>
+        </tr>
+      `
+    })
+
+    html += `
+            <tr class="totals-row">
+              <td colspan="7">Totals</td>
+              <td>${formatHours(totals.regularHours)}</td>
+              <td>${formatHours(totals.overtimeHours)}</td>
+              <td>${formatHours(totals.totalHours)}</td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </body>
+      </html>
+    `
+
+    const blob = new Blob(['\ufeff' + html], { type: 'application/msword' })
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.download = `timesheet_${employeeName.toLowerCase().replace(/\s+/g, '_')}_${activeRange.fromDateISO}.doc`
+    anchor.click()
+    URL.revokeObjectURL(url)
+    showToast('Timesheet exported to Word successfully!')
+  }
+
+  const handleExportPDF = () => {
+    const employeeName = getPortalUserName()
+    const period = getRangeLabel(activeRange.fromDateISO, activeRange.toDateISO)
+    
+    const printWindow = window.open('', '_blank')
+    if (!printWindow) {
+      showToast('Popup blocked! Please allow popups to export PDF.')
+      return
+    }
+
+    let tableRows = ''
+    activeRange.days.forEach((day) => {
+      const dayStatus = day.isLeave ? (day.leaveType ? leaveTypeLabel[day.leaveType] : 'Leave') : statusLabel[day.status]
+      const breakMin = day.isLeave ? '--' : day.breakDuration
+      const regHrs = day.isLeave ? '0.0' : formatHours(day.regularHours)
+      const otHrs = day.isLeave ? '0.0' : formatHours(day.overtimeHours)
+      const totalHrs = day.isLeave ? '8.0' : formatHours(day.hours)
+
+      tableRows += `
+        <tr>
+          <td>${day.key}</td>
+          <td>${day.label} ${day.dateLabel}</td>
+          <td><span class="status-badge ${day.isLeave ? 'leave' : day.status}">${dayStatus}</span></td>
+          <td>${day.isLeave ? '--' : day.workLocation}</td>
+          <td>${day.isLeave ? '--' : day.startTime}</td>
+          <td>${day.isLeave ? '--' : day.endTime}</td>
+          <td>${breakMin}</td>
+          <td>${regHrs}</td>
+          <td>${otHrs}</td>
+          <td class="bold">${totalHrs}</td>
+          <td class="notes">${day.notes || ''}</td>
+        </tr>
+      `
+    })
+
+    printWindow.document.write(`
+      <html>
+      <head>
+        <title>Timesheet - ${employeeName}</title>
+        <style>
+          body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            color: #1f2937;
+            padding: 40px;
+            margin: 0;
+            background: #fff;
+          }
+          .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid #EC1B8D;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+          }
+          .logo {
+            font-size: 28px;
+            font-weight: 800;
+            color: #EC1B8D;
+            letter-spacing: -0.5px;
+          }
+          .logo span {
+            color: #1f2937;
+          }
+          .title {
+            text-align: right;
+          }
+          .title h1 {
+            margin: 0;
+            font-size: 24px;
+            color: #111827;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+          .title p {
+            margin: 5px 0 0;
+            font-size: 13px;
+            color: #6b7280;
+          }
+          .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 35px;
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+          }
+          .meta-item h3 {
+            margin: 0 0 6px;
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #9ca3af;
+            letter-spacing: 0.5px;
+          }
+          .meta-item p {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #111827;
+          }
+          .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 40px;
+          }
+          .data-table th, .data-table td {
+            padding: 10px 12px;
+            font-size: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+          }
+          .data-table th {
+            background-color: #f3f4f6;
+            font-weight: 700;
+            color: #374151;
+            text-transform: uppercase;
+            font-size: 10px;
+            letter-spacing: 0.5px;
+          }
+          .data-table tr:hover {
+            background: #f9fafb;
+          }
+          .bold {
+            font-weight: 700;
+          }
+          .status-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+          }
+          .status-badge.submitted { background: #d1fae5; color: #065f46; }
+          .status-badge.draft { background: #fef3c7; color: #92400e; }
+          .status-badge.returned { background: #fee2e2; color: #991b1b; }
+          .status-badge.none { background: #f3f4f6; color: #374151; }
+          .status-badge.leave { background: #ede9fe; color: #5b21b6; }
+          .totals-bar {
+            display: flex;
+            justify-content: flex-end;
+            gap: 30px;
+            background: #111827;
+            color: #fff;
+            padding: 15px 25px;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-bottom: 40px;
+          }
+          .totals-bar div {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
+          .totals-bar div span {
+            color: #9ca3af;
+            font-size: 11px;
+            text-transform: uppercase;
+          }
+          .totals-bar div strong {
+            font-size: 16px;
+            color: #fff;
+          }
+          .footer-note {
+            text-align: center;
+            font-size: 11px;
+            color: #9ca3af;
+            margin-top: 60px;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 15px;
+          }
+          .notes {
+            color: #6b7280;
+            max-width: 150px;
+            word-wrap: break-word;
+          }
+          @media print {
+            body { padding: 0; }
+            .no-print { display: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header-container">
+          <div class="logo">Pynk<span>Portal</span></div>
+          <div class="title">
+            <h1>Timesheet Report</h1>
+            <p>Generated on ${new Date().toLocaleDateString()}</p>
+          </div>
+        </div>
+
+        <div class="meta-grid">
+          <div class="meta-item">
+            <h3>Employee Name</h3>
+            <p>${employeeName}</p>
+          </div>
+          <div class="meta-item">
+            <h3>Pay Period</h3>
+            <p>${period}</p>
+          </div>
+          <div class="meta-item">
+            <h3>Submission Status</h3>
+            <p>${rangeStatus}</p>
+          </div>
+        </div>
+
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Day</th>
+              <th>Status</th>
+              <th>Work Location</th>
+              <th>Start Time</th>
+              <th>End Time</th>
+              <th>Break (m)</th>
+              <th>Reg Hrs</th>
+              <th>OT Hrs</th>
+              <th>Total Hrs</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${tableRows}
+          </tbody>
+        </table>
+
+        <div class="totals-bar">
+          <div>
+            <span>Regular Hours</span>
+            <strong>${formatHours(totals.regularHours)}</strong>
+          </div>
+          <div>
+            <span>Overtime Hours</span>
+            <strong>${formatHours(totals.overtimeHours)}</strong>
+          </div>
+          <div>
+            <span>Total Logged</span>
+            <strong>${formatHours(totals.totalHours)} hrs</strong>
+          </div>
+        </div>
+
+        <div class="footer-note">
+          This is an official timesheet record generated from Pynk HR Suite.
+        </div>
+
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+            }, 500);
+          };
+        </script>
+      </body>
+      </html>
+    `)
+
+    printWindow.document.close()
+    showToast('Timesheet PDF printable view opened successfully!')
+  }
+
   const applyHistoryDateFilter = () => {
     setHistoryFilterError('')
 
@@ -4061,7 +4482,6 @@ export function EmployeePortalFlow({
 
       <div className="portal-layout">
         <aside className="portal-sidebar" aria-label="Modules">
-          <h3>Modules</h3>
           <div className="module-list">
             {modules.map((module) => (
               <button
@@ -5271,7 +5691,7 @@ export function EmployeePortalFlow({
                                   const status = isLeave ? 'leave' : (cell.entry?.status ?? 'none')
                                   const statusText = isLeave
                                     ? (cell.entry?.leaveType ? leaveTypeLabel[cell.entry.leaveType] : 'Leave')
-                                    : (statusLabel[status] === '-' ? 'No Entry' : statusLabel[status])
+                                    : (status === 'none' || status === 'leave' ? 'No Entry' : statusLabel[status as TimeEntryStatus])
 
                                   return (
                                     <button
@@ -5561,6 +5981,24 @@ export function EmployeePortalFlow({
 
                             <div className="time-entry-main">
                               <div className="time-table-card">
+                                <div className="time-table-header">
+                                  <h3 className="time-table-title">Timesheet Entries</h3>
+                                  <div className="export-group">
+                                    <span className="export-label">Export:</span>
+                                    <button type="button" className="export-btn pdf" onClick={handleExportPDF} title="Export to PDF">
+                                      <svg viewBox="0 0 384 512" style={{ width: '12px', height: '12px', fill: 'currentColor' }}><path d="M181.9 256.1c-5-16-4.9-46.9-2-46.9 8.4 0 7.6 36.9 2 46.9zm-1.7 47.2c-7.7 20.2-17.3 43.3-28.4 62.7 18.3-7 39-17.2 50.8-24.7-17.6 1.7-18.4 16-22.4 22zm-78.2 92.5c-4.3 0-8.2-2.5-9.4-6.6-4.9-16.7 13.9-38.3 35.8-51.4-17 19.8-24.1 40-26.4 58zm191.1-131.6c-4.4 9.1-16.1 19.9-29.2 27.2 26.6-2.5 35.2-19.8 29.2-27.2zm112.9-96.2c0-10.7-3.9-20.7-11-28.4L284.4 28.9c-7.6-8.3-18.4-13-29.6-13H48C21.5 15.9 0 37.4 0 63.9v384.3C0 474.7 21.5 496 48 496h288c26.5 0 48-21.3 48-47.8V168zm-121.7 66.8c0 29.1-13.6 57.2-27.2 78.4-11.7 18.2-28.2 41.2-40 60.1-5.7 9.1-12.7 19.1-17.1 27.5-6.8 12.9-17.6 22-26.8 22-9.7 0-21.4-12.6-28.4-36.9-1.9-6.7-2.2-25 10-53.7 2.4-5.6 5.8-12.4 9.4-19 12.5-23.3 27.8-52.4 34.4-75.9-4.2-18.1-10.1-47.4-10.1-66.2 0-35.3 12.4-54.8 35.3-54.8 22.9 0 29.5 28.5 25.1 63.4 12.4 24.4 26.2 47.2 38.6 68.2 12.7-7.2 26.9-13.8 35.3-13.8 17.5 0 26 10.1 26 23.9 0 20.2-14.7 34.6-28.2 40.3z"/></svg>
+                                      PDF
+                                    </button>
+                                    <button type="button" className="export-btn excel" onClick={handleExportExcel} title="Export to Excel">
+                                      <svg viewBox="0 0 384 512" style={{ width: '12px', height: '12px', fill: 'currentColor' }}><path d="M224 136V0H24C10.7 0 0 10.7 0 24v464c0 13.3 10.7 24 24 24h336c13.3 0 24-10.7 24-24V160H248c-13.2 0-24-10.8-24-24zm60.1 106.5L224 336l60.1 93.5c5.1 8-2.6 18.5-11.9 18.5h-31.9c-5.9 0-11.2-3.2-14-8.4L192 385.3l-34.3 54.3c-2.8 5.2-8.1 8.4-14 8.4H111.8c-9.3 0-17-10.5-11.9-18.5L160 336l-60.1-93.5c-5.1-8 2.6-18.5 11.9-18.5h31.9c5.9 0 11.2 3.2 14 8.4L192 286.7l34.3-54.3c2.8-5.2 8.1-8.4 14-8.4H272.2c9.3 0 17 10.5 11.9 18.5zM384 121.9v6.1H256V0h6.1c6.4 0 12.5 2.5 17 7l97.9 98c4.5 4.5 7 10.6 7 16.9z"/></svg>
+                                      Excel
+                                    </button>
+                                    <button type="button" className="export-btn word" onClick={handleExportWord} title="Export to Word">
+                                      <svg viewBox="0 0 384 512" style={{ width: '12px', height: '12px', fill: 'currentColor' }}><path d="M224 136V0H24C10.7 0 0 10.7 0 24v464c0 13.3 10.7 24 24 24h336c13.3 0 24-10.7 24-24V160H248c-13.2 0-24-10.8-24-24zm39 123.9c.4 5.3-2.5 10.4-7.4 12.5L224 336l31.6 63.6c2.4 4.8 1.9 10.6-1.5 14.9s-9 6.9-14.3 6.9H208c-5.8 0-11.1-3.1-13.9-8.3L168 360l-26.1 53.1c-2.8 5.2-8.1 8.3-13.9 8.3H95.8c-5.3 0-10.1-2.6-12.5-6.9s-1.9-9.7 1.5-14.9L116 336l-31.6-63.6c-2.4-4.8-1.9-10.6 1.5-14.9s9-6.9 14.3-6.9H128c5.8 0 11.1 3.1 13.9 8.3L168 312l26.1-53.1c2.8-5.2 8.1-8.3 13.9-8.3h32.2c5.3 0 10.1 2.6 12.5 6.9s1.9 9.7-1.5 14.9zM384 121.9v6.1H256V0h6.1c6.4 0 12.5 2.5 17 7l97.9 98c4.5 4.5 7 10.6 7 16.9z"/></svg>
+                                      Word
+                                    </button>
+                                  </div>
+                                </div>
                                 <table className="time-table">
                                   <thead>
                                     <tr>
