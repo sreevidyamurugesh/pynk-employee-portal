@@ -33,6 +33,8 @@ interface TimeEntryDay {
   breakDuration: string
   workLocation: string
   notes: string
+  isLeave?: boolean
+  leaveType?: LeaveTypeId
 }
 
 interface TimeEntryRangeData {
@@ -56,6 +58,8 @@ interface TimeEntryEditForm {
   breakMinutes: number
   workLocation: string
   notes: string
+  isLeave?: boolean
+  leaveType?: LeaveTypeId
 }
 
 interface TimeEntryWarning {
@@ -156,8 +160,8 @@ interface LeaveWarning {
 const TIME_ENTRY_STORE_KEY = 'portalTimeEntryRangeStoreV2'
 const MAX_RANGE_DAYS = 31
 
-const timeEntryTabs = ['My Timesheet', 'Calendar', 'Time History', 'Approvals'] as const
-const leaveTabs = ['My Leave', 'Apply Leave', 'Leave Balance', 'Leave History'] as const
+const timeEntryTabs = ['My Timesheet', 'Calendar', 'Time History', 'Leave', 'Approvals'] as const
+const leaveTabs = ['Leave Balance', 'Leave History'] as const
 const myPayTabs = ['Overview', 'Payslips', 'Salary Breakdown', 'Tax Documents', 'Bank Details', 'Payment History'] as const
 type MyPayTab = (typeof myPayTabs)[number]
 
@@ -1210,7 +1214,7 @@ function buildRangeData(fromDateISO: string, toDateISO: string, templateDays?: T
       startTime: template?.startTime ?? (weekday ? '09:00 AM' : '--'),
       endTime: template?.endTime ?? (weekday ? '06:00 PM' : '--'),
       breakDuration: template?.breakDuration ?? (weekday ? '01:00 hr' : '--'),
-      workLocation: template?.workLocation ?? (weekday ? 'Office' : 'Off'),
+      workLocation: template?.workLocation ?? (weekday ? 'Remote' : 'Off'),
       notes: template?.notes ?? (weekday ? '' : 'Weekend.'),
     })
 
@@ -1278,8 +1282,10 @@ const getEditFormFromDay = (day: TimeEntryDay): TimeEntryEditForm => ({
   startTime: parseTime12To24(day.startTime),
   endTime: parseTime12To24(day.endTime),
   breakMinutes: parseBreakDurationToMinutes(day.breakDuration),
-  workLocation: day.workLocation === 'Off' ? 'Office' : day.workLocation,
+  workLocation: day.workLocation === 'Off' ? 'Remote' : (day.workLocation || 'Remote'),
   notes: day.notes,
+  isLeave: day.isLeave || false,
+  leaveType: day.leaveType || 'annual',
 })
 
 const moduleSteps: Record<Module, ModuleStep[]> = {
@@ -1484,7 +1490,7 @@ export function EmployeePortalFlow({
 
 
   const [activeTimeEntryTab, setActiveTimeEntryTab] = useState<(typeof timeEntryTabs)[number]>('My Timesheet')
-  const [activeLeaveTab, setActiveLeaveTab] = useState<(typeof leaveTabs)[number]>('My Leave')
+  const [activeLeaveTab, setActiveLeaveTab] = useState<(typeof leaveTabs)[number]>('Leave Balance')
   const [activePayTab, setActivePayTab] = useState<MyPayTab>('Overview')
 
   // Profile state
@@ -2109,8 +2115,10 @@ export function EmployeePortalFlow({
     startTime: '',
     endTime: '',
     breakMinutes: 60,
-    workLocation: 'Office',
+    workLocation: 'Remote',
     notes: '',
+    isLeave: false,
+    leaveType: 'annual',
   })
   const [editError, setEditError] = useState('')
   const todayIso = getTodayIso()
@@ -2159,7 +2167,6 @@ export function EmployeePortalFlow({
     return [
       { id: 'dashboard' as Module, label: 'Dashboard', icon: '📊' },
       { id: 'time-entry' as Module, label: 'Time Entry', icon: '⏱️' },
-      { id: 'leave' as Module, label: 'Leave', icon: '📅' },
       { id: 'my-pay' as Module, label: 'My Pay', icon: '💰' },
       { id: 'documents' as Module, label: 'Documents', icon: '📄' },
       { id: 'profile' as Module, label: 'Profile', icon: '👤' },
@@ -2198,20 +2205,25 @@ export function EmployeePortalFlow({
   const totals = useMemo(() => {
     return activeRange.days.reduce(
       (acc, day) => {
-        acc.totalHours += day.hours
-        acc.regularHours += day.regularHours
-        acc.overtimeHours += day.overtimeHours
+        if (day.isLeave) {
+          acc.leaveHours += 8
+        } else {
+          acc.totalHours += day.hours
+          acc.regularHours += day.regularHours
+          acc.overtimeHours += day.overtimeHours
+        }
         return acc
       },
-      { totalHours: 0, regularHours: 0, overtimeHours: 0 },
+      { totalHours: 0, regularHours: 0, overtimeHours: 0, leaveHours: 0 },
     )
   }, [activeRange.days])
 
-  const leaveHours = 0
+  const leaveHours = totals.leaveHours
   const completionPct = Math.min(100, Math.round((totals.totalHours / 40) * 100))
   const isCalendarTab = activeTimeEntryTab === 'Calendar'
   const isTimeHistoryTab = activeTimeEntryTab === 'Time History'
   const isApprovalsTab = activeTimeEntryTab === 'Approvals'
+  const isLeaveTab = activeTimeEntryTab === 'Leave'
   const rangeStatus: 'Draft' | 'Submitted' | 'Returned' =
     activeRange.days.some((day) => day.status === 'returned')
       ? 'Returned'
@@ -2229,20 +2241,27 @@ export function EmployeePortalFlow({
   const visibleMonthTotals = useMemo(() => {
     return visibleMonthDays.reduce(
       (acc, day) => {
-        acc.totalHours += day.hours
-        acc.regularHours += day.regularHours
-        acc.overtimeHours += day.overtimeHours
-        acc[day.status] += 1
+        if (day.isLeave) {
+          acc.leave += 1
+          acc.leaveHours += 8
+        } else {
+          acc.totalHours += day.hours
+          acc.regularHours += day.regularHours
+          acc.overtimeHours += day.overtimeHours
+          acc[day.status] += 1
+        }
         return acc
       },
       {
         totalHours: 0,
         regularHours: 0,
         overtimeHours: 0,
+        leaveHours: 0,
         submitted: 0,
         draft: 0,
         returned: 0,
         none: 0,
+        leave: 0,
       },
     )
   }, [visibleMonthDays])
@@ -2522,6 +2541,53 @@ export function EmployeePortalFlow({
   const handleSaveDayEdit = () => {
     if (!selectedDay) return
 
+    const requestId = `time-leave-${selectedDay.key}`
+
+    if (editForm.isLeave) {
+      const leaveType = editForm.leaveType || 'annual'
+      const notes = editForm.notes.trim() || `${leaveTypeLabel[leaveType]} requested.`
+
+      updateDay(selectedDay.key, (day) => ({
+        ...day,
+        startTime: '--',
+        endTime: '--',
+        breakDuration: '--',
+        hours: 0,
+        regularHours: 0,
+        overtimeHours: 0,
+        status: 'draft',
+        workLocation: 'Remote',
+        isLeave: true,
+        leaveType,
+        notes,
+      }))
+
+      setLeaveRequests((prev) => {
+        const filtered = prev.filter((r) => r.id !== requestId)
+        return [
+          ...filtered,
+          {
+            id: requestId,
+            leaveType,
+            fromDateISO: selectedDay.key,
+            toDateISO: selectedDay.key,
+            durationDays: 1,
+            status: 'pending',
+            appliedOnISO: todayIso,
+            reason: notes,
+            handoverTo: '',
+            contactDuringLeave: '',
+          },
+        ]
+      })
+
+      closeEditModal()
+      return
+    }
+
+    // If it was leave, remove the request
+    setLeaveRequests((prev) => prev.filter((r) => r.id !== requestId))
+
     const hasStart = Boolean(editForm.startTime)
     const hasEnd = Boolean(editForm.endTime)
 
@@ -2565,7 +2631,9 @@ export function EmployeePortalFlow({
       regularHours,
       overtimeHours,
       status,
-      workLocation: editForm.workLocation,
+      workLocation: 'Remote',
+      isLeave: false,
+      leaveType: undefined,
       notes: editForm.notes.trim() || (status === 'none' ? 'No entry.' : ''),
     }))
 
@@ -2640,7 +2708,7 @@ export function EmployeePortalFlow({
           startTime: '09:00 AM',
           endTime: '06:00 PM',
           breakDuration: '01:00 hr',
-          workLocation: 'Office',
+          workLocation: 'Remote',
           notes: 'Copied from previous period template.',
         }
       }),
@@ -2920,7 +2988,7 @@ export function EmployeePortalFlow({
       handoverTo: '',
       contactDuringLeave: '',
     })
-    setActiveLeaveTab('My Leave')
+    setActiveLeaveTab('Leave History')
   }
 
   const handleCancelLeaveRequest = (requestId: string) => {
@@ -3768,6 +3836,205 @@ export function EmployeePortalFlow({
       setExpandedApprovalKey(approvalItems[0].key)
     }
   }, [approvalItems, expandedApprovalKey])
+
+  const renderLeaveModuleContent = () => {
+    return (
+      <div className="leave-shell" style={{ padding: 0 }}>
+        <div className="leave-top">
+          <div className="leave-tabs" role="tablist" aria-label="Leave tabs">
+            {leaveTabs.map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                className={`leave-tab ${activeLeaveTab === tab ? 'active' : ''}`}
+                onClick={() => {
+                  setActiveLeaveTab(tab)
+                  setLeaveFormError('')
+                  setLeaveFormSuccess('')
+                }}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+
+          {activeLeaveTab === 'Leave History' && (
+            <div className="leave-history-toolbar">
+              <div className="leave-history-range-group">
+                <span className="leave-history-range-label">Date Range</span>
+                <label className="leave-date-pill">
+                  <input
+                    type="date"
+                    value={leaveHistoryFromInput}
+                    max={todayIso}
+                    onChange={(event) => setLeaveHistoryFromInput(event.target.value)}
+                  />
+                </label>
+                <span className="leave-range-sep">-</span>
+                <label className="leave-date-pill">
+                  <input
+                    type="date"
+                    value={leaveHistoryToInput}
+                    max={todayIso}
+                    onChange={(event) => setLeaveHistoryToInput(event.target.value)}
+                  />
+                </label>
+                <button type="button" className="leave-ghost-btn" onClick={applyLeaveHistoryDateFilter}>
+                  Apply
+                </button>
+              </div>
+
+              <div className="leave-filter-row" role="tablist" aria-label="Leave history filters">
+                {(['all', 'pending', 'approved', 'returned', 'cancelled'] as const).map((status) => (
+                  <button
+                    key={status}
+                    type="button"
+                    className={`leave-filter-chip ${leaveHistoryStatusFilter === status ? 'active' : ''}`}
+                    onClick={() => setLeaveHistoryStatusFilter(status)}
+                  >
+                    {status === 'all' ? 'All Statuses' : leaveStatusLabel[status]}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {leaveHistoryError && activeLeaveTab === 'Leave History' && <p className="submit-error">{leaveHistoryError}</p>}
+        {activeLeaveTab === 'Leave Balance' ? (
+          <div className="leave-balance-shell">
+            <div className="leave-balance-grid">
+              {leaveBalances.map((item) => {
+                const consumed = item.used + item.pending
+                const ratio = item.entitlement > 0 ? Math.min(100, Math.round((consumed / item.entitlement) * 100)) : 0
+                const available = Math.max(0, item.entitlement - consumed)
+
+                return (
+                  <section key={item.id} className="leave-balance-card">
+                    <h4>{item.name}</h4>
+                    <p>{leaveTypeDescriptions[item.id]}</p>
+                    <div className="leave-balance-nums">
+                      <span>Entitlement: <strong>{item.entitlement}</strong></span>
+                      <span>Used: <strong>{item.used}</strong></span>
+                      <span>Pending: <strong>{item.pending}</strong></span>
+                      <span>Available: <strong>{available}</strong></span>
+                    </div>
+                    <div className="leave-balance-progress">
+                      <div style={{ width: `${ratio}%`, backgroundColor: item.color }} />
+                    </div>
+                  </section>
+                )
+              })}
+            </div>
+          </div>
+        ) : activeLeaveTab === 'Leave History' ? (
+          <div className="leave-history-shell">
+            <p className="leave-history-note">Showing leave history for {appliedLeaveHistoryRangeLabel}</p>
+            <section className="leave-card">
+              <table className="leave-history-table">
+                <thead>
+                  <tr>
+                    <th>Applied On</th>
+                    <th>Leave Type</th>
+                    <th>Date Range</th>
+                    <th>Days</th>
+                    <th>Status</th>
+                    <th>Reason</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredLeaveHistory.map((item) => (
+                    <tr key={item.id}>
+                      <td>{formatDateWithYear(item.appliedOnISO)}</td>
+                      <td>{leaveTypeLabel[item.leaveType]}</td>
+                      <td>{getRangeLabel(item.fromDateISO, item.toDateISO)}</td>
+                      <td>{item.durationDays}</td>
+                      <td><span className={`leave-status-pill ${item.status}`}>{leaveStatusLabel[item.status]}</span></td>
+                      <td>{item.reason}</td>
+                    </tr>
+                  ))}
+                  {filteredLeaveHistory.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="history-empty-row">No leave requests found for the selected filters.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </section>
+          </div>
+        ) : (
+          <div className="leave-approvals-shell">
+            <div className="leave-approvals-filter-row" role="tablist" aria-label="Leave approvals filters">
+              {([
+                ['pending', `Pending (${leaveApprovalCounts.pending})`],
+                ['approved', `Approved (${leaveApprovalCounts.approved})`],
+                ['returned', `Returned (${leaveApprovalCounts.returned})`],
+                ['all', `All (${leaveApprovalCounts.all})`],
+              ] as const).map(([status, label]) => (
+                <button
+                  key={status}
+                  type="button"
+                  className={`leave-filter-chip ${leaveApprovalFilter === status ? 'active' : ''}`}
+                  onClick={() => setLeaveApprovalFilter(status)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            <div className="leave-approval-list">
+              {filteredLeaveApprovals.map((item) => (
+                <article key={item.id} className="leave-approval-card">
+                  <div className="leave-approval-main">
+                    <h4>{item.employeeName}</h4>
+                    <p>{item.employeeRole}</p>
+                    <small>{leaveTypeLabel[item.leaveType]} · {getRangeLabel(item.fromDateISO, item.toDateISO)} · {item.durationDays} day(s)</small>
+                  </div>
+                  <div className="leave-approval-side">
+                    <span className={`leave-status-pill ${item.status}`}>{leaveStatusLabel[item.status]}</span>
+                    {item.status === 'pending' && (
+                      <div className="leave-approval-actions">
+                        <button type="button" className="btn btn-primary" onClick={() => handleLeaveApprovalAction(item.id, 'approved')}>
+                          Approve
+                        </button>
+                        <button type="button" className="btn" onClick={() => handleLeaveApprovalAction(item.id, 'returned')}>
+                          Return
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </article>
+              ))}
+
+              {filteredLeaveApprovals.length === 0 && (
+                <section className="leave-card approval-empty-card">
+                  <p>No leave approvals found for the selected filter.</p>
+                </section>
+              )}
+            </div>
+          </div>
+        )}
+
+        {leaveWarning && (
+          <div className="time-modal-backdrop" role="presentation" onClick={() => setLeaveWarning(null)}>
+            <div
+              className="time-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Leave warning"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <h3>{leaveWarning.title}</h3>
+              <p className="time-confirm-message">{leaveWarning.message}</p>
+              <div className="time-modal-actions">
+                <button type="button" className="btn btn-primary" onClick={() => setLeaveWarning(null)}>OK</button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
 
   return (
     <>
@@ -4653,7 +4920,7 @@ export function EmployeePortalFlow({
                         ))}
                       </div>
                     </div>
-                    <button type="button" className="dash-view-link" onClick={() => { setCurrentModule('leave'); setActiveLeaveTab('Leave Balance') }}>
+                    <button type="button" className="dash-view-link" onClick={() => { setCurrentModule('time-entry'); setActiveTimeEntryTab('Leave'); setActiveLeaveTab('Leave Balance') }}>
                       View Leave Balance
                     </button>
                   </div>
@@ -4662,7 +4929,7 @@ export function EmployeePortalFlow({
                   <div className="dash-card dash-upcoming-card">
                     <div className="dash-card-header-row">
                       <h3 className="dash-card-title">Upcoming Leave</h3>
-                      <button type="button" className="dash-view-all-btn" onClick={() => { setCurrentModule('leave'); setActiveLeaveTab('Leave History') }}>View All</button>
+                      <button type="button" className="dash-view-all-btn" onClick={() => { setCurrentModule('time-entry'); setActiveTimeEntryTab('Leave'); setActiveLeaveTab('Leave History') }}>View All</button>
                     </div>
                     {upcomingLeaves.length === 0 ? (
                       <p className="dash-empty-note">No upcoming leaves scheduled.</p>
@@ -4715,14 +4982,14 @@ export function EmployeePortalFlow({
                   <div className="dash-card dash-quick-card">
                     <h3 className="dash-card-title">Quick Actions</h3>
                     <div className="dash-quick-grid">
-                      <button type="button" className="dash-quick-btn" onClick={() => { setCurrentModule('leave'); setActiveLeaveTab('Apply Leave') }}>
+                      <button type="button" className="dash-quick-btn" onClick={() => { setCurrentModule('time-entry'); setActiveTimeEntryTab('My Timesheet') }}>
                         <span className="dash-quick-icon dash-qi--green">
                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
                             <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
                           </svg>
                         </span>
-                        Apply Leave
+                        Request Day Off / Leave
                       </button>
                       <button type="button" className="dash-quick-btn" onClick={() => setCurrentModule('time-entry')}>
                         <span className="dash-quick-icon dash-qi--blue">
@@ -4967,6 +5234,8 @@ export function EmployeePortalFlow({
                       </div>
                     )}
                   </div>
+                ) : isLeaveTab ? (
+                  null
                 ) : (
                   <div className="time-entry-actions">
                     <label className="date-control">
@@ -4998,8 +5267,11 @@ export function EmployeePortalFlow({
 
                     <div className="calendar-grid">
                       {calendarDays.map((cell) => {
-                        const status = cell.entry?.status ?? 'none'
-                        const statusText = statusLabel[status] === '-' ? 'No Entry' : statusLabel[status]
+                        const isLeave = cell.entry?.isLeave
+                        const status = isLeave ? 'leave' : (cell.entry?.status ?? 'none')
+                        const statusText = isLeave
+                          ? (cell.entry?.leaveType ? leaveTypeLabel[cell.entry.leaveType] : 'Leave')
+                          : (statusLabel[status] === '-' ? 'No Entry' : statusLabel[status])
 
                         return (
                           <button
@@ -5022,7 +5294,7 @@ export function EmployeePortalFlow({
                               {cell.entry && cell.isVisible ? (
                                 <>
                                   <span className={`calendar-hours-pill ${status}`}>
-                                    {cell.entry.hours > 0 ? `${formatHours(cell.entry.hours)}h` : '0h'}
+                                    {isLeave ? 'Leave' : (cell.entry.hours > 0 ? `${formatHours(cell.entry.hours)}h` : '0h')}
                                   </span>
                                   <small>{statusText}</small>
                                 </>
@@ -5055,7 +5327,7 @@ export function EmployeePortalFlow({
                         </div>
                         <div>
                           <span>Leave Hours</span>
-                          <strong>{formatHours(leaveHours)} hrs</strong>
+                          <strong>{formatHours(visibleMonthTotals.leaveHours)} hrs</strong>
                         </div>
                       </div>
                     </section>
@@ -5063,6 +5335,7 @@ export function EmployeePortalFlow({
                     <section className="calendar-summary-card">
                       <h3>Status Mix</h3>
                       <div className="calendar-status-list">
+                        <span><i className="dot leave" />Leave <strong>{visibleMonthTotals.leave}</strong></span>
                         <span><i className="dot submitted" />Submitted <strong>{visibleMonthTotals.submitted}</strong></span>
                         <span><i className="dot draft" />Draft <strong>{visibleMonthTotals.draft}</strong></span>
                         <span><i className="dot returned" />Returned <strong>{visibleMonthTotals.returned}</strong></span>
@@ -5076,11 +5349,20 @@ export function EmployeePortalFlow({
                         <button type="button" onClick={() => openEditModalForDay(selectedDay.key)}>Edit</button>
                       </div>
                       <dl className="calendar-detail-list">
-                        <div><dt>Status</dt><dd><span className={`status-chip ${selectedDay.status}`}>{statusLabel[selectedDay.status] === '-' ? 'No Entry' : statusLabel[selectedDay.status]}</span></dd></div>
+                        <div>
+                          <dt>Status</dt>
+                          <dd>
+                            <span className={`status-chip ${selectedDay.isLeave ? 'leave' : selectedDay.status}`}>
+                              {selectedDay.isLeave
+                                ? (selectedDay.leaveType ? leaveTypeLabel[selectedDay.leaveType] : 'Leave')
+                                : (statusLabel[selectedDay.status] === '-' ? 'No Entry' : statusLabel[selectedDay.status])}
+                            </span>
+                          </dd>
+                        </div>
                         <div><dt>Work Location</dt><dd>{selectedDay.workLocation}</dd></div>
-                        <div><dt>Start Time</dt><dd>{selectedDay.startTime}</dd></div>
-                        <div><dt>End Time</dt><dd>{selectedDay.endTime}</dd></div>
-                        <div><dt>Break</dt><dd>{selectedDay.breakDuration}</dd></div>
+                        <div><dt>Start Time</dt><dd>{selectedDay.isLeave ? '--' : selectedDay.startTime}</dd></div>
+                        <div><dt>End Time</dt><dd>{selectedDay.isLeave ? '--' : selectedDay.endTime}</dd></div>
+                        <div><dt>Break</dt><dd>{selectedDay.isLeave ? '--' : selectedDay.breakDuration}</dd></div>
                         <div><dt>Notes</dt><dd>{selectedDay.notes || 'No notes.'}</dd></div>
                       </dl>
                     </section>
@@ -5221,6 +5503,8 @@ export function EmployeePortalFlow({
                     </section>
                   )}
                 </div>
+              ) : isLeaveTab ? (
+                renderLeaveModuleContent()
               ) : (
                 <>
                   <div className="time-entry-cards">
@@ -5301,11 +5585,11 @@ export function EmployeePortalFlow({
                               <td key={`status-${day.key}`} className={selectedDayKey === day.key ? 'selected' : ''}>
                                 <button
                                   type="button"
-                                  className={`status-chip status-chip-btn ${day.status}`}
+                                  className={`status-chip status-chip-btn ${day.isLeave ? 'leave' : day.status}`}
                                   onClick={() => openEditModalForDay(day.key)}
                                   title="Edit this date"
                                 >
-                                  {statusLabel[day.status]}
+                                  {day.isLeave ? (day.leaveType ? leaveTypeLabel[day.leaveType] : 'Leave') : statusLabel[day.status]}
                                 </button>
                               </td>
                             ))}
@@ -5315,7 +5599,7 @@ export function EmployeePortalFlow({
                             <td>Hours</td>
                             {activeRange.days.map((day) => (
                               <td key={`hours-${day.key}`} className={selectedDayKey === day.key ? 'selected' : ''}>
-                                {formatHours(day.hours)}
+                                {day.isLeave ? '--' : formatHours(day.hours)}
                               </td>
                             ))}
                             <td>{formatHours(totals.totalHours)}</td>
@@ -5324,7 +5608,7 @@ export function EmployeePortalFlow({
                             <td>Regular Hours</td>
                             {activeRange.days.map((day) => (
                               <td key={`regular-${day.key}`} className={selectedDayKey === day.key ? 'selected' : ''}>
-                                {formatHours(day.regularHours)}
+                                {day.isLeave ? '--' : formatHours(day.regularHours)}
                               </td>
                             ))}
                             <td>{formatHours(totals.regularHours)}</td>
@@ -5333,7 +5617,7 @@ export function EmployeePortalFlow({
                             <td>Overtime</td>
                             {activeRange.days.map((day) => (
                               <td key={`ot-${day.key}`} className={selectedDayKey === day.key ? 'selected' : ''}>
-                                {formatHours(day.overtimeHours)}
+                                {day.isLeave ? '--' : formatHours(day.overtimeHours)}
                               </td>
                             ))}
                             <td>{formatHours(totals.overtimeHours)}</td>
@@ -5413,51 +5697,74 @@ export function EmployeePortalFlow({
                   >
                     <h3>Edit Entry · {formatDateLong(selectedDay.key)}</h3>
                     <div className="time-modal-grid">
-                      <label>
-                        Start Time
+                      <label className="checkbox-container-label" style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', margin: '4px 0', color: 'var(--ink)' }}>
                         <input
-                          type="time"
-                          value={editForm.startTime}
-                          onChange={(event) => setEditForm((prev) => ({ ...prev, startTime: event.target.value }))}
-                        />
-                      </label>
-                      <label>
-                        End Time
-                        <input
-                          type="time"
-                          value={editForm.endTime}
-                          onChange={(event) => setEditForm((prev) => ({ ...prev, endTime: event.target.value }))}
-                        />
-                      </label>
-                      <label>
-                        Break (minutes)
-                        <input
-                          type="number"
-                          min={0}
-                          max={300}
-                          value={editForm.breakMinutes}
+                          type="checkbox"
+                          checked={editForm.isLeave || false}
                           onChange={(event) =>
-                            setEditForm((prev) => ({ ...prev, breakMinutes: Number(event.target.value || 0) }))
+                            setEditForm((prev) => ({ ...prev, isLeave: event.target.checked }))
                           }
                         />
+                        <span className="checkbox-custom"></span>
+                        Request Day Off / Leave
                       </label>
-                      <label>
-                        Work Location
-                        <select
-                          value={editForm.workLocation}
-                          onChange={(event) => setEditForm((prev) => ({ ...prev, workLocation: event.target.value }))}
-                        >
-                          <option>Office</option>
-                          <option>Remote</option>
-                          <option>Client Site</option>
-                        </select>
-                      </label>
+
+                      {editForm.isLeave ? (
+                        <label style={{ gridColumn: '1 / -1' }}>
+                          Leave Type
+                          <select
+                            value={editForm.leaveType || 'annual'}
+                            onChange={(event) =>
+                              setEditForm((prev) => ({ ...prev, leaveType: event.target.value as LeaveTypeId }))
+                            }
+                          >
+                            {(Object.keys(leaveTypeLabel) as LeaveTypeId[]).map((typeId) => (
+                              <option key={typeId} value={typeId}>
+                                {leaveTypeLabel[typeId]}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      ) : (
+                        <>
+                          <label>
+                            Start Time
+                            <input
+                              type="time"
+                              value={editForm.startTime}
+                              onChange={(event) => setEditForm((prev) => ({ ...prev, startTime: event.target.value }))}
+                            />
+                          </label>
+                          <label>
+                            End Time
+                            <input
+                              type="time"
+                              value={editForm.endTime}
+                              onChange={(event) => setEditForm((prev) => ({ ...prev, endTime: event.target.value }))}
+                            />
+                          </label>
+                          <label style={{ gridColumn: '1 / -1' }}>
+                            Break (minutes)
+                            <input
+                              type="number"
+                              min={0}
+                              max={300}
+                              value={editForm.breakMinutes}
+                              onChange={(event) =>
+                                setEditForm((prev) => ({ ...prev, breakMinutes: Number(event.target.value || 0) }))
+                              }
+                            />
+                          </label>
+                        </>
+                      )}
+
                       <label className="full">
-                        Notes
+                        Notes / Reason
                         <textarea
                           rows={3}
                           value={editForm.notes}
                           onChange={(event) => setEditForm((prev) => ({ ...prev, notes: event.target.value }))}
+                          placeholder={editForm.isLeave ? "Provide the reason for leave" : ""}
                         />
                       </label>
                     </div>
@@ -6583,329 +6890,7 @@ export function EmployeePortalFlow({
               )}
             </div>
           ) : currentModule === 'leave' ? (
-            <div className="leave-shell">
-              <div className="leave-top">
-                <div className="leave-tabs" role="tablist" aria-label="Leave tabs">
-                  {leaveTabs.map((tab) => (
-                    <button
-                      key={tab}
-                      type="button"
-                      className={`leave-tab ${activeLeaveTab === tab ? 'active' : ''}`}
-                      onClick={() => {
-                        setActiveLeaveTab(tab)
-                        setLeaveFormError('')
-                        setLeaveFormSuccess('')
-                      }}
-                    >
-                      {tab}
-                    </button>
-                  ))}
-                </div>
-
-                {activeLeaveTab === 'Leave History' && (
-                  <div className="leave-history-toolbar">
-                    <div className="leave-history-range-group">
-                      <span className="leave-history-range-label">Date Range</span>
-                      <label className="leave-date-pill">
-                        <input
-                          type="date"
-                          value={leaveHistoryFromInput}
-                          max={todayIso}
-                          onChange={(event) => setLeaveHistoryFromInput(event.target.value)}
-                        />
-                      </label>
-                      <span className="leave-range-sep">-</span>
-                      <label className="leave-date-pill">
-                        <input
-                          type="date"
-                          value={leaveHistoryToInput}
-                          max={todayIso}
-                          onChange={(event) => setLeaveHistoryToInput(event.target.value)}
-                        />
-                      </label>
-                      <button type="button" className="leave-ghost-btn" onClick={applyLeaveHistoryDateFilter}>
-                        Apply
-                      </button>
-                    </div>
-
-                    <div className="leave-filter-row" role="tablist" aria-label="Leave history filters">
-                      {(['all', 'pending', 'approved', 'returned', 'cancelled'] as const).map((status) => (
-                        <button
-                          key={status}
-                          type="button"
-                          className={`leave-filter-chip ${leaveHistoryStatusFilter === status ? 'active' : ''}`}
-                          onClick={() => setLeaveHistoryStatusFilter(status)}
-                        >
-                          {status === 'all' ? 'All Statuses' : leaveStatusLabel[status]}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {leaveHistoryError && activeLeaveTab === 'Leave History' && <p className="submit-error">{leaveHistoryError}</p>}
-              {leaveFormError && activeLeaveTab === 'Apply Leave' && <p className="submit-error">{leaveFormError}</p>}
-              {leaveFormSuccess && activeLeaveTab === 'Apply Leave' && <p className="submit-success">{leaveFormSuccess}</p>}
-
-              {activeLeaveTab === 'My Leave' ? (
-                <div className="leave-my-shell">
-                  <div className="leave-kpi-grid">
-                    <section className="leave-kpi-card">
-                      <span>Upcoming Leaves</span>
-                      <strong>{leaveSummary.upcoming}</strong>
-                    </section>
-                    <section className="leave-kpi-card">
-                      <span>Pending</span>
-                      <strong>{leaveSummary.pending}</strong>
-                    </section>
-                    <section className="leave-kpi-card">
-                      <span>Approved</span>
-                      <strong>{leaveSummary.approved}</strong>
-                    </section>
-                    <section className="leave-kpi-card">
-                      <span>Returned / Cancelled</span>
-                      <strong>{leaveSummary.returned + leaveSummary.cancelled}</strong>
-                    </section>
-                  </div>
-
-                  <section className="leave-card" aria-label="My leave requests">
-                    <div className="leave-card-head">
-                      <h3>My Leave Requests</h3>
-                      <button type="button" className="btn" onClick={() => setActiveLeaveTab('Apply Leave')}>
-                        Apply Leave
-                      </button>
-                    </div>
-
-                    <div className="leave-request-list">
-                      {leaveRequests.slice().sort((left, right) => fromIso(right.fromDateISO).getTime() - fromIso(left.fromDateISO).getTime()).map((item) => (
-                        <article key={item.id} className="leave-request-item">
-                          <div className="leave-request-main">
-                            <h4>{leaveTypeLabel[item.leaveType]}</h4>
-                            <p>{getRangeLabel(item.fromDateISO, item.toDateISO)} · {item.durationDays} day(s)</p>
-                            <small>Applied on {formatDateWithYear(item.appliedOnISO)}</small>
-                          </div>
-                          <div className="leave-request-side">
-                            <span className={`leave-status-pill ${item.status}`}>{leaveStatusLabel[item.status]}</span>
-                            {item.status === 'pending' && fromIso(item.fromDateISO).getTime() >= fromIso(todayIso).getTime() && (
-                              <button type="button" className="leave-ghost-btn" onClick={() => handleCancelLeaveRequest(item.id)}>
-                                Cancel
-                              </button>
-                            )}
-                          </div>
-                        </article>
-                      ))}
-                    </div>
-                  </section>
-                </div>
-              ) : activeLeaveTab === 'Apply Leave' ? (
-                <div className="leave-apply-shell">
-                  <section className="leave-card leave-form-card">
-                    <h3>Apply for Leave</h3>
-                    <div className="leave-form-grid">
-                      <label>
-                        Leave Type
-                        <select
-                          value={leaveForm.leaveType}
-                          onChange={(event) => setLeaveForm((prev) => ({ ...prev, leaveType: event.target.value as LeaveTypeId }))}
-                        >
-                          {(Object.keys(leaveTypeLabel) as LeaveTypeId[]).map((typeId) => (
-                            <option key={typeId} value={typeId}>
-                              {leaveTypeLabel[typeId]}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <label>
-                        From Date
-                        <input
-                          type="date"
-                          value={leaveForm.fromDateISO}
-                          min={todayIso}
-                          onChange={(event) => setLeaveForm((prev) => ({ ...prev, fromDateISO: event.target.value }))}
-                        />
-                      </label>
-                      <label>
-                        To Date
-                        <input
-                          type="date"
-                          value={leaveForm.toDateISO}
-                          min={leaveForm.fromDateISO || todayIso}
-                          onChange={(event) => setLeaveForm((prev) => ({ ...prev, toDateISO: event.target.value }))}
-                        />
-                      </label>
-                      <label>
-                        Handover To
-                        <input
-                          type="text"
-                          value={leaveForm.handoverTo}
-                          onChange={(event) => setLeaveForm((prev) => ({ ...prev, handoverTo: event.target.value }))}
-                          placeholder="e.g. Jane Smith"
-                        />
-                      </label>
-                      <label>
-                        Contact During Leave
-                        <input
-                          type="tel"
-                          value={leaveForm.contactDuringLeave}
-                          onChange={(event) => setLeaveForm((prev) => ({ ...prev, contactDuringLeave: event.target.value }))}
-                          placeholder="10-digit mobile"
-                        />
-                      </label>
-                      <label className="full">
-                        Reason
-                        <textarea
-                          rows={4}
-                          value={leaveForm.reason}
-                          onChange={(event) => setLeaveForm((prev) => ({ ...prev, reason: event.target.value }))}
-                          placeholder="Provide the reason for leave"
-                        />
-                      </label>
-                    </div>
-
-                    <div className="leave-form-foot">
-                      <div className="leave-form-meta">
-                        <p>Requested Working Days: <strong>{Math.max(0, leaveRequestedDaysPreview)}</strong></p>
-                        <p>Available {leaveTypeLabel[leaveForm.leaveType]}: <strong>{leaveAvailableByType[leaveForm.leaveType]}</strong></p>
-                      </div>
-                      <button type="button" className="btn btn-primary" onClick={handleSubmitLeaveRequest}>
-                        Submit Leave Request
-                      </button>
-                    </div>
-                  </section>
-                </div>
-              ) : activeLeaveTab === 'Leave Balance' ? (
-                <div className="leave-balance-shell">
-                  <div className="leave-balance-grid">
-                    {leaveBalances.map((item) => {
-                      const consumed = item.used + item.pending
-                      const ratio = item.entitlement > 0 ? Math.min(100, Math.round((consumed / item.entitlement) * 100)) : 0
-                      const available = Math.max(0, item.entitlement - consumed)
-
-                      return (
-                        <section key={item.id} className="leave-balance-card">
-                          <h4>{item.name}</h4>
-                          <p>{leaveTypeDescriptions[item.id]}</p>
-                          <div className="leave-balance-nums">
-                            <span>Entitlement: <strong>{item.entitlement}</strong></span>
-                            <span>Used: <strong>{item.used}</strong></span>
-                            <span>Pending: <strong>{item.pending}</strong></span>
-                            <span>Available: <strong>{available}</strong></span>
-                          </div>
-                          <div className="leave-balance-progress">
-                            <div style={{ width: `${ratio}%`, backgroundColor: item.color }} />
-                          </div>
-                        </section>
-                      )
-                    })}
-                  </div>
-                </div>
-              ) : activeLeaveTab === 'Leave History' ? (
-                <div className="leave-history-shell">
-                  <p className="leave-history-note">Showing leave history for {appliedLeaveHistoryRangeLabel}</p>
-                  <section className="leave-card">
-                    <table className="leave-history-table">
-                      <thead>
-                        <tr>
-                          <th>Applied On</th>
-                          <th>Leave Type</th>
-                          <th>Date Range</th>
-                          <th>Days</th>
-                          <th>Status</th>
-                          <th>Reason</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredLeaveHistory.map((item) => (
-                          <tr key={item.id}>
-                            <td>{formatDateWithYear(item.appliedOnISO)}</td>
-                            <td>{leaveTypeLabel[item.leaveType]}</td>
-                            <td>{getRangeLabel(item.fromDateISO, item.toDateISO)}</td>
-                            <td>{item.durationDays}</td>
-                            <td><span className={`leave-status-pill ${item.status}`}>{leaveStatusLabel[item.status]}</span></td>
-                            <td>{item.reason}</td>
-                          </tr>
-                        ))}
-                        {filteredLeaveHistory.length === 0 && (
-                          <tr>
-                            <td colSpan={6} className="history-empty-row">No leave requests found for the selected filters.</td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </section>
-                </div>
-              ) : (
-                <div className="leave-approvals-shell">
-                  <div className="leave-approvals-filter-row" role="tablist" aria-label="Leave approvals filters">
-                    {([
-                      ['pending', `Pending (${leaveApprovalCounts.pending})`],
-                      ['approved', `Approved (${leaveApprovalCounts.approved})`],
-                      ['returned', `Returned (${leaveApprovalCounts.returned})`],
-                      ['all', `All (${leaveApprovalCounts.all})`],
-                    ] as const).map(([status, label]) => (
-                      <button
-                        key={status}
-                        type="button"
-                        className={`leave-filter-chip ${leaveApprovalFilter === status ? 'active' : ''}`}
-                        onClick={() => setLeaveApprovalFilter(status)}
-                      >
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className="leave-approval-list">
-                    {filteredLeaveApprovals.map((item) => (
-                      <article key={item.id} className="leave-approval-card">
-                        <div className="leave-approval-main">
-                          <h4>{item.employeeName}</h4>
-                          <p>{item.employeeRole}</p>
-                          <small>{leaveTypeLabel[item.leaveType]} · {getRangeLabel(item.fromDateISO, item.toDateISO)} · {item.durationDays} day(s)</small>
-                        </div>
-                        <div className="leave-approval-side">
-                          <span className={`leave-status-pill ${item.status}`}>{leaveStatusLabel[item.status]}</span>
-                          {item.status === 'pending' && (
-                            <div className="leave-approval-actions">
-                              <button type="button" className="btn btn-primary" onClick={() => handleLeaveApprovalAction(item.id, 'approved')}>
-                                Approve
-                              </button>
-                              <button type="button" className="btn" onClick={() => handleLeaveApprovalAction(item.id, 'returned')}>
-                                Return
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </article>
-                    ))}
-
-                    {filteredLeaveApprovals.length === 0 && (
-                      <section className="leave-card approval-empty-card">
-                        <p>No leave approvals found for the selected filter.</p>
-                      </section>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {leaveWarning && (
-                <div className="time-modal-backdrop" role="presentation" onClick={() => setLeaveWarning(null)}>
-                  <div
-                    className="time-modal"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-label="Leave warning"
-                    onClick={(event) => event.stopPropagation()}
-                  >
-                    <h3>{leaveWarning.title}</h3>
-                    <p className="time-confirm-message">{leaveWarning.message}</p>
-                    <div className="time-modal-actions">
-                      <button type="button" className="btn btn-primary" onClick={() => setLeaveWarning(null)}>OK</button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+            null
           ) : currentModule === 'profile' ? (
             <div className="profile-shell">
               <div className="profile-top">

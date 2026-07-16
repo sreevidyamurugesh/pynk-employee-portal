@@ -1123,6 +1123,7 @@ html:not(.light-mode) .btn-sso-outline:hover {
 .status-chip.draft{background:#3d2817;color:#f7c576;border:1px solid #f39c12}
 .status-chip.returned{background:#3d1f1f;color:#f58d8d;border:1px solid #e74c3c}
 .status-chip.none{background:#363655;color:#9ca0be;border:1px solid #4b4b72}
+.status-chip.leave{background:#3b1e54;color:#c084fc;border:1px solid #7c3aed}
 .status-chip-btn{cursor:pointer}
 .quick-link{appearance:none;border:none;background:#303057;color:#fff;width:100%;padding:10px 12px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-size:13px;font-weight:600}
 .quick-link + .quick-link{margin-top:8px}
@@ -1214,6 +1215,7 @@ html:not(.light-mode) .btn-sso-outline:hover {
 .calendar-hours-pill.draft{background:#fff4de;color:#ba7b0b}
 .calendar-hours-pill.returned{background:#ffe8e8;color:#bf453e}
 .calendar-hours-pill.none{background:#eef1f6;color:#6c758b}
+.calendar-hours-pill.leave{background:#f5f3ff;color:#7c3aed}
 .calendar-summary-panel{display:grid;gap:12px}
 .calendar-summary-card{padding:16px;color:#1f2637}
 .calendar-summary-card h3{margin:0 0 8px;font-size:15px;color:#1f2637}
@@ -1246,6 +1248,7 @@ html:not(.light-mode) .btn-sso-outline:hover {
 .dot.draft{background:#f39c12}
 .dot.returned{background:#e74c3c}
 .dot.none{background:#7e82a1}
+.dot.leave{background:#7c3aed}
 .time-day-card{background:#2a2a48;border:1px solid var(--line);border-radius:10px;padding:14px}
 .day-card-head{display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid #3a3a5a;padding-bottom:10px;margin-bottom:10px}
 .day-card-head h4{margin:0;font-size:15px;color:#fff}
@@ -4871,6 +4874,12 @@ body, .app-shell, .portal-layout, aside, section, header, table, tr, td, th, h1,
   background: #fff4de !important;
   color: #ba7b0b !important;
   border-color: #f6d998 !important;
+}
+
+.light-mode .status-chip.leave {
+  background: #f5f3ff !important;
+  color: #7c3aed !important;
+  border-color: #ddd6fe !important;
 }
 
 
