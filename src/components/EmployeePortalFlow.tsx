@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+﻿import { useEffect, useMemo, useRef, useState } from 'react'
 import { additionalNotificationsSeed } from '../data/notifications'
 
 type UserType = 'employee' | 'admin' | 'client'
@@ -60,6 +60,8 @@ interface TimeEntryEditForm {
   notes: string
   isLeave?: boolean
   leaveType?: LeaveTypeId
+  timeType: 'regular' | LeaveTypeId
+  timeSpentHours: number
 }
 
 interface TimeEntryWarning {
@@ -476,7 +478,6 @@ const taxDocumentSeedData: TaxDocument[] = [
   { id: 'td-garn', name: 'Garnishment - Court order', financialYear: '2024-25', description: 'Court order details regarding garnishment of wages or salary withholding.' },
   { id: 'td-001', name: 'Form 16', financialYear: '2024-25', description: 'Annual tax statement as per income tax act.' },
   { id: 'td-002', name: 'Tax Certificate', financialYear: '2024-25', description: 'Certificate for tax deducted at source.' },
-  { id: 'td-003', name: 'Annual Income Statement', financialYear: '2024-25', description: 'Summary of your income for the year.' },
   { id: 'td-004', name: 'Investment Proof Declaration', financialYear: '2024-25', description: 'Proof of your declared investments.' },
 ]
 
@@ -516,7 +517,6 @@ const payrollDocsSeed: PortalDocument[] = [
 const taxDocsSeed: PortalDocument[] = [
   { id: 'td-001', name: 'Form 16', description: 'Annual tax statement', financialYear: '2024-25', status: 'Available', size: '1.1 MB' },
   { id: 'td-002', name: 'Tax Certificate', description: 'Certificate for tax deducted at source', financialYear: '2024-25', status: 'Available', size: '350 KB' },
-  { id: 'td-003', name: 'Annual Income Statement', description: 'Summary of your income for the year', financialYear: '2024-25', status: 'Available', size: '500 KB' },
   { id: 'td-004', name: 'Investment Declaration', description: 'Proof of your declared investments', financialYear: '2024-25', status: 'Available', size: '2.5 MB' },
 ]
 
@@ -1292,15 +1292,21 @@ function loadTimeEntryStore(): TimeEntryStore {
   }
 }
 
-const getEditFormFromDay = (day: TimeEntryDay): TimeEntryEditForm => ({
-  startTime: parseTime12To24(day.startTime),
-  endTime: parseTime12To24(day.endTime),
-  breakMinutes: parseBreakDurationToMinutes(day.breakDuration),
-  workLocation: day.workLocation === 'Off' ? 'Remote' : (day.workLocation || 'Remote'),
-  notes: day.notes,
-  isLeave: day.isLeave || false,
-  leaveType: day.leaveType || 'annual',
-})
+const getEditFormFromDay = (day: TimeEntryDay): TimeEntryEditForm => {
+  const timeType: 'regular' | LeaveTypeId = day.isLeave ? (day.leaveType || 'annual') : 'regular'
+  const timeSpentHours = day.isLeave ? 8 : (day.hours || 0)
+  return {
+    startTime: parseTime12To24(day.startTime),
+    endTime: parseTime12To24(day.endTime),
+    breakMinutes: parseBreakDurationToMinutes(day.breakDuration),
+    workLocation: day.workLocation === 'Off' ? 'Remote' : (day.workLocation || 'Remote'),
+    notes: day.notes,
+    isLeave: day.isLeave || false,
+    leaveType: day.leaveType || 'annual',
+    timeType,
+    timeSpentHours,
+  }
+}
 
 const moduleSteps: Record<Module, ModuleStep[]> = {
   dashboard: [
@@ -2205,6 +2211,8 @@ export function EmployeePortalFlow({
     notes: '',
     isLeave: false,
     leaveType: 'annual',
+    timeType: 'regular',
+    timeSpentHours: 0,
   })
   const [editError, setEditError] = useState('')
   const todayIso = getTodayIso()
@@ -2955,6 +2963,294 @@ export function EmployeePortalFlow({
     return activeUserType ? names[activeUserType] : 'User'
   }
 
+  const handleDownloadPayslipPDF = (ps: { month: string; payDate: string; grossSalary: number; netSalary: number; status: string }, targetEmployeeName?: string) => {
+    const empName = targetEmployeeName || getPortalUserName()
+    
+    // Earnings Breakdown
+    const basic = Math.round(ps.grossSalary * 0.50)
+    const hra = Math.round(ps.grossSalary * 0.30)
+    const splAllowance = ps.grossSalary - basic - hra
+
+    // Deductions Breakdown
+    const pf = Math.min(1800, Math.round(basic * 0.12))
+    const pt = 200
+    const totalDeductions = ps.grossSalary - ps.netSalary
+    const tds = Math.max(0, totalDeductions - pf - pt)
+    const finalTotalDeductions = pf + pt + tds
+
+    const printWindow = window.open('', '_blank')
+    if (!printWindow) {
+      showToast('Popup blocker prevented opening the payslip printable view.')
+      return
+    }
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Payslip - ${ps.month} - ${empName}</title>
+        <style>
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: #1f2937;
+            padding: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+            background: #ffffff;
+            font-size: 14px;
+            line-height: 1.5;
+          }
+          .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #EC1B8D;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+          }
+          .logo {
+            font-size: 24px;
+            font-weight: 800;
+            color: #EC1B8D;
+            letter-spacing: -0.5px;
+          }
+          .logo span {
+            color: #111827;
+            font-weight: 400;
+          }
+          .title {
+            text-align: right;
+          }
+          .title h1 {
+            font-size: 20px;
+            font-weight: 700;
+            margin: 0;
+            color: #111827;
+            text-transform: uppercase;
+          }
+          .title p {
+            margin: 4px 0 0 0;
+            color: #6b7280;
+            font-size: 12px;
+          }
+          .meta-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+          }
+          .meta-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            border-bottom: 1px dashed #e5e7eb;
+          }
+          .meta-item:last-child {
+            border-bottom: none;
+          }
+          .meta-label {
+            color: #6b7280;
+            font-weight: 500;
+          }
+          .meta-value {
+            font-weight: 600;
+            color: #111827;
+          }
+          .tables-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+          }
+          th {
+            background: #f3f4f6;
+            color: #374151;
+            text-align: left;
+            padding: 10px 12px;
+            font-weight: 600;
+            border-bottom: 2px solid #e5e7eb;
+            font-size: 13px;
+          }
+          td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e5e7eb;
+            color: #4b5563;
+          }
+          .amount-col {
+            text-align: right;
+          }
+          .total-row td {
+            font-weight: 700;
+            color: #111827;
+            border-top: 2px solid #e5e7eb;
+            border-bottom: 2px solid #e5e7eb;
+            background: #f9fafb;
+          }
+          .net-pay-section {
+            background: linear-gradient(90deg, #EC1B8D 0%, #a2105c 100%);
+            color: #ffffff;
+            padding: 20px 30px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+          }
+          .net-pay-title {
+            font-size: 15px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+          .net-pay-amount {
+            font-size: 24px;
+            font-weight: 800;
+          }
+          .footer-note {
+            text-align: center;
+            font-size: 11px;
+            color: #9ca3af;
+            margin-top: 60px;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 15px;
+          }
+          @media print {
+            body { padding: 0; }
+            .no-print { display: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header-container">
+          <div class="logo">Pynk<span>Portal</span></div>
+          <div class="title">
+            <h1>Payslip Advice</h1>
+            <p>Statement for the month of ${ps.month}</p>
+          </div>
+        </div>
+
+        <div class="meta-grid">
+          <div>
+            <div class="meta-item">
+              <span class="meta-label">Employee Name:</span>
+              <span class="meta-value">${empName}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Pay Period:</span>
+              <span class="meta-value">${ps.month}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Pay Date:</span>
+              <span class="meta-value">${ps.payDate}</span>
+            </div>
+          </div>
+          <div>
+            <div class="meta-item">
+              <span class="meta-label">Payment Mode:</span>
+              <span class="meta-value">Direct Bank Transfer</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Status:</span>
+              <span class="meta-value" style="color: #059669;">${ps.status}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Currency:</span>
+              <span class="meta-value">INR (₹)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="tables-container">
+          <div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Earnings Description</th>
+                  <th class="amount-col">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Basic Salary</td>
+                  <td class="amount-col">₹ ${basic.toLocaleString('en-IN')}</td>
+                </tr>
+                <tr>
+                  <td>House Rent Allowance (HRA)</td>
+                  <td class="amount-col">₹ ${hra.toLocaleString('en-IN')}</td>
+                </tr>
+                <tr>
+                  <td>Special Allowance</td>
+                  <td class="amount-col">₹ ${splAllowance.toLocaleString('en-IN')}</td>
+                </tr>
+                <tr class="total-row">
+                  <td>Total Gross Earnings</td>
+                  <td class="amount-col">₹ ${ps.grossSalary.toLocaleString('en-IN')}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Deductions Description</th>
+                  <th class="amount-col">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Provident Fund (PF)</td>
+                  <td class="amount-col">₹ ${pf.toLocaleString('en-IN')}</td>
+                </tr>
+                <tr>
+                  <td>Professional Tax (PT)</td>
+                  <td class="amount-col">₹ ${pt.toLocaleString('en-IN')}</td>
+                </tr>
+                <tr>
+                  <td>Income Tax (TDS)</td>
+                  <td class="amount-col">₹ ${tds.toLocaleString('en-IN')}</td>
+                </tr>
+                <tr class="total-row">
+                  <td>Total Deductions</td>
+                  <td class="amount-col">₹ ${finalTotalDeductions.toLocaleString('en-IN')}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="net-pay-section">
+          <span class="net-pay-title">Net Salary Paid (Take Home)</span>
+          <span class="net-pay-amount">₹ ${ps.netSalary.toLocaleString('en-IN')}</span>
+        </div>
+
+        <div class="footer-note">
+          This is an official, computer-generated payslip copy issued by Pynk HR. No signature is required.
+        </div>
+
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+            }, 500);
+          };
+        </script>
+      </body>
+      </html>
+    `)
+
+    printWindow.document.close()
+    showToast(`Payslip PDF printable view for ${ps.month} opened successfully!`)
+  }
+
   const handleExportExcel = () => {
     const employeeName = getPortalUserName()
     const period = getRangeLabel(activeRange.fromDateISO, activeRange.toDateISO)
@@ -2965,12 +3261,11 @@ export function EmployeePortalFlow({
       ['Period', period],
       ['Overall Status', rangeStatus],
       [],
-      ['Date', 'Day', 'Status', 'Work Location', 'Start Time', 'End Time', 'Break (min)', 'Regular Hours', 'Overtime Hours', 'Total Hours', 'Notes']
+      ['Date', 'Day', 'Status', 'Work Location', 'Start Time', 'End Time', 'Regular Hours', 'Overtime Hours', 'Total Hours', 'Notes']
     ]
 
     activeRange.days.forEach((day) => {
       const dayStatus = day.isLeave ? (day.leaveType ? leaveTypeLabel[day.leaveType] : 'Leave') : statusLabel[day.status]
-      const breakMin = day.isLeave ? '' : day.breakDuration
       const regHrs = day.isLeave ? 0 : day.regularHours
       const otHrs = day.isLeave ? 0 : day.overtimeHours
       const totalHrs = day.isLeave ? 8 : day.hours
@@ -2982,7 +3277,6 @@ export function EmployeePortalFlow({
         day.isLeave ? '--' : day.workLocation,
         day.isLeave ? '--' : day.startTime,
         day.isLeave ? '--' : day.endTime,
-        String(breakMin),
         String(regHrs),
         String(otHrs),
         String(totalHrs),
@@ -2991,7 +3285,7 @@ export function EmployeePortalFlow({
     })
 
     rows.push([])
-    rows.push(['Totals', '', '', '', '', '', '', String(totals.regularHours), String(totals.overtimeHours), String(totals.totalHours)])
+    rows.push(['Totals', '', '', '', '', '', String(totals.regularHours), String(totals.overtimeHours), String(totals.totalHours)])
 
     const csvContent = rows
       .map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(','))
@@ -5845,7 +6139,16 @@ export function EmployeePortalFlow({
                                             <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px' }}>Gross: ₹ {emp.currGross.toLocaleString('en-IN')}</div>
                                           </div>
                                           <button type="button" className="btn btn-secondary btn-sm"
-                                            onClick={() => showToast(`Downloaded ${emp.name}'s ${m} payslip PDF.`)}>
+                                            onClick={() => {
+                                              const ps = {
+                                                month: m,
+                                                payDate: `30 ${m.split(' ')[0].substring(0, 3)} 2025`,
+                                                grossSalary: emp.currGross,
+                                                netSalary: Math.round(emp.currGross * 0.70),
+                                                status: 'Paid'
+                                              }
+                                              handleDownloadPayslipPDF(ps, emp.name)
+                                            }}>
                                             📥 Download PDF
                                           </button>
                                         </div>
@@ -7105,65 +7408,46 @@ export function EmployeePortalFlow({
                             >
                               <h3>Edit Entry · {formatDateLong(selectedDay.key)}</h3>
                               <div className="time-modal-grid">
-                                <label className="checkbox-container-label" style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', margin: '4px 0', color: 'var(--ink)' }}>
-                                  <input
-                                    type="checkbox"
-                                    checked={editForm.isLeave || false}
-                                    onChange={(event) =>
-                                      setEditForm((prev) => ({ ...prev, isLeave: event.target.checked }))
-                                    }
-                                  />
-                                  <span className="checkbox-custom"></span>
-                                  Request Day Off / Leave
-                                </label>
-
-                                {editForm.isLeave ? (
-                                  <label style={{ gridColumn: '1 / -1' }}>
-                                    Leave Type
-                                    <select
-                                      value={editForm.leaveType || 'annual'}
-                                      onChange={(event) =>
-                                        setEditForm((prev) => ({ ...prev, leaveType: event.target.value as LeaveTypeId }))
-                                      }
-                                    >
+                                <label style={{ gridColumn: '1 / -1' }}>
+                                  Time Type
+                                  <select
+                                    value={editForm.timeType}
+                                    onChange={(event) => {
+                                      const val = event.target.value as any
+                                      setEditForm((prev) => ({
+                                        ...prev,
+                                        timeType: val,
+                                        isLeave: val !== 'regular',
+                                        leaveType: val !== 'regular' ? val : undefined
+                                      }))
+                                    }}
+                                  >
+                                    <option value="regular">Regular Hours ⏱️</option>
+                                    <optgroup label="Leaves / Time Off 🏝️">
                                       {(Object.keys(leaveTypeLabel) as LeaveTypeId[]).map((typeId) => (
                                         <option key={typeId} value={typeId}>
                                           {leaveTypeLabel[typeId]}
                                         </option>
                                       ))}
-                                    </select>
+                                    </optgroup>
+                                  </select>
+                                </label>
+
+                                {editForm.timeType === 'regular' && (
+                                  <label style={{ gridColumn: '1 / -1' }}>
+                                    Time Spent (Hours)
+                                    <input
+                                      type="number"
+                                      min={0}
+                                      max={24}
+                                      step={0.5}
+                                      value={editForm.timeSpentHours || ''}
+                                      placeholder="e.g. 8"
+                                      onChange={(event) =>
+                                        setEditForm((prev) => ({ ...prev, timeSpentHours: Number(event.target.value || 0) }))
+                                      }
+                                    />
                                   </label>
-                                ) : (
-                                  <>
-                                    <label>
-                                      Start Time
-                                      <input
-                                        type="time"
-                                        value={editForm.startTime}
-                                        onChange={(event) => setEditForm((prev) => ({ ...prev, startTime: event.target.value }))}
-                                      />
-                                    </label>
-                                    <label>
-                                      End Time
-                                      <input
-                                        type="time"
-                                        value={editForm.endTime}
-                                        onChange={(event) => setEditForm((prev) => ({ ...prev, endTime: event.target.value }))}
-                                      />
-                                    </label>
-                                    <label style={{ gridColumn: '1 / -1' }}>
-                                      Break (minutes)
-                                      <input
-                                        type="number"
-                                        min={0}
-                                        max={300}
-                                        value={editForm.breakMinutes}
-                                        onChange={(event) =>
-                                          setEditForm((prev) => ({ ...prev, breakMinutes: Number(event.target.value || 0) }))
-                                        }
-                                      />
-                                    </label>
-                                  </>
                                 )}
 
                                 <label className="full">
@@ -7172,7 +7456,7 @@ export function EmployeePortalFlow({
                                     rows={3}
                                     value={editForm.notes}
                                     onChange={(event) => setEditForm((prev) => ({ ...prev, notes: event.target.value }))}
-                                    placeholder={editForm.isLeave ? "Provide the reason for leave" : ""}
+                                    placeholder={editForm.timeType !== 'regular' ? "Provide the reason for leave" : ""}
                                   />
                                 </label>
                               </div>
@@ -7420,16 +7704,7 @@ export function EmployeePortalFlow({
                                               <button type="button" className="pay-action-link" onClick={() => setSelectedPayslipForView(ps)}>
                                                 👁️ View
                                               </button>
-                                              <button type="button" className="pay-action-link" onClick={() => {
-                                                const csv = `Month,Pay Date,Gross Salary,Net Salary,Status\n${ps.month},${ps.payDate},${ps.grossSalary},${ps.netSalary},${ps.status}`
-                                                const blob = new Blob([csv], { type: 'text/csv' })
-                                                const url = URL.createObjectURL(blob)
-                                                const a = document.createElement('a')
-                                                a.href = url
-                                                a.download = `payslip-${ps.month.replace(' ', '-')}.csv`
-                                                a.click()
-                                                URL.revokeObjectURL(url)
-                                              }}>
+                                              <button type="button" className="pay-action-link" onClick={() => handleDownloadPayslipPDF(ps)}>
                                                 ⬇️ Download
                                               </button>
                                             </div>
@@ -7516,15 +7791,9 @@ export function EmployeePortalFlow({
                                     <div className="pay-modal-actions">
                                       <button type="button" className="btn" onClick={() => setSelectedPayslipForView(null)}>Close</button>
                                       <button type="button" className="btn btn-primary" onClick={() => {
-                                        const ps = selectedPayslipForView
-                                        const csv = `Month,Pay Date,Gross Salary,Net Salary,Status\n${ps.month},${ps.payDate},${ps.grossSalary},${ps.netSalary},${ps.status}`
-                                        const blob = new Blob([csv], { type: 'text/csv' })
-                                        const url = URL.createObjectURL(blob)
-                                        const a = document.createElement('a')
-                                        a.href = url
-                                        a.download = `payslip-${ps.month.replace(' ', '-')}.csv`
-                                        a.click()
-                                        URL.revokeObjectURL(url)
+                                        if (selectedPayslipForView) {
+                                          handleDownloadPayslipPDF(selectedPayslipForView)
+                                        }
                                       }}>⬇️ Download PDF</button>
                                     </div>
                                   </div>
