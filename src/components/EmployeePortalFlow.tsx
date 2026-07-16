@@ -3811,30 +3811,42 @@ export function EmployeePortalFlow({
     }
 
     const handleDownloadTimesheetTemplate = () => {
-      const headers = ['Employee ID', 'Employee Name', 'Rate Code', 'Hours', 'Full Salary']
-      const rows = payrollConfigRows.map(row => [
-        row.employeeId,
-        row.employeeName,
-        row.rateCode,
-        String(row.hours),
-        String(row.fullSalary)
-      ])
+      const headers = [
+        "Employee ID",
+        "Employee Name",
+        "Rate Code",
+        "Hours",
+        "Full Salary"
+      ];
 
-      const csvContent = [
-        headers.join(','),
-        ...rows.map(e => e.map(cell => `"${cell.replaceAll('"', '""')}"`).join(','))
-      ].join('\n')
+      const sample = [
+        "EMP001",
+        "John Doe",
+        "REG",
+        "160",
+        "50000"
+      ];
 
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.setAttribute('href', url)
-      link.setAttribute('download', 'Pynk_Timesheet_Payroll_Config_Template.csv')
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      showToast('Timesheet format template downloaded successfully!')
-    }
+      const csv = [headers, sample]
+        .map(r => r.join(","))
+        .join("\n");
+
+      const blob = new Blob([csv], { type: "text/csv" });
+
+      const url = URL.createObjectURL(blob);
+
+      console.log(url); // <-- Tell me what this prints
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "test.csv";
+
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      URL.revokeObjectURL(url);
+    };
 
     const handleCSVBulkUploadSimulation = (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.files && e.target.files[0]) {
@@ -3937,7 +3949,7 @@ export function EmployeePortalFlow({
             <p style={{ fontSize: '12px', color: 'var(--muted)', margin: '4px 0 15px' }}>
               Set hours, salary, and calculate hourly rates per employee and code.
             </p>
-            
+
             <div style={{ maxHeight: '420px', overflowY: 'auto', border: '1px solid var(--line)', borderRadius: '6px' }}>
               <table className="configurator-table">
                 <thead>
@@ -3952,7 +3964,7 @@ export function EmployeePortalFlow({
                 <tbody>
                   {payrollConfigRows.map((row) => {
                     const salaryPerHour = row.hours > 0 ? (row.fullSalary / row.hours) : 0
-                    
+
                     return (
                       <tr key={`${row.employeeId}-${row.rateCode}`}>
                         <td>
