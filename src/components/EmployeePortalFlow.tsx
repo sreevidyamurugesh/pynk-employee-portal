@@ -389,6 +389,14 @@ const adminEmployeesSeed: AdminEmployee[] = [
   { id: 'EMP-009', name: 'Tony Stark', clientName: 'Stark Industries', role: 'Chief Engineer', paygroup: 'Management', paymentMode: 'Wire Transfer', prevGross: 300000, currGross: 300000, hasEmployeeView: true, hasAdminView: true, hasClientView: true },
   { id: 'EMP-010', name: 'Steve Rogers', clientName: 'Wayne Enterprises', role: 'Operations Manager', paygroup: 'Operations', paymentMode: 'Direct Deposit', prevGross: 110000, currGross: 110000, hasEmployeeView: true, hasAdminView: false, hasClientView: false }
 ]
+
+export interface PayrollConfigRow {
+  employeeId: string
+  employeeName: string
+  rateCode: string
+  hours: number
+  fullSalary: number
+}
 interface ClientOffcyclePayment {
   id: string
   employeeId: string
@@ -1442,6 +1450,43 @@ export function EmployeePortalFlow({
 
   // Admin Portal States
   const [adminEmployees, setAdminEmployees] = useState<AdminEmployee[]>(adminEmployeesSeed)
+  const [payrollConfigRows, setPayrollConfigRows] = useState<PayrollConfigRow[]>(() => {
+    const rows: PayrollConfigRow[] = []
+    adminEmployeesSeed.forEach((emp) => {
+      rows.push({
+        employeeId: emp.id,
+        employeeName: emp.name,
+        rateCode: 'REG',
+        hours: emp.id === 'EMP-003' ? 100 : 160,
+        fullSalary: emp.currGross,
+      })
+      if (emp.id === 'EMP-003') {
+        rows.push({
+          employeeId: emp.id,
+          employeeName: emp.name,
+          rateCode: 'sick',
+          hours: 40,
+          fullSalary: 0,
+        })
+        rows.push({
+          employeeId: emp.id,
+          employeeName: emp.name,
+          rateCode: 'holiday',
+          hours: 40,
+          fullSalary: 0,
+        })
+      } else if (emp.id === 'EMP-001' || emp.id === 'EMP-005') {
+        rows.push({
+          employeeId: emp.id,
+          employeeName: emp.name,
+          rateCode: 'sick',
+          hours: 24,
+          fullSalary: 0,
+        })
+      }
+    })
+    return rows
+  })
   const [reconciliationDimension, setReconciliationDimension] = useState<'client' | 'employee' | 'paygroup' | 'payment'>('client')
   const [searchEmployeeQuery, setSearchEmployeeQuery] = useState('')
   const [filterClientName, setFilterClientName] = useState('All')
@@ -1456,18 +1501,6 @@ export function EmployeePortalFlow({
   }
 
   // Client Portal States
-  const [hourlyRates, setHourlyRates] = useState<Record<string, number>>({
-    'Regular Hours': 450,
-    'Casual Leave': 0,
-    'Sick Leave': 0,
-    'Earned Leave': 0,
-    'Maternity Leave': 0,
-    'Paternity Leave': 0,
-    'Public Holiday': 650,
-    'National Holiday': 650,
-    'Bereavement Leave': 0,
-    'Comp Off': 450
-  })
 
   const [clientPayGroupFilter, setClientPayGroupFilter] = useState<'Monthly' | 'Weekly' | 'Bi-Weekly' | 'Semi-Monthly'>('Monthly')
   const [offcyclePaymentsList, setOffcyclePaymentsList] = useState<ClientOffcyclePayment[]>(clientOffcyclesSeed)
@@ -3753,34 +3786,50 @@ export function EmployeePortalFlow({
   }
 
   const renderClientPayrollControl = () => {
-    const handleSaveHourlyRates = () => {
-      showToast('Hourly rate configuration thresholds updated!')
+    const handleUpdateConfigRow = (empId: string, rateCode: string, field: 'hours' | 'fullSalary', value: number) => {
+      setPayrollConfigRows((prev) =>
+        prev.map((row) =>
+          row.employeeId === empId && row.rateCode === rateCode
+            ? { ...row, [field]: value }
+            : row
+        )
+      )
     }
 
-    const handleSaveFixedSalaries = () => {
-      showToast('Fixed employee salary database revisions saved!')
+    const handleSavePayrollConfig = () => {
+      // Sync with adminEmployees state for matching REG salaries
+      setAdminEmployees((prevEmps) =>
+        prevEmps.map((emp) => {
+          const regRow = payrollConfigRows.find((r) => r.employeeId === emp.id && r.rateCode === 'REG')
+          if (regRow) {
+            return { ...emp, currGross: regRow.fullSalary }
+          }
+          return emp
+        })
+      )
+      showToast('Payroll Area configuration and salaries saved successfully!')
     }
 
     const handleDownloadTimesheetTemplate = () => {
-      const headers = ['Employee ID', 'Employee Name', 'Regular Hours', 'Sick Leave', 'Casual Leave', 'Overtime Hours', 'Pay Period']
-      const rows = [
-        ['EMP-001', 'John Doe', '160', '8', '0', '5', '2025-07'],
-        ['EMP-002', 'Jane Smith', '160', '0', '8', '0', '2025-07'],
-        ['EMP-003', 'Bob Johnson', '152', '4', '4', '8', '2025-07'],
-        ['EMP-004', 'Alice Williams', '160', '0', '0', '12', '2025-07'],
-        ['EMP-005', 'Charlie Brown', '140', '12', '8', '0', '2025-07']
-      ]
+      const headers = ['Employee ID', 'Employee Name', 'Rate Code', 'Hours', 'Full Salary']
+      const rows = payrollConfigRows.map(row => [
+        row.employeeId,
+        row.employeeName,
+        row.rateCode,
+        String(row.hours),
+        String(row.fullSalary)
+      ])
 
       const csvContent = [
         headers.join(','),
-        ...rows.map(e => e.join(','))
+        ...rows.map(e => e.map(cell => `"${cell.replaceAll('"', '""')}"`).join(','))
       ].join('\n')
 
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.setAttribute('href', url)
-      link.setAttribute('download', 'Pynk_Timesheet_Upload_Template.csv')
+      link.setAttribute('download', 'Pynk_Timesheet_Payroll_Config_Template.csv')
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
@@ -3795,10 +3844,46 @@ export function EmployeePortalFlow({
           return
         }
         setIsBulkUploading(true)
-        setTimeout(() => {
-          setIsBulkUploading(false)
-          showToast(`Successfully validated and processed "${file.name}"! 5 employee records updated.`)
-        }, 1200)
+
+        const reader = new FileReader()
+        reader.onload = (event) => {
+          const text = event.target?.result as string
+          if (!text) {
+            setIsBulkUploading(false)
+            return
+          }
+
+          setTimeout(() => {
+            setIsBulkUploading(false)
+            const lines = text.split('\n').map(line => line.trim()).filter(Boolean)
+            if (lines.length <= 1) {
+              showToast('CSV file is empty or has no data rows.')
+              return
+            }
+
+            const newRows: PayrollConfigRow[] = []
+            for (let i = 1; i < lines.length; i++) {
+              const parts = lines[i].split(',').map(part => part.replace(/^"|"$/g, '').trim())
+              if (parts.length >= 5) {
+                newRows.push({
+                  employeeId: parts[0],
+                  employeeName: parts[1],
+                  rateCode: parts[2],
+                  hours: parseFloat(parts[3]) || 0,
+                  fullSalary: parseFloat(parts[4]) || 0
+                })
+              }
+            }
+
+            if (newRows.length > 0) {
+              setPayrollConfigRows(newRows)
+              showToast(`Successfully parsed and loaded ${newRows.length} configurations in the table!`)
+            } else {
+              showToast('Failed to parse columns. Make sure CSV matches template format.')
+            }
+          }, 1000)
+        }
+        reader.readAsText(file)
       }
     }
 
@@ -3809,103 +3894,121 @@ export function EmployeePortalFlow({
             <h1 className="dash-welcome-title">Payroll Control Center Configurator ⚙️</h1>
             <p className="dash-welcome-sub">Configure hourly rates, adjust employee salaries, or run timesheet uploads.</p>
           </div>
-        </div>
-
-        <div className="dash-grid-layout" style={{ gridTemplateColumns: '1fr 1fr' }}>
-
-          {/* Hourly Rates Card */}
-          <div className="dash-card">
-            <h3 className="dash-card-title">Timesheet Hourly Code Rates</h3>
-            <p style={{ fontSize: '12px', color: 'var(--muted)', margin: 0 }}>Configure standard billing per hour values (INR).</p>
-            <div className="admin-integration-list" style={{ maxHeight: '350px', overflowY: 'auto', paddingRight: '4px' }}>
-              {Object.entries(hourlyRates).map(([code, rate]) => (
-                <div key={code} className="integration-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--line-soft)' }}>
-                  <span>{code}</span>
-                  <input
-                    type="number"
-                    className="btn"
-                    style={{ width: '100px', padding: '4px 8px', textAlign: 'right', background: 'var(--surface)', color: '#fff', border: '1px solid var(--line)' }}
-                    value={rate}
-                    disabled={isPeriodLocked}
-                    onChange={(e) => {
-                      const val = parseFloat(e.target.value) || 0
-                      setHourlyRates(prev => ({ ...prev, [code]: val }))
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
-            <button type="button" className="btn btn-primary" onClick={handleSaveHourlyRates} disabled={isPeriodLocked} style={{ width: 'fit-content', marginTop: '10px' }}>
-              Save Hourly Rates Settings
-            </button>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-
-            {/* Mass CSV upload */}
-            <div className="dash-card">
-              <h3 className="dash-card-title">Bulk Timesheet CSV Ingestion</h3>
-              <p style={{ fontSize: '12px', color: 'var(--muted)', margin: 0 }}>Load timesheet logs for many employees at once through an Excel spreadsheet file.</p>
-
-              {isBulkUploading ? (
-                <div className="bulk-upload-simulator loading" style={{ textAlign: 'center', padding: '24px', border: '2px dashed var(--line)', borderRadius: '10px', background: 'rgba(255,255,255,0.02)' }}>
-                  <div className="preview-pulse-dot" style={{ margin: '0 auto 10px' }}></div>
-                  <span style={{ fontSize: '13px', color: 'var(--muted)' }}>Parsing sheet columns and checking Employee IDs...</span>
-                </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <div className="bulk-upload-simulator" style={{ position: 'relative', border: '2px dashed var(--line)', borderRadius: '10px', padding: '24px', textAlign: 'center', background: 'rgba(255,255,255,0.01)', cursor: 'pointer' }}>
-                    <div style={{ fontSize: '24px', marginBottom: '8px' }}>📥</div>
-                    <strong>Upload CSV / Excel Timesheet</strong>
-                    <p style={{ fontSize: '11px', color: 'var(--muted)', margin: '4px 0 0' }}>Drag & drop file here or click to browse</p>
-                    <input
-                      type="file"
-                      disabled={isPeriodLocked}
-                      onChange={handleCSVBulkUploadSimulation}
-                      style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }}
-                    />
-                  </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            {isBulkUploading ? (
+              <span style={{ fontSize: '12px', color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span className="preview-pulse-dot" style={{ width: '6px', height: '6px', margin: 0 }}></span> Parsing sheet...
+              </span>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={handleDownloadTimesheetTemplate}
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', padding: '8px 12px' }}
+                >
+                  📥 Download CSV Template
+                </button>
+                <div style={{ position: 'relative', overflow: 'hidden', display: 'inline-block' }}>
                   <button
                     type="button"
                     className="btn btn-secondary btn-sm"
-                    onClick={handleDownloadTimesheetTemplate}
-                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', padding: '8px 12px' }}
                   >
-                    📥 Download CSV Format Template
+                    📤 Upload CSV Timesheet
                   </button>
+                  <input
+                    type="file"
+                    disabled={isPeriodLocked}
+                    onChange={handleCSVBulkUploadSimulation}
+                    style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }}
+                  />
                 </div>
-              )}
+              </>
+            )}
+          </div>
+        </div>
+
+        <div className="dash-grid-layout" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px' }}>
+
+          {/* Unified Payroll Area Configurator Table Card */}
+          <div className="configurator-table-card">
+            <h3 className="dash-card-title">Salary & Hourly Code Configurator</h3>
+            <p style={{ fontSize: '12px', color: 'var(--muted)', margin: '4px 0 15px' }}>
+              Set hours, salary, and calculate hourly rates per employee and code.
+            </p>
+            
+            <div style={{ maxHeight: '420px', overflowY: 'auto', border: '1px solid var(--line)', borderRadius: '6px' }}>
+              <table className="configurator-table">
+                <thead>
+                  <tr>
+                    <th>Employee / Group</th>
+                    <th>Rate Code</th>
+                    <th style={{ width: '100px' }}>Hours</th>
+                    <th style={{ width: '160px' }}>Full Salary (INR)</th>
+                    <th style={{ width: '160px', textAlign: 'right' }}>Salary Per Hours</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {payrollConfigRows.map((row) => {
+                    const salaryPerHour = row.hours > 0 ? (row.fullSalary / row.hours) : 0
+                    
+                    return (
+                      <tr key={`${row.employeeId}-${row.rateCode}`}>
+                        <td>
+                          <strong>{row.employeeName}</strong>
+                          <span style={{ display: 'block', fontSize: '10px', color: 'var(--muted)' }}>{row.employeeId}</span>
+                        </td>
+                        <td>
+                          <span className={`status-chip ${row.rateCode === 'REG' ? 'submitted' : 'returned'}`} style={{ textTransform: 'uppercase', fontSize: '10px', fontWeight: 700, padding: '2px 6px', borderRadius: '4px' }}>
+                            {row.rateCode}
+                          </span>
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            min={0}
+                            style={{ width: '90px', padding: '4px 8px', background: 'var(--surface)', color: '#fff', border: '1px solid var(--line)', borderRadius: '4px', textAlign: 'right' }}
+                            value={row.hours}
+                            disabled={isPeriodLocked}
+                            onChange={(e) => {
+                              const val = parseFloat(e.target.value) || 0
+                              handleUpdateConfigRow(row.employeeId, row.rateCode, 'hours', val)
+                            }}
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            min={0}
+                            style={{ width: '140px', padding: '4px 8px', background: 'var(--surface)', color: '#fff', border: '1px solid var(--line)', borderRadius: '4px', textAlign: 'right' }}
+                            value={row.fullSalary}
+                            disabled={isPeriodLocked}
+                            onChange={(e) => {
+                              const val = parseFloat(e.target.value) || 0
+                              handleUpdateConfigRow(row.employeeId, row.rateCode, 'fullSalary', val)
+                            }}
+                          />
+                        </td>
+                        <td style={{ textAlign: 'right', fontWeight: 'bold', color: 'var(--primary)' }}>
+                          ₹{salaryPerHour.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
             </div>
 
-            {/* Fixed Salaries config */}
-            <div className="dash-card">
-              <h3 className="dash-card-title">Fixed Salary Revisions</h3>
-              <div className="admin-integration-list" style={{ maxHeight: '200px', overflowY: 'auto' }}>
-                {adminEmployees.map(emp => (
-                  <div key={emp.id} className="integration-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--line-soft)' }}>
-                    <div>
-                      <strong>{emp.name}</strong>
-                      <div style={{ fontSize: '10px', color: 'var(--muted)' }}>{emp.clientName} · {emp.paygroup}</div>
-                    </div>
-                    <input
-                      type="number"
-                      className="btn"
-                      style={{ width: '120px', padding: '4px 8px', textAlign: 'right', background: 'var(--surface)', color: '#fff', border: '1px solid var(--line)' }}
-                      value={emp.currGross}
-                      disabled={isPeriodLocked}
-                      onChange={(e) => {
-                        const val = parseFloat(e.target.value) || 0
-                        setAdminEmployees(prev => prev.map(item => item.id === emp.id ? { ...item, currGross: val } : item))
-                      }}
-                    />
-                  </div>
-                ))}
-              </div>
-              <button type="button" className="btn btn-secondary" onClick={handleSaveFixedSalaries} disabled={isPeriodLocked} style={{ width: 'fit-content', marginTop: '10px' }}>
-                Save Salary Adjustments
-              </button>
-            </div>
-
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={handleSavePayrollConfig}
+              disabled={isPeriodLocked}
+              style={{ width: 'fit-content', marginTop: '15px' }}
+            >
+              Save Configuration Settings
+            </button>
           </div>
 
         </div>

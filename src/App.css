@@ -11032,3 +11032,53 @@ input {
   color: #7c3aed !important;
   border-color: #ddd6fe !important;
 }
+
+/* ── UNIFIED CONFIGURATOR SPREADSHEET ── */
+.configurator-table-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 20px;
+}
+.configurator-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.configurator-table th, .configurator-table td {
+  border: 1px solid var(--line);
+  padding: 8px 12px;
+  font-size: 13px;
+  text-align: left;
+}
+.configurator-table th {
+  background: #303057;
+  color: #cfd1e3;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+.configurator-table tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+.light-mode .configurator-table-card {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+}
+.light-mode .configurator-table th {
+  background: #f9fafb !important;
+  color: #374151 !important;
+  border-color: #e5e7eb !important;
+}
+.light-mode .configurator-table td {
+  border-color: #e5e7eb !important;
+  color: #111827 !important;
+}
+.light-mode .configurator-table tr:hover {
+  background: #f9fafb !important;
+}
+.light-mode .configurator-table input {
+  background: #ffffff !important;
+  color: #111827 !important;
+  border-color: #d1d5db !important;
+}
