@@ -9625,6 +9625,42 @@ input {
   transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
 }
 
+/* ══════════════════════════════════════════════
+   GLOBAL DROPDOWN ARROW — all <select> elements
+   Custom chevron via background-image so it is
+   always visible regardless of theme.
+   ══════════════════════════════════════════════ */
+select {
+  /* Hide the native OS arrow */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+
+  /* Dark-mode chevron: light grey (rgba(200,200,210,0.9)) */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(200%2C200%2C210%2C0.9)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 11px 7px;
+
+  /* Extra right padding so text doesn't overlap the arrow */
+  padding-right: 30px !important;
+
+  /* Ensure pointer cursor on hover */
+  cursor: pointer;
+}
+
+/* Light-mode chevron: dark charcoal (rgba(55,65,81,0.9)) */
+.light-mode select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(55%2C65%2C81%2C0.9)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 10px center !important;
+  background-size: 11px 7px !important;
+  padding-right: 30px !important;
+  cursor: pointer !important;
+}
+
+
+
 /* Light mode component style overrides */
 .light-mode .login-card {
   background: #ffffff !important;
