@@ -375,6 +375,7 @@ interface AdminEmployee {
   hasEmployeeView: boolean
   hasAdminView: boolean
   hasClientView: boolean
+  isBlocked?: boolean
 }
 
 const adminEmployeesSeed: AdminEmployee[] = [
@@ -3612,6 +3613,7 @@ export function EmployeePortalFlow({
     setAdminEmployees((prev) =>
       prev.map((emp) => {
         if (emp.id === empId) {
+          if (emp.isBlocked) return emp // Cannot edit access of a blocked user
           if (view === 'employee') return { ...emp, hasEmployeeView: !emp.hasEmployeeView }
           if (view === 'admin') return { ...emp, hasAdminView: !emp.hasAdminView }
           if (view === 'client') return { ...emp, hasClientView: !emp.hasClientView }
@@ -3620,6 +3622,26 @@ export function EmployeePortalFlow({
       })
     )
     showToast('User access permission updated!')
+  }
+
+  const handleToggleBlock = (empId: string) => {
+    setAdminEmployees((prev) =>
+      prev.map((emp) => {
+        if (emp.id === empId) {
+          const nextBlocked = !emp.isBlocked
+          return {
+            ...emp,
+            isBlocked: nextBlocked,
+            // Strip views immediately if blocked
+            hasEmployeeView: nextBlocked ? false : emp.hasEmployeeView,
+            hasAdminView: nextBlocked ? false : emp.hasAdminView,
+            hasClientView: nextBlocked ? false : emp.hasClientView,
+          }
+        }
+        return emp
+      })
+    )
+    showToast('User account status updated!')
   }
 
   // ── Client Portal & Reports Sub-Renders ──
@@ -5054,10 +5076,14 @@ export function EmployeePortalFlow({
               onChange={(e) => {
                 const val = e.target.value
                 if (!val) return
+                const emp = adminEmployees.find(emp => emp.id === val)
+                if (emp && emp.isBlocked) {
+                  showToast(`⚠️ Cannot simulate access for a blocked/terminated employee (${val}).`)
+                  return
+                }
                 setPreviewRoleMode('employee')
                 setSimulatedEmployeeId(val)
                 setCurrentModule('dashboard')
-                const emp = adminEmployees.find(emp => emp.id === val)
                 showToast(`Simulating Employee View for ${emp ? emp.name : val} - OK`)
               }}
               className="btn"
@@ -5065,7 +5091,9 @@ export function EmployeePortalFlow({
             >
               <option value="">👤 Simulate Employee View...</option>
               {adminEmployees.map(emp => (
-                <option key={emp.id} value={emp.id}>{emp.name} ({emp.id})</option>
+                <option key={emp.id} value={emp.id} style={{ color: emp.isBlocked ? 'var(--muted)' : undefined }}>
+                  {emp.name} ({emp.id}){emp.isBlocked ? ' [BLOCKED/TERMINATED]' : ''}
+                </option>
               ))}
             </select>
 
@@ -5852,59 +5880,67 @@ export function EmployeePortalFlow({
                                     <th className="text-center" style={{ textAlign: 'center' }}>Employee View</th>
                                     <th className="text-center" style={{ textAlign: 'center' }}>Admin View</th>
                                     <th className="text-center" style={{ textAlign: 'center' }}>Client View</th>
-                                    <th className="num">Perspective Actions</th>
+                                    <th className="text-center" style={{ textAlign: 'center', width: '130px' }}>Account Status</th>
+                                    <th className="num" style={{ width: '130px' }}>Action</th>
                                   </tr>
                                 </thead>
                                 <tbody>
                                   {adminEmployees.map((emp) => (
-                                    <tr key={emp.id}>
+                                    <tr key={emp.id} style={{ opacity: emp.isBlocked ? 0.55 : 1, transition: 'opacity 0.2s' }}>
                                       <td><code>{emp.id}</code></td>
                                       <td><strong>{emp.name}</strong></td>
                                       <td>{emp.clientName}</td>
                                       <td className="text-center" style={{ textAlign: 'center' }}>
                                         <input
                                           type="checkbox"
-                                          style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                                          style={{ width: '16px', height: '16px', cursor: emp.isBlocked ? 'not-allowed' : 'pointer' }}
                                           checked={emp.hasEmployeeView}
+                                          disabled={emp.isBlocked}
                                           onChange={() => handleToggleAccess(emp.id, 'employee')}
                                         />
                                       </td>
                                       <td className="text-center" style={{ textAlign: 'center' }}>
                                         <input
                                           type="checkbox"
-                                          style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                                          style={{ width: '16px', height: '16px', cursor: (emp.isBlocked || emp.id === 'EMP-005' || emp.id === 'EMP-009') ? 'not-allowed' : 'pointer' }}
                                           checked={emp.hasAdminView}
-                                          disabled={emp.id === 'EMP-005' || emp.id === 'EMP-009'} // Safeguard primary admins
+                                          disabled={emp.isBlocked || emp.id === 'EMP-005' || emp.id === 'EMP-009'} // Safeguard primary admins
                                           onChange={() => handleToggleAccess(emp.id, 'admin')}
                                         />
                                       </td>
                                       <td className="text-center" style={{ textAlign: 'center' }}>
                                         <input
                                           type="checkbox"
-                                          style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                                          style={{ width: '16px', height: '16px', cursor: emp.isBlocked ? 'not-allowed' : 'pointer' }}
                                           checked={emp.hasClientView}
+                                          disabled={emp.isBlocked}
                                           onChange={() => handleToggleAccess(emp.id, 'client')}
                                         />
                                       </td>
-                                      <td className="num">
-                                        {emp.hasEmployeeView && (
-                                          <button type="button" className="btn btn-secondary btn-sm" style={{ marginRight: '6px' }}
-                                            onClick={() => {
-                                              setPreviewRoleMode('employee');
-                                              setCurrentModule('dashboard');
-                                              showToast(`Impersonating ${emp.name} (Employee perspective)`);
-                                            }}>
-                                            👁️ Preview Employee
-                                          </button>
+                                      <td className="text-center" style={{ textAlign: 'center' }}>
+                                        {emp.isBlocked ? (
+                                          <span className="badge danger" style={{ background: '#e74c3c', color: '#fff', padding: '4px 8px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600 }}>TERMINATED</span>
+                                        ) : (
+                                          <span className="badge success" style={{ background: '#2ecc71', color: '#fff', padding: '4px 8px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600 }}>ACTIVE</span>
                                         )}
-                                        {emp.hasClientView && (
-                                          <button type="button" className="btn btn-secondary btn-sm"
-                                            onClick={() => {
-                                              setPreviewRoleMode('client');
-                                              setCurrentModule('client-dashboard');
-                                              showToast('Impersonating Client Portal Dashboard.');
-                                            }}>
-                                            🏢 Preview Client
+                                      </td>
+                                      <td className="num">
+                                        {emp.id === 'EMP-005' || emp.id === 'EMP-009' ? (
+                                          <span style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>System Owner</span>
+                                        ) : (
+                                          <button
+                                            type="button"
+                                            className={`btn btn-sm ${emp.isBlocked ? 'btn-primary' : 'btn-secondary'}`}
+                                            onClick={() => handleToggleBlock(emp.id)}
+                                            style={{
+                                              padding: '4px 10px',
+                                              fontSize: '0.78rem',
+                                              borderColor: emp.isBlocked ? undefined : '#e74c3c',
+                                              color: emp.isBlocked ? undefined : '#e74c3c',
+                                              background: emp.isBlocked ? undefined : 'transparent'
+                                            }}
+                                          >
+                                            {emp.isBlocked ? 'Restore Access' : 'Block User 🚫'}
                                           </button>
                                         )}
                                       </td>
