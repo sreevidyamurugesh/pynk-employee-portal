@@ -143,14 +143,14 @@ interface TeamLeaveApprovalItem {
   status: LeaveStatus
 }
 
-interface LeaveApplyForm {
-  leaveType: LeaveTypeId
-  fromDateISO: string
-  toDateISO: string
-  reason: string
-  handoverTo: string
-  contactDuringLeave: string
-}
+// interface LeaveApplyForm {
+//   leaveType: LeaveTypeId
+//   fromDateISO: string
+//   toDateISO: string
+//   reason: string
+//   handoverTo: string
+//   contactDuringLeave: string
+// }
 
 interface LeaveWarning {
   title: string
@@ -160,7 +160,7 @@ interface LeaveWarning {
 const TIME_ENTRY_STORE_KEY = 'portalTimeEntryRangeStoreV2'
 const MAX_RANGE_DAYS = 31
 
-const timeEntryTabs = ['My Timesheet', 'Calendar', 'Time History', 'Leave', 'Approvals'] as const
+const timeEntryTabs = ['My Timesheet', 'Calendar', 'Leave', 'Approvals'] as const
 const leaveTabs = ['Leave Balance', 'Leave History'] as const
 const myPayTabs = ['Overview', 'Payslips', 'Salary Breakdown', 'Tax Documents', 'Bank Details', 'Payment History'] as const
 type MyPayTab = (typeof myPayTabs)[number]
@@ -906,37 +906,37 @@ const buildCalendarGrid = (monthDate: Date) => {
 
 const isFutureIso = (iso: string) => fromIso(iso).getTime() > getTodayDate().getTime()
 
-const countWeekdaysInclusive = (fromDateISO: string, toDateISO: string) => {
-  const from = fromIso(fromDateISO)
-  const to = fromIso(toDateISO)
-  if (from > to) return 0
+// const countWeekdaysInclusive = (fromDateISO: string, toDateISO: string) => {
+//   const from = fromIso(fromDateISO)
+//   const to = fromIso(toDateISO)
+//   if (from > to) return 0
 
-  let count = 0
-  const cursor = new Date(from)
-  while (cursor.getTime() <= to.getTime()) {
-    const weekday = cursor.getDay()
-    if (weekday >= 1 && weekday <= 5) {
-      count += 1
-    }
-    cursor.setDate(cursor.getDate() + 1)
-  }
+//   let count = 0
+//   const cursor = new Date(from)
+//   while (cursor.getTime() <= to.getTime()) {
+//     const weekday = cursor.getDay()
+//     if (weekday >= 1 && weekday <= 5) {
+//       count += 1
+//     }
+//     cursor.setDate(cursor.getDate() + 1)
+//   }
 
-  return count
-}
+//   return count
+// }
 
-const doesDateRangeOverlap = (
-  leftFromISO: string,
-  leftToISO: string,
-  rightFromISO: string,
-  rightToISO: string,
-) => {
-  const leftFrom = fromIso(leftFromISO).getTime()
-  const leftTo = fromIso(leftToISO).getTime()
-  const rightFrom = fromIso(rightFromISO).getTime()
-  const rightTo = fromIso(rightToISO).getTime()
+// const doesDateRangeOverlap = (
+//   leftFromISO: string,
+//   leftToISO: string,
+//   rightFromISO: string,
+//   rightToISO: string,
+// ) => {
+//   const leftFrom = fromIso(leftFromISO).getTime()
+//   const leftTo = fromIso(leftToISO).getTime()
+//   const rightFrom = fromIso(rightFromISO).getTime()
+//   const rightTo = fromIso(rightToISO).getTime()
 
-  return leftFrom <= rightTo && rightFrom <= leftTo
-}
+//   return leftFrom <= rightTo && rightFrom <= leftTo
+// }
 
 const deriveLeaveBalances = (balances: LeaveBalanceItem[], requests: LeaveRequestItem[]) => {
   const usage = requests.reduce(
@@ -1426,7 +1426,7 @@ export function EmployeePortalFlow({
   setIsNotificationDrawerOpen
 }: EmployeePortalFlowProps) {
   const [previewRoleMode, setPreviewRoleMode] = useState<UserType | null>(null)
-  
+
   const activeUserType = previewRoleMode || userType
 
   const [currentModule, setCurrentModule] = useState<Module>(() => {
@@ -1445,7 +1445,7 @@ export function EmployeePortalFlow({
   const [isSecondApprovalNotified, setIsSecondApprovalNotified] = useState(false)
   const [selectedEmployeeForPayslipModal, setSelectedEmployeeForPayslipModal] = useState<AdminEmployee | null>(null)
   const [successToastMessage, setSuccessToastMessage] = useState<string | null>(null)
-  
+
   const showToast = (msg: string) => {
     setSuccessToastMessage(msg)
     setTimeout(() => setSuccessToastMessage(null), 3000)
@@ -2125,16 +2125,16 @@ export function EmployeePortalFlow({
 
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequestItem[]>(leaveSeedRequests)
   const [leaveApprovals, setLeaveApprovals] = useState<TeamLeaveApprovalItem[]>(leaveSeedApprovals)
-  const [leaveForm, setLeaveForm] = useState<LeaveApplyForm>({
-    leaveType: 'annual',
-    fromDateISO: todayIso,
-    toDateISO: todayIso,
-    reason: '',
-    handoverTo: '',
-    contactDuringLeave: '',
-  })
-  const [leaveFormError, setLeaveFormError] = useState('')
-  const [leaveFormSuccess, setLeaveFormSuccess] = useState('')
+  // const [leaveForm, setLeaveForm] = useState<LeaveApplyForm>({
+  //   leaveType: 'annual',
+  //   fromDateISO: todayIso,
+  //   toDateISO: todayIso,
+  //   reason: '',
+  //   handoverTo: '',
+  //   contactDuringLeave: '',
+  // })
+  // const [leaveFormError, setLeaveFormError] = useState('')
+  // const [leaveFormSuccess, setLeaveFormSuccess] = useState('')
   const [leaveWarning, setLeaveWarning] = useState<LeaveWarning | null>(null)
   const [leaveHistoryStatusFilter, setLeaveHistoryStatusFilter] = useState<LeaveStatus | 'all'>('all')
   const [leaveHistoryFromInput, setLeaveHistoryFromInput] = useState(() => toIso(addDays(getTodayDate(), -120)))
@@ -2169,7 +2169,7 @@ export function EmployeePortalFlow({
       { id: 'time-entry' as Module, label: 'Time Entry', icon: '⏱️' },
       { id: 'my-pay' as Module, label: 'My Pay', icon: '💰' },
       { id: 'documents' as Module, label: 'Documents', icon: '📄' },
-      { id: 'profile' as Module, label: 'Profile', icon: '👤' },
+      // { id: 'profile' as Module, label: 'Profile', icon: '👤' },
     ]
   }, [activeUserType])
 
@@ -2221,7 +2221,7 @@ export function EmployeePortalFlow({
   const leaveHours = totals.leaveHours
   const completionPct = Math.min(100, Math.round((totals.totalHours / 40) * 100))
   const isCalendarTab = activeTimeEntryTab === 'Calendar'
-  const isTimeHistoryTab = activeTimeEntryTab === 'Time History'
+  const isTimeHistoryTab = null
   const isApprovalsTab = activeTimeEntryTab === 'Approvals'
   const isLeaveTab = activeTimeEntryTab === 'Leave'
   const rangeStatus: 'Draft' | 'Submitted' | 'Returned' =
@@ -2348,18 +2348,18 @@ export function EmployeePortalFlow({
 
   const appliedHistoryRangeLabel = `${formatDateWithYear(appliedHistoryFromDate)} - ${formatDateWithYear(appliedHistoryToDate)}`
   const appliedLeaveHistoryRangeLabel = `${formatDateWithYear(appliedLeaveHistoryFrom)} - ${formatDateWithYear(appliedLeaveHistoryTo)}`
-  const leaveRequestedDaysPreview = useMemo(
-    () => countWeekdaysInclusive(leaveForm.fromDateISO, leaveForm.toDateISO),
-    [leaveForm.fromDateISO, leaveForm.toDateISO],
-  )
+  // const leaveRequestedDaysPreview = useMemo(
+  //   () => countWeekdaysInclusive(leaveForm.fromDateISO, leaveForm.toDateISO),
+  //   [leaveForm.fromDateISO, leaveForm.toDateISO],
+  // )
   const leaveBalances = useMemo(() => deriveLeaveBalances(leaveSeedBalances, leaveRequests), [leaveRequests])
 
-  const leaveAvailableByType = useMemo(
-    () => Object.fromEntries(
-      leaveBalances.map((item) => [item.id, Math.max(0, item.entitlement - item.used - item.pending)]),
-    ) as Record<LeaveTypeId, number>,
-    [leaveBalances],
-  )
+  // const leaveAvailableByType = useMemo(
+  //   () => Object.fromEntries(
+  //     leaveBalances.map((item) => [item.id, Math.max(0, item.entitlement - item.used - item.pending)]),
+  //   ) as Record<LeaveTypeId, number>,
+  //   [leaveBalances],
+  // )
 
   const leaveSummary = useMemo(() => {
     const pending = leaveRequests.filter((item) => item.status === 'pending').length
@@ -2902,102 +2902,102 @@ export function EmployeePortalFlow({
     setAppliedLeaveHistoryTo(leaveHistoryToInput)
   }
 
-  const handleSubmitLeaveRequest = () => {
-    setLeaveFormError('')
-    setLeaveFormSuccess('')
+  // const handleSubmitLeaveRequest = () => {
+  //   setLeaveFormError('')
+  //   setLeaveFormSuccess('')
 
-    if (!leaveForm.leaveType || !leaveForm.fromDateISO || !leaveForm.toDateISO) {
-      setLeaveFormError('Leave type, from date, and to date are required.')
-      return
-    }
+  //   if (!leaveForm.leaveType || !leaveForm.fromDateISO || !leaveForm.toDateISO) {
+  //     setLeaveFormError('Leave type, from date, and to date are required.')
+  //     return
+  //   }
 
-    if (fromIso(leaveForm.fromDateISO) > fromIso(leaveForm.toDateISO)) {
-      setLeaveFormError('From date cannot be after To date.')
-      return
-    }
+  //   if (fromIso(leaveForm.fromDateISO) > fromIso(leaveForm.toDateISO)) {
+  //     setLeaveFormError('From date cannot be after To date.')
+  //     return
+  //   }
 
-    if (fromIso(leaveForm.fromDateISO).getTime() < fromIso(todayIso).getTime()) {
-      setLeaveFormError('Past dates are not allowed while applying leave.')
-      return
-    }
+  //   if (fromIso(leaveForm.fromDateISO).getTime() < fromIso(todayIso).getTime()) {
+  //     setLeaveFormError('Past dates are not allowed while applying leave.')
+  //     return
+  //   }
 
-    if (!leaveForm.reason.trim() || leaveForm.reason.trim().length < 5) {
-      setLeaveFormError('Reason is required and must be at least 5 characters.')
-      return
-    }
+  //   if (!leaveForm.reason.trim() || leaveForm.reason.trim().length < 5) {
+  //     setLeaveFormError('Reason is required and must be at least 5 characters.')
+  //     return
+  //   }
 
-    if (!leaveForm.handoverTo.trim()) {
-      setLeaveFormError('Please provide handover person details.')
-      return
-    }
+  //   if (!leaveForm.handoverTo.trim()) {
+  //     setLeaveFormError('Please provide handover person details.')
+  //     return
+  //   }
 
-    if (!/^\d{10}$/.test(leaveForm.contactDuringLeave.trim())) {
-      setLeaveFormError('Contact during leave must be a valid 10-digit number.')
-      return
-    }
+  //   if (!/^\d{10}$/.test(leaveForm.contactDuringLeave.trim())) {
+  //     setLeaveFormError('Contact during leave must be a valid 10-digit number.')
+  //     return
+  //   }
 
-    const leaveDays = countWeekdaysInclusive(leaveForm.fromDateISO, leaveForm.toDateISO)
-    if (leaveDays <= 0) {
-      setLeaveFormError('Selected range has no working days. Please choose weekdays.')
-      return
-    }
+  //   const leaveDays = countWeekdaysInclusive(leaveForm.fromDateISO, leaveForm.toDateISO)
+  //   if (leaveDays <= 0) {
+  //     setLeaveFormError('Selected range has no working days. Please choose weekdays.')
+  //     return
+  //   }
 
-    const hasOverlap = leaveRequests.some((item) => {
-      if (item.status === 'cancelled' || item.status === 'returned') {
-        return false
-      }
+  //   const hasOverlap = leaveRequests.some((item) => {
+  //     if (item.status === 'cancelled' || item.status === 'returned') {
+  //       return false
+  //     }
 
-      return doesDateRangeOverlap(
-        leaveForm.fromDateISO,
-        leaveForm.toDateISO,
-        item.fromDateISO,
-        item.toDateISO,
-      )
-    })
+  //     return doesDateRangeOverlap(
+  //       leaveForm.fromDateISO,
+  //       leaveForm.toDateISO,
+  //       item.fromDateISO,
+  //       item.toDateISO,
+  //     )
+  //   })
 
-    if (hasOverlap) {
-      setLeaveFormError('Selected leave dates overlap with an existing pending/approved request.')
-      return
-    }
+  //   if (hasOverlap) {
+  //     setLeaveFormError('Selected leave dates overlap with an existing pending/approved request.')
+  //     return
+  //   }
 
-    if (leaveDays > leaveAvailableByType[leaveForm.leaveType]) {
-      setLeaveFormError(`Insufficient ${leaveTypeLabel[leaveForm.leaveType]} balance for selected dates.`)
-      return
-    }
+  //   if (leaveDays > leaveAvailableByType[leaveForm.leaveType]) {
+  //     setLeaveFormError(`Insufficient ${leaveTypeLabel[leaveForm.leaveType]} balance for selected dates.`)
+  //     return
+  //   }
 
-    const newRequest: LeaveRequestItem = {
-      id: `lv-${Date.now()}`,
-      leaveType: leaveForm.leaveType,
-      fromDateISO: leaveForm.fromDateISO,
-      toDateISO: leaveForm.toDateISO,
-      durationDays: leaveDays,
-      status: 'pending',
-      appliedOnISO: todayIso,
-      reason: leaveForm.reason.trim(),
-      handoverTo: leaveForm.handoverTo.trim(),
-      contactDuringLeave: leaveForm.contactDuringLeave.trim(),
-    }
+  //   const newRequest: LeaveRequestItem = {
+  //     id: `lv-${Date.now()}`,
+  //     leaveType: leaveForm.leaveType,
+  //     fromDateISO: leaveForm.fromDateISO,
+  //     toDateISO: leaveForm.toDateISO,
+  //     durationDays: leaveDays,
+  //     status: 'pending',
+  //     appliedOnISO: todayIso,
+  //     reason: leaveForm.reason.trim(),
+  //     handoverTo: leaveForm.handoverTo.trim(),
+  //     contactDuringLeave: leaveForm.contactDuringLeave.trim(),
+  //   }
 
-    setLeaveRequests((prev) => [newRequest, ...prev])
-    setLeaveFormSuccess('Leave request submitted successfully and sent for approval.')
-    setLeaveForm({
-      leaveType: 'annual',
-      fromDateISO: todayIso,
-      toDateISO: todayIso,
-      reason: '',
-      handoverTo: '',
-      contactDuringLeave: '',
-    })
-    setActiveLeaveTab('Leave History')
-  }
+  //   setLeaveRequests((prev) => [newRequest, ...prev])
+  //   setLeaveFormSuccess('Leave request submitted successfully and sent for approval.')
+  //   setLeaveForm({
+  //     leaveType: 'annual',
+  //     fromDateISO: todayIso,
+  //     toDateISO: todayIso,
+  //     reason: '',
+  //     handoverTo: '',
+  //     contactDuringLeave: '',
+  //   })
+  //   setActiveLeaveTab('Leave History')
+  // }
 
-  const handleCancelLeaveRequest = (requestId: string) => {
-    setLeaveRequests((prev) => prev.map((item) => (
-      item.id === requestId && item.status === 'pending'
-        ? { ...item, status: 'cancelled' }
-        : item
-    )))
-  }
+  // const handleCancelLeaveRequest = (requestId: string) => {
+  //   setLeaveRequests((prev) => prev.map((item) => (
+  //     item.id === requestId && item.status === 'pending'
+  //       ? { ...item, status: 'cancelled' }
+  //       : item
+  //   )))
+  // }
 
   const handleLeaveApprovalAction = (id: string, nextStatus: LeaveStatus) => {
     setLeaveApprovals((prev) => prev.map((item) => (
@@ -3095,7 +3095,7 @@ export function EmployeePortalFlow({
     const handleDownloadReportCSV = () => {
       let csv = ''
       let filename = `report_${activeReportType}.csv`
-      
+
       if (activeReportType === 'timesheet') {
         csv = 'Employee ID,Name,Client,Pay Group,Regular Hours,Leave Hours,Overtime,Status\n'
         finalReportEmployees.forEach(e => {
@@ -3120,7 +3120,7 @@ export function EmployeePortalFlow({
           csv += `"${l.id}","${l.username}","${l.role}","${l.action}","${l.timestamp}","${l.ipAddress}"\n`
         })
       }
-      
+
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
@@ -3330,7 +3330,7 @@ export function EmployeePortalFlow({
     const handleSaveHourlyRates = () => {
       showToast('Hourly rate configuration thresholds updated!')
     }
-    
+
     const handleSaveFixedSalaries = () => {
       showToast('Fixed employee salary database revisions saved!')
     }
@@ -3344,12 +3344,12 @@ export function EmployeePortalFlow({
         ['EMP-004', 'Alice Williams', '160', '0', '0', '12', '2025-07'],
         ['EMP-005', 'Charlie Brown', '140', '12', '8', '0', '2025-07']
       ]
-      
+
       const csvContent = [
         headers.join(','),
         ...rows.map(e => e.join(','))
       ].join('\n')
-      
+
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
@@ -3386,7 +3386,7 @@ export function EmployeePortalFlow({
         </div>
 
         <div className="dash-grid-layout" style={{ gridTemplateColumns: '1fr 1fr' }}>
-          
+
           {/* Hourly Rates Card */}
           <div className="dash-card">
             <h3 className="dash-card-title">Timesheet Hourly Code Rates</h3>
@@ -3415,12 +3415,12 @@ export function EmployeePortalFlow({
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            
+
             {/* Mass CSV upload */}
             <div className="dash-card">
               <h3 className="dash-card-title">Bulk Timesheet CSV Ingestion</h3>
               <p style={{ fontSize: '12px', color: 'var(--muted)', margin: 0 }}>Load timesheet logs for many employees at once through an Excel spreadsheet file.</p>
-              
+
               {isBulkUploading ? (
                 <div className="bulk-upload-simulator loading" style={{ textAlign: 'center', padding: '24px', border: '2px dashed var(--line)', borderRadius: '10px', background: 'rgba(255,255,255,0.02)' }}>
                   <div className="preview-pulse-dot" style={{ margin: '0 auto 10px' }}></div>
@@ -3583,7 +3583,7 @@ export function EmployeePortalFlow({
       }
       const targetEmp = adminEmployees.find(emp => emp.id === offcycleForm.employeeId)
       if (!targetEmp) return
-      
+
       const newPay: ClientOffcyclePayment = {
         id: `off-${Date.now()}`,
         employeeId: offcycleForm.employeeId,
@@ -3641,7 +3641,7 @@ export function EmployeePortalFlow({
               <tbody>
                 {offcyclePaymentsList.map(pay => (
                   <tr key={pay.id}>
-                    <td><strong>{pay.employeeName}</strong> <br/><small style={{ color: 'var(--muted)' }}><code>{pay.employeeId}</code></small></td>
+                    <td><strong>{pay.employeeName}</strong> <br /><small style={{ color: 'var(--muted)' }}><code>{pay.employeeId}</code></small></td>
                     <td>{pay.clientName}</td>
                     <td><span className="badge done">{pay.code}</span></td>
                     <td className="num" style={{ color: 'var(--primary)', fontWeight: 'bold' }}>₹ {pay.amount.toLocaleString('en-IN')}</td>
@@ -3849,8 +3849,8 @@ export function EmployeePortalFlow({
                 className={`leave-tab ${activeLeaveTab === tab ? 'active' : ''}`}
                 onClick={() => {
                   setActiveLeaveTab(tab)
-                  setLeaveFormError('')
-                  setLeaveFormSuccess('')
+                  // setLeaveFormError('')
+                  // setLeaveFormSuccess('')
                 }}
               >
                 {tab}
@@ -4052,7 +4052,7 @@ export function EmployeePortalFlow({
           </button>
         </div>
       )}
-      
+
       {successToastMessage && (
         <div className="admin-toast-message">
           <span>✓ {successToastMessage}</span>
@@ -4079,4443 +4079,4443 @@ export function EmployeePortalFlow({
         <section className="portal-content">
           {/* ── Client / Shared Reports View ── */}
           {currentModule === 'client-reports' || currentModule === 'admin-reports' ? renderReportsView() :
-          
-          /* ── Client Payroll Control ── */
-          currentModule === 'client-payroll-control' ? renderClientPayrollControl() :
 
-          /* ── Client Payroll Period ── */
-          currentModule === 'client-payroll-period' ? renderClientPayrollPeriod() :
+            /* ── Client Payroll Control ── */
+            currentModule === 'client-payroll-control' ? renderClientPayrollControl() :
 
-          /* ── Client Offcycles ── */
-          currentModule === 'client-offcycles' ? renderClientOffcycles() :
+              /* ── Client Payroll Period ── */
+              currentModule === 'client-payroll-period' ? renderClientPayrollPeriod() :
 
-          /* ── Client Lock ── */
-          currentModule === 'client-lock' ? renderClientLock() :
+                /* ── Client Offcycles ── */
+                currentModule === 'client-offcycles' ? renderClientOffcycles() :
 
-          /* ── Admin Dashboard Module ── */
-          currentModule === 'admin-dashboard' ? (() => {
-            const clientCount = new Set(adminEmployees.map((e) => e.clientName)).size
-            const activeEmployees = adminEmployees.length
-            const grossTotal = totalsAdmin.curr
-            const variance = totalsAdmin.curr - totalsAdmin.prev
-            const varPct = totalsAdmin.prev > 0 ? (variance / totalsAdmin.prev) * 100 : 0
-            
-            return (
-              <div className="dash-shell">
-                <div className="dash-welcome-row">
-                  <div>
-                    <h1 className="dash-welcome-title">Welcome, Pynk Administrator! 👨‍💼</h1>
-                    <p className="dash-welcome-sub">Workforce management and global payroll control center.</p>
-                  </div>
-                  <div className="dash-today-date">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                      <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
-                      <line x1="3" y1="10" x2="21" y2="10"/>
-                    </svg>
-                    15 July 2025 (Cut-off Date)
-                  </div>
-                </div>
+                  /* ── Client Lock ── */
+                  currentModule === 'client-lock' ? renderClientLock() :
 
-                {/* ── Stat Metric Cards ── */}
-                <div className="dash-stats-row">
-                  <div className="dash-stat-card">
-                    <div className="dash-stat-icon dash-stat-icon--blue">🏢</div>
-                    <div className="dash-stat-body">
-                      <p className="dash-stat-label">Clients Managed</p>
-                      <p className="dash-stat-value">{clientCount}</p>
-                      <p className="dash-stat-sub">Active Corporate Portals</p>
-                    </div>
-                  </div>
+                    /* ── Admin Dashboard Module ── */
+                    currentModule === 'admin-dashboard' ? (() => {
+                      const clientCount = new Set(adminEmployees.map((e) => e.clientName)).size
+                      const activeEmployees = adminEmployees.length
+                      const grossTotal = totalsAdmin.curr
+                      const variance = totalsAdmin.curr - totalsAdmin.prev
+                      const varPct = totalsAdmin.prev > 0 ? (variance / totalsAdmin.prev) * 100 : 0
 
-                  <div className="dash-stat-card">
-                    <div className="dash-stat-icon dash-stat-icon--green">👥</div>
-                    <div className="dash-stat-body">
-                      <p className="dash-stat-label">Active Staff</p>
-                      <p className="dash-stat-value">{activeEmployees}</p>
-                      <p className="dash-stat-sub">Across All Entities</p>
-                    </div>
-                  </div>
-
-                  <div className="dash-stat-card">
-                    <div className="dash-stat-icon dash-stat-icon--purple">💰</div>
-                    <div className="dash-stat-body">
-                      <p className="dash-stat-label">July 2025 Gross Payroll</p>
-                      <p className="dash-stat-value" style={{ fontSize: '20px' }}>₹ {grossTotal.toLocaleString('en-IN')}</p>
-                      <p className="dash-stat-sub">Processing Volume</p>
-                    </div>
-                  </div>
-
-                  <div className="dash-stat-card">
-                    <div className="dash-stat-icon dash-stat-icon--orange">📊</div>
-                    <div className="dash-stat-body">
-                      <p className="dash-stat-label">Variance</p>
-                      <p className={`dash-stat-value ${variance >= 0 ? 'increase' : 'decrease'}`} style={{ fontSize: '18px', margin: 0 }}>
-                        {variance >= 0 ? '+' : ''}₹ {variance.toLocaleString('en-IN')}
-                      </p>
-                      <p className="dash-stat-sub" style={{ margin: 0 }}>{varPct.toFixed(2)}% vs Last Period</p>
-                    </div>
-                  </div>
-
-                  <div className="dash-stat-card">
-                    <div className="dash-stat-icon dash-stat-icon--red">⏱️</div>
-                    <div className="dash-stat-body">
-                      <p className="dash-stat-label">Cut-off Timer</p>
-                      <p className="dash-stat-value">{isPayrollSubmitted ? '✓ Done' : '2 Days Left'}</p>
-                      <p className="dash-stat-sub">Partner Submission window</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* ── Alerts and Workflows ── */}
-                <div className="dash-grid-layout">
-                  
-                  {/* Alert: Cutoff warning */}
-                  <div className="dash-card dash-time-card">
-                    <h3 className="dash-card-title">Processing Timeline Warning</h3>
-                    {isPayrollSubmitted ? (
-                      <div className="admin-alert-banner success">
-                        <span className="alert-ico">✓</span>
-                        <div className="alert-text">
-                          <strong>Submission Completed!</strong>
-                          <p>Current pay period payroll data has been validated and submitted to partner systems (OK).</p>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="admin-alert-banner warning">
-                        <span className="alert-ico">⚠️</span>
-                        <div className="alert-text">
-                          <strong>Partner Portal Submission Window Expiring</strong>
-                          <p>Pynk should send data to processing partners by 15 July 2025 cut-off. Please complete comparison and reconciliation reviews first.</p>
-                        </div>
-                      </div>
-                    )}
-                    {!isPayrollSubmitted && (
-                      <button type="button" className="btn btn-primary" style={{ width: 'fit-content', marginTop: '10px' }}
-                        onClick={() => {
-                          setIsPayrollSubmitted(true);
-                          showToast('Current pay period payroll data submitted - OK');
-                        }}>
-                        Submit Current Payroll Data
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Alert: Secondary approval workflows */}
-                  <div className="dash-card dash-leave-card">
-                    <h3 className="dash-card-title">Pending Secondary Approvals</h3>
-                    {isSecondApprovalNotified ? (
-                      <div className="admin-alert-banner success">
-                        <span className="alert-ico">✓</span>
-                        <div className="alert-text">
-                          <strong>Approver Notified!</strong>
-                          <p>Second approval request has been broadcasted to Wayne Enterprises partner manager.</p>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="admin-alert-banner info">
-                        <span className="alert-ico">🔔</span>
-                        <div className="alert-text">
-                          <strong>Timesheet Stage 2 Approvals Required</strong>
-                          <p>Timesheet 1st approval is DONE for Stark Industries, but 2nd approval is needed from partner manager before submission.</p>
-                        </div>
-                      </div>
-                    )}
-                    {!isSecondApprovalNotified && (
-                      <button type="button" className="btn btn-secondary" style={{ width: 'fit-content', marginTop: '10px' }}
-                        onClick={() => {
-                          setIsSecondApprovalNotified(true);
-                          showToast('Second approver notified for Step 2 approval.');
-                        }}>
-                        Notify Wayne Enterprises 2nd Approver
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Card: Quick tools */}
-                  <div className="dash-card dash-upcoming-card">
-                    <h3 className="dash-card-title">Partner Integration Overview</h3>
-                    <div className="admin-integration-list">
-                      <div className="integration-row" style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--line-soft)' }}>
-                        <span>Acme Corp Portal Status:</span>
-                        <span className="badge done">Verified</span>
-                      </div>
-                      <div className="integration-row" style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--line-soft)' }}>
-                        <span>Stark Industries Timesheets:</span>
-                        <span className="badge sign">Pending 2nd Approval</span>
-                      </div>
-                      <div className="integration-row" style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--line-soft)' }}>
-                        <span>Wayne Enterprises Export status:</span>
-                        <span className="badge done">CSV Ready</span>
-                      </div>
-                      <div className="integration-row" style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0' }}>
-                        <span>Globex Corp Audit logs:</span>
-                        <span className="badge done">100% Checked</span>
-                      </div>
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-            )
-          })() : currentModule === 'admin-reconciliation' ? (() => {
-            return (
-              <div className="dash-shell">
-                <div className="dash-welcome-row">
-                  <div>
-                    <h1 className="dash-welcome-title">Payroll Reconciliation & Variance Reviews ⚖️</h1>
-                    <p className="dash-welcome-sub">Compare current in-progress period against previous completed pay period.</p>
-                  </div>
-                  <div className="dash-actions-row" style={{ display: 'flex', gap: '10px' }}>
-                    <button type="button" className="btn btn-secondary" onClick={handleExportCSV}>
-                      📥 Export CSV
-                    </button>
-                    <button type="button" className="btn btn-primary" disabled={isPayrollSubmitted}
-                      onClick={() => {
-                        setIsPayrollSubmitted(true);
-                        showToast('Reconciled payroll details sent to partners successfully!');
-                      }}>
-                      ✈️ Send to Partners
-                    </button>
-                  </div>
-                </div>
-
-                {/* Dimension Toggles */}
-                <div className="reconciliation-dimensions-tabs" style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--line)', paddingBottom: '12px' }}>
-                  {(['client', 'employee', 'paygroup', 'payment'] as const).map((dim) => (
-                    <button
-                      key={dim}
-                      type="button"
-                      className={`btn ${reconciliationDimension === dim ? 'btn-primary' : ''}`}
-                      onClick={() => setReconciliationDimension(dim)}
-                    >
-                      {dim.charAt(0).toUpperCase() + dim.slice(1)} Wise
-                    </button>
-                  ))}
-                </div>
-
-                {/* Main Table */}
-                <div className="dash-card" style={{ padding: 0, overflow: 'hidden' }}>
-                  <div className="tbl">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>{reconciliationDimension.charAt(0).toUpperCase() + reconciliationDimension.slice(1)} Group / Name</th>
-                          <th className="num">June 2025 completed (Prev)</th>
-                          <th className="num">July 2025 in-progress (Curr)</th>
-                          <th className="num">Difference (Amt)</th>
-                          <th className="num">Difference (%)</th>
-                          <th>Trend Status</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {reconciliationData.map((row, idx) => {
-                          const diff = row.curr - row.prev
-                          const pct = row.prev > 0 ? (diff / row.prev) * 100 : 0
-                          let statusLabel = 'Equal'
-                          let statusClass = 'neutral'
-                          if (diff > 0) { statusLabel = 'Increased ↗'; statusClass = 'increase' }
-                          else if (diff < 0) { statusLabel = 'Decreased ↘'; statusClass = 'decrease' }
-                          
-                          return (
-                            <tr key={idx}>
-                              <td><strong>{row.name}</strong></td>
-                              <td className="num">₹ {row.prev.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                              <td className="num">₹ {row.curr.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                              <td className={`num ${statusClass}`}>
-                                {diff > 0 ? '+' : ''}₹ {diff.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                              </td>
-                              <td className={`num ${statusClass}`}>{pct.toFixed(2)}%</td>
-                              <td>
-                                <span className={`trend-badge ${statusClass}`}>{statusLabel}</span>
-                              </td>
-                            </tr>
-                          )
-                        })}
-                      </tbody>
-                      <tfoot>
-                        <tr>
-                          <td><strong>Grand Total:</strong></td>
-                          <td className="num"><strong>₹ {totalsAdmin.prev.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong></td>
-                          <td className="num"><strong>₹ {totalsAdmin.curr.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong></td>
-                          <td className={`num ${totalsAdmin.curr - totalsAdmin.prev >= 0 ? 'increase' : 'decrease'}`}>
-                            <strong>
-                              {totalsAdmin.curr - totalsAdmin.prev >= 0 ? '+' : ''}
-                              ₹ {(totalsAdmin.curr - totalsAdmin.prev).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                            </strong>
-                          </td>
-                          <td className={`num ${totalsAdmin.curr - totalsAdmin.prev >= 0 ? 'increase' : 'decrease'}`}>
-                            <strong>
-                              {(totalsAdmin.prev > 0 ? ((totalsAdmin.curr - totalsAdmin.prev) / totalsAdmin.prev) * 100 : 0).toFixed(2)}%
-                            </strong>
-                          </td>
-                          <td>
-                            <span className="trend-badge neutral">Checked</span>
-                          </td>
-                        </tr>
-                      </tfoot>
-                    </table>
-                  </div>
-                </div>
-
-              </div>
-            )
-          })() : currentModule === 'admin-payslips' ? (() => {
-            const clientNames = ['All', 'Acme Corp', 'Stark Industries', 'Wayne Enterprises', 'Globex Corp']
-            return (
-              <div className="dash-shell">
-                <div className="dash-welcome-row">
-                  <div>
-                    <h1 className="dash-welcome-title">Employee Payslips & Year-End Records 📄</h1>
-                    <p className="dash-welcome-sub">View and generate historical payslips or Form 16 / tax documentation details.</p>
-                  </div>
-                </div>
-
-                {/* Filter bar */}
-                <div className="admin-filters-bar" style={{ display: 'flex', gap: '16px', background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '10px', border: '1px solid var(--line)' }}>
-                  <div className="filter-input-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px', minWidth: '200px' }}>
-                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--muted)' }}>Filter Client Corporate</label>
-                    <select value={filterClientName} onChange={(e) => setFilterClientName(e.target.value)} className="btn" style={{ padding: '8px 12px', background: 'var(--surface)', color: '#fff', border: '1px solid var(--line)' }}>
-                      {clientNames.map((c) => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                  </div>
-
-                  <div className="filter-input-group flex-fill" style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
-                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--muted)' }}>Search Employee Name / ID</label>
-                    <input
-                      type="text"
-                      className="btn"
-                      style={{ padding: '8px 12px', background: 'var(--surface)', color: '#fff', border: '1px solid var(--line)', textAlign: 'left', cursor: 'text' }}
-                      placeholder="Type employee name or ID..."
-                      value={searchEmployeeQuery}
-                      onChange={(e) => setSearchEmployeeQuery(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                {/* Employees list Table */}
-                <div className="dash-card" style={{ padding: 0, overflow: 'hidden' }}>
-                  <div className="tbl">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>ID</th>
-                          <th>Employee Name</th>
-                          <th>Corporate Client</th>
-                          <th>Role</th>
-                          <th>Monthly Gross</th>
-                          <th>Year-End Statement</th>
-                          <th className="num">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredAdminEmployees.map((emp) => (
-                          <tr key={emp.id}>
-                            <td><code>{emp.id}</code></td>
-                            <td><strong>{emp.name}</strong></td>
-                            <td>{emp.clientName}</td>
-                            <td><span className="badge done">{emp.role}</span></td>
-                            <td>₹ {emp.currGross.toLocaleString('en-IN')}</td>
-                            <td><span className="badge done">Form 16 Generated</span></td>
-                            <td className="num">
-                              <button type="button" className="btn btn-secondary btn-sm" style={{ marginRight: '8px' }}
-                                onClick={() => setSelectedEmployeeForPayslipModal(emp)}>
-                                📄 View Payslips
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                        {filteredAdminEmployees.length === 0 && (
-                          <tr>
-                            <td colSpan={7} className="text-center" style={{ padding: '24px', color: 'var(--muted)', textAlign: 'center' }}>
-                              No matching employee records found.
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                {/* Payslips drilldown modal */}
-                {selectedEmployeeForPayslipModal && (() => {
-                  const emp = selectedEmployeeForPayslipModal
-                  const months = ['June 2025', 'May 2025', 'April 2025', 'March 2025', 'February 2025', 'January 2025']
-                  return (
-                    <div className="time-modal-backdrop" role="dialog" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 9999, display: 'grid', placeItems: 'center' }}>
-                      <div className="time-modal-content" style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '24px', width: '90%', maxWidth: '550px' }}>
-                        <div className="time-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--line)', paddingBottom: '12px' }}>
-                          <h3 style={{ margin: 0, color: '#fff' }}>Payslips history for {emp.name}</h3>
-                          <button type="button" className="close-btn" style={{ background: 'none', border: 'none', color: '#fff', fontSize: '20px', cursor: 'pointer' }}
-                            onClick={() => setSelectedEmployeeForPayslipModal(null)}>✕</button>
-                        </div>
-                        <div className="time-modal-body" style={{ padding: '16px 0 0', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                          <div className="admin-payslip-info-box" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: 'var(--muted)', padding: '10px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px' }}>
-                            <div><strong>Employee ID:</strong> {emp.id}</div>
-                            <div><strong>Client Portal:</strong> {emp.clientName}</div>
+                      return (
+                        <div className="dash-shell">
+                          <div className="dash-welcome-row">
+                            <div>
+                              <h1 className="dash-welcome-title">Welcome, Pynk Administrator! 👨‍💼</h1>
+                              <p className="dash-welcome-sub">Workforce management and global payroll control center.</p>
+                            </div>
+                            <div className="dash-today-date">
+                              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                <line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" />
+                                <line x1="3" y1="10" x2="21" y2="10" />
+                              </svg>
+                              15 July 2025 (Cut-off Date)
+                            </div>
                           </div>
-                          
-                          <div className="admin-payslips-drill-list" style={{ maxHeight: '250px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', paddingRight: '4px' }}>
-                            {months.map((m, idx) => (
-                              <div key={idx} className="admin-payslip-drill-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: '1px solid var(--line-soft)' }}>
-                                <div>
-                                  <div style={{ fontWeight: 'bold', fontSize: '13.5px' }}>{m}</div>
-                                  <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px' }}>Gross: ₹ {emp.currGross.toLocaleString('en-IN')}</div>
-                                </div>
-                                <button type="button" className="btn btn-secondary btn-sm"
-                                  onClick={() => showToast(`Downloaded ${emp.name}'s ${m} payslip PDF.`)}>
-                                  📥 Download PDF
-                                </button>
+
+                          {/* ── Stat Metric Cards ── */}
+                          <div className="dash-stats-row">
+                            <div className="dash-stat-card">
+                              <div className="dash-stat-icon dash-stat-icon--blue">🏢</div>
+                              <div className="dash-stat-body">
+                                <p className="dash-stat-label">Clients Managed</p>
+                                <p className="dash-stat-value">{clientCount}</p>
+                                <p className="dash-stat-sub">Active Corporate Portals</p>
                               </div>
+                            </div>
+
+                            <div className="dash-stat-card">
+                              <div className="dash-stat-icon dash-stat-icon--green">👥</div>
+                              <div className="dash-stat-body">
+                                <p className="dash-stat-label">Active Staff</p>
+                                <p className="dash-stat-value">{activeEmployees}</p>
+                                <p className="dash-stat-sub">Across All Entities</p>
+                              </div>
+                            </div>
+
+                            <div className="dash-stat-card">
+                              <div className="dash-stat-icon dash-stat-icon--purple">💰</div>
+                              <div className="dash-stat-body">
+                                <p className="dash-stat-label">July 2025 Gross Payroll</p>
+                                <p className="dash-stat-value" style={{ fontSize: '20px' }}>₹ {grossTotal.toLocaleString('en-IN')}</p>
+                                <p className="dash-stat-sub">Processing Volume</p>
+                              </div>
+                            </div>
+
+                            <div className="dash-stat-card">
+                              <div className="dash-stat-icon dash-stat-icon--orange">📊</div>
+                              <div className="dash-stat-body">
+                                <p className="dash-stat-label">Variance</p>
+                                <p className={`dash-stat-value ${variance >= 0 ? 'increase' : 'decrease'}`} style={{ fontSize: '18px', margin: 0 }}>
+                                  {variance >= 0 ? '+' : ''}₹ {variance.toLocaleString('en-IN')}
+                                </p>
+                                <p className="dash-stat-sub" style={{ margin: 0 }}>{varPct.toFixed(2)}% vs Last Period</p>
+                              </div>
+                            </div>
+
+                            <div className="dash-stat-card">
+                              <div className="dash-stat-icon dash-stat-icon--red">⏱️</div>
+                              <div className="dash-stat-body">
+                                <p className="dash-stat-label">Cut-off Timer</p>
+                                <p className="dash-stat-value">{isPayrollSubmitted ? '✓ Done' : '2 Days Left'}</p>
+                                <p className="dash-stat-sub">Partner Submission window</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* ── Alerts and Workflows ── */}
+                          <div className="dash-grid-layout">
+
+                            {/* Alert: Cutoff warning */}
+                            <div className="dash-card dash-time-card">
+                              <h3 className="dash-card-title">Processing Timeline Warning</h3>
+                              {isPayrollSubmitted ? (
+                                <div className="admin-alert-banner success">
+                                  <span className="alert-ico">✓</span>
+                                  <div className="alert-text">
+                                    <strong>Submission Completed!</strong>
+                                    <p>Current pay period payroll data has been validated and submitted to partner systems (OK).</p>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="admin-alert-banner warning">
+                                  <span className="alert-ico">⚠️</span>
+                                  <div className="alert-text">
+                                    <strong>Partner Portal Submission Window Expiring</strong>
+                                    <p>Pynk should send data to processing partners by 15 July 2025 cut-off. Please complete comparison and reconciliation reviews first.</p>
+                                  </div>
+                                </div>
+                              )}
+                              {!isPayrollSubmitted && (
+                                <button type="button" className="btn btn-primary" style={{ width: 'fit-content', marginTop: '10px' }}
+                                  onClick={() => {
+                                    setIsPayrollSubmitted(true);
+                                    showToast('Current pay period payroll data submitted - OK');
+                                  }}>
+                                  Submit Current Payroll Data
+                                </button>
+                              )}
+                            </div>
+
+                            {/* Alert: Secondary approval workflows */}
+                            <div className="dash-card dash-leave-card">
+                              <h3 className="dash-card-title">Pending Secondary Approvals</h3>
+                              {isSecondApprovalNotified ? (
+                                <div className="admin-alert-banner success">
+                                  <span className="alert-ico">✓</span>
+                                  <div className="alert-text">
+                                    <strong>Approver Notified!</strong>
+                                    <p>Second approval request has been broadcasted to Wayne Enterprises partner manager.</p>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="admin-alert-banner info">
+                                  <span className="alert-ico">🔔</span>
+                                  <div className="alert-text">
+                                    <strong>Timesheet Stage 2 Approvals Required</strong>
+                                    <p>Timesheet 1st approval is DONE for Stark Industries, but 2nd approval is needed from partner manager before submission.</p>
+                                  </div>
+                                </div>
+                              )}
+                              {!isSecondApprovalNotified && (
+                                <button type="button" className="btn btn-secondary" style={{ width: 'fit-content', marginTop: '10px' }}
+                                  onClick={() => {
+                                    setIsSecondApprovalNotified(true);
+                                    showToast('Second approver notified for Step 2 approval.');
+                                  }}>
+                                  Notify Wayne Enterprises 2nd Approver
+                                </button>
+                              )}
+                            </div>
+
+                            {/* Card: Quick tools */}
+                            <div className="dash-card dash-upcoming-card">
+                              <h3 className="dash-card-title">Partner Integration Overview</h3>
+                              <div className="admin-integration-list">
+                                <div className="integration-row" style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--line-soft)' }}>
+                                  <span>Acme Corp Portal Status:</span>
+                                  <span className="badge done">Verified</span>
+                                </div>
+                                <div className="integration-row" style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--line-soft)' }}>
+                                  <span>Stark Industries Timesheets:</span>
+                                  <span className="badge sign">Pending 2nd Approval</span>
+                                </div>
+                                <div className="integration-row" style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--line-soft)' }}>
+                                  <span>Wayne Enterprises Export status:</span>
+                                  <span className="badge done">CSV Ready</span>
+                                </div>
+                                <div className="integration-row" style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0' }}>
+                                  <span>Globex Corp Audit logs:</span>
+                                  <span className="badge done">100% Checked</span>
+                                </div>
+                              </div>
+                            </div>
+
+                          </div>
+                        </div>
+                      )
+                    })() : currentModule === 'admin-reconciliation' ? (() => {
+                      return (
+                        <div className="dash-shell">
+                          <div className="dash-welcome-row">
+                            <div>
+                              <h1 className="dash-welcome-title">Payroll Reconciliation & Variance Reviews ⚖️</h1>
+                              <p className="dash-welcome-sub">Compare current in-progress period against previous completed pay period.</p>
+                            </div>
+                            <div className="dash-actions-row" style={{ display: 'flex', gap: '10px' }}>
+                              <button type="button" className="btn btn-secondary" onClick={handleExportCSV}>
+                                📥 Export CSV
+                              </button>
+                              <button type="button" className="btn btn-primary" disabled={isPayrollSubmitted}
+                                onClick={() => {
+                                  setIsPayrollSubmitted(true);
+                                  showToast('Reconciled payroll details sent to partners successfully!');
+                                }}>
+                                ✈️ Send to Partners
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Dimension Toggles */}
+                          <div className="reconciliation-dimensions-tabs" style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--line)', paddingBottom: '12px' }}>
+                            {(['client', 'employee', 'paygroup', 'payment'] as const).map((dim) => (
+                              <button
+                                key={dim}
+                                type="button"
+                                className={`btn ${reconciliationDimension === dim ? 'btn-primary' : ''}`}
+                                onClick={() => setReconciliationDimension(dim)}
+                              >
+                                {dim.charAt(0).toUpperCase() + dim.slice(1)} Wise
+                              </button>
                             ))}
                           </div>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })()}
 
-              </div>
-            )
-          })() : currentModule === 'admin-access' ? (() => {
-            return (
-              <div className="dash-shell">
-                <div className="dash-welcome-row">
-                  <div>
-                    <h1 className="dash-welcome-title">User Roles & Access Privilege Control 🔐</h1>
-                    <p className="dash-welcome-sub">Manage active view permissions (Employee View, Admin View, Client View) across corporate personnel.</p>
-                  </div>
-                </div>
-
-                <div className="dash-card" style={{ padding: 0, overflow: 'hidden' }}>
-                  <div className="tbl">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Personnel ID</th>
-                          <th>Full Name</th>
-                          <th>Corporate Client</th>
-                          <th className="text-center" style={{ textAlign: 'center' }}>Employee View</th>
-                          <th className="text-center" style={{ textAlign: 'center' }}>Admin View</th>
-                          <th className="text-center" style={{ textAlign: 'center' }}>Client View</th>
-                          <th className="num">Perspective Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {adminEmployees.map((emp) => (
-                          <tr key={emp.id}>
-                            <td><code>{emp.id}</code></td>
-                            <td><strong>{emp.name}</strong></td>
-                            <td>{emp.clientName}</td>
-                            <td className="text-center" style={{ textAlign: 'center' }}>
-                              <input
-                                type="checkbox"
-                                style={{ width: '16px', height: '16px', cursor: 'pointer' }}
-                                checked={emp.hasEmployeeView}
-                                onChange={() => handleToggleAccess(emp.id, 'employee')}
-                              />
-                            </td>
-                            <td className="text-center" style={{ textAlign: 'center' }}>
-                              <input
-                                type="checkbox"
-                                style={{ width: '16px', height: '16px', cursor: 'pointer' }}
-                                checked={emp.hasAdminView}
-                                disabled={emp.id === 'EMP-005' || emp.id === 'EMP-009'} // Safeguard primary admins
-                                onChange={() => handleToggleAccess(emp.id, 'admin')}
-                              />
-                            </td>
-                            <td className="text-center" style={{ textAlign: 'center' }}>
-                              <input
-                                type="checkbox"
-                                style={{ width: '16px', height: '16px', cursor: 'pointer' }}
-                                checked={emp.hasClientView}
-                                onChange={() => handleToggleAccess(emp.id, 'client')}
-                              />
-                            </td>
-                            <td className="num">
-                              {emp.hasEmployeeView && (
-                                <button type="button" className="btn btn-secondary btn-sm" style={{ marginRight: '6px' }}
-                                  onClick={() => {
-                                    setPreviewRoleMode('employee');
-                                    setCurrentModule('dashboard');
-                                    showToast(`Impersonating ${emp.name} (Employee perspective)`);
-                                  }}>
-                                  👁️ Preview Employee
-                                </button>
-                              )}
-                              {emp.hasClientView && (
-                                <button type="button" className="btn btn-secondary btn-sm"
-                                  onClick={() => {
-                                    setPreviewRoleMode('client');
-                                    setCurrentModule('client-dashboard');
-                                    showToast('Impersonating Client Portal Dashboard.');
-                                  }}>
-                                    🏢 Preview Client
-                                </button>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-              </div>
-            )
-          })() : currentModule === 'client-dashboard' ? (() => {
-            return (
-              <div className="dash-shell">
-                <div className="dash-welcome-row">
-                  <div>
-                    <h1 className="dash-welcome-title">Acme & Stark Industries - Corporate Client Dashboard 🏢</h1>
-                    <p className="dash-welcome-sub">View overall staff lists, aggregate gross pay volume, and timesheet processing status.</p>
-                  </div>
-                </div>
-
-                <div className="dash-stats-row">
-                  <div className="dash-stat-card">
-                    <div className="dash-stat-icon dash-stat-icon--blue">👥</div>
-                    <div className="dash-stat-body">
-                      <p className="dash-stat-label">Total Employee Count</p>
-                      <p className="dash-stat-value">5</p>
-                      <p className="dash-stat-sub">Managed under entity</p>
-                    </div>
-                  </div>
-
-                  <div className="dash-stat-card">
-                    <div className="dash-stat-icon dash-stat-icon--green">⏱️</div>
-                    <div className="dash-stat-body">
-                      <p className="dash-stat-label">Timesheets Approved</p>
-                      <p className="dash-stat-value">100%</p>
-                      <p className="dash-stat-sub">All logged hours verified</p>
-                    </div>
-                  </div>
-
-                  <div className="dash-stat-card">
-                    <div className="dash-stat-icon dash-stat-icon--purple">💰</div>
-                    <div className="dash-stat-body">
-                      <p className="dash-stat-label">Total Entity Payroll</p>
-                      <p className="dash-stat-value" style={{ fontSize: '20px' }}>₹ 3,78,000.00</p>
-                      <p className="dash-stat-sub">Pending final partner wire</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="dash-card">
-                  <h3 className="dash-card-title">Corporate Personnel Directory</h3>
-                  <div className="tbl">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>ID</th>
-                          <th>Name</th>
-                          <th>Role</th>
-                          <th>Pay Group</th>
-                          <th>Payment Method</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td><code>EMP-001</code></td>
-                          <td>John Doe</td>
-                          <td>Senior Developer</td>
-                          <td>Engineering</td>
-                          <td>Direct Deposit</td>
-                        </tr>
-                        <tr>
-                          <td><code>EMP-002</code></td>
-                          <td>Jane Smith</td>
-                          <td>UI/UX Designer</td>
-                          <td>Design</td>
-                          <td>Direct Deposit</td>
-                        </tr>
-                        <tr>
-                          <td><code>EMP-003</code></td>
-                          <td>Robert Brown</td>
-                          <td>Security Architect</td>
-                          <td>Engineering</td>
-                          <td>Direct Deposit</td>
-                        </tr>
-                        <tr>
-                          <td><code>EMP-004</code></td>
-                          <td>Emily Johnson</td>
-                          <td>QA Lead</td>
-                          <td>QA</td>
-                          <td>Direct Deposit</td>
-                        </tr>
-                        <tr>
-                          <td><code>EMP-008</code></td>
-                          <td>Peter Parker</td>
-                          <td>Photographer</td>
-                          <td>Editorial</td>
-                          <td>Check</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            )
-          })() : currentModule === 'dashboard' ? (() => {
-            /* ── Dashboard computed values ── */
-            const today = new Date()
-            const todayLabel = today.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
-
-            // Timesheet – current range
-            const dashHrs = Math.floor(totals.totalHours)
-            const dashMins = Math.round((totals.totalHours - dashHrs) * 60)
-            const dashTimesheetLabel = `${dashHrs}h${dashMins > 0 ? ` ${dashMins}m` : ''}`
-            const dashTimesheetPct = Math.min(100, Math.round((totals.totalHours / 40) * 100))
-
-            // Leave overview derived from leaveBalances
-            const totalAvailableDays = leaveBalances.reduce((s, b) => s + Math.max(0, b.entitlement - b.used - b.pending), 0)
-            const totalTakenDays = leaveBalances.reduce((s, b) => s + b.used, 0)
-            const totalPendingDays = leaveBalances.reduce((s, b) => s + b.pending, 0)
-            const totalPlannedDays = leaveRequests.filter(r => r.status === 'approved' && fromIso(r.fromDateISO) > today).reduce((s, r) => s + r.durationDays, 0)
-
-            // Donut chart
-            const donutTotal = totalAvailableDays + totalPlannedDays + totalPendingDays + totalTakenDays
-            const donutR = 54
-            const donutCirc = 2 * Math.PI * donutR
-            const donutSegments = [
-              { label: 'Available', days: totalAvailableDays, color: '#48b36a' },
-              { label: 'Planned', days: totalPlannedDays, color: '#5a7dff' },
-              { label: 'Pending Approval', days: totalPendingDays, color: '#f4ac3f' },
-              { label: 'Taken', days: totalTakenDays, color: '#e74c3c' },
-            ]
-            let donutOffset = 0
-
-            // Upcoming leaves (future pending/approved)
-            const upcomingLeaves = leaveRequests
-              .filter(r => (r.status === 'approved' || r.status === 'pending') && fromIso(r.fromDateISO) > today)
-              .slice(0, 3)
-
-            // Expiring identity docs (within 90 days)
-            const expiringDocs = identityDocs.filter(d => {
-              if (!d.expiryDate || d.expiryDate === '-') return false
-              const [dd, mm, yyyy] = d.expiryDate.split(' ')
-              const monthIdx = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].indexOf(mm)
-              if (monthIdx === -1 || !yyyy) return false
-              const exp = new Date(Number(yyyy), monthIdx, Number(dd))
-              const diff = (exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
-              return diff >= 0 && diff <= 90
-            })
-
-            // Latest payslip
-            const latestPayslip = payslipSeedData[0]
-
-            // Recent activity from notifications (last 4)
-            const recentActivity = notifications.slice(0, 4)
-
-            // Company announcements (static)
-            const announcements = [
-              { id: 'a1', icon: '📢', title: 'Public Holiday on 27 June 2025', body: 'Please note that 27 June 2025 (Friday) will be a public holiday for all employees.', age: '2 days ago' },
-              { id: 'a2', icon: '📋', title: 'Policy Update', body: 'We have updated our Remote Work Policy. Please read the updated policy.', age: '5 days ago' },
-              { id: 'a3', icon: '🎤', title: 'Townhall Meeting', body: 'Quarterly townhall meeting is scheduled on 20 June 2025 at 4:00 PM IST.', age: '1 week ago' },
-            ]
-
-            // Reminders
-            const reminders = [
-              ...expiringDocs.map(d => ({
-                id: d.id,
-                icon: '🔴',
-                title: `${d.name} Expiring Soon`,
-                sub: `Expires on ${d.expiryDate}`,
-                module: 'documents' as Module,
-              })),
-              {
-                id: 'rem-ts',
-                icon: '🕐',
-                title: 'Timesheet Submission',
-                sub: `Submit before ${new Date(today.getFullYear(), today.getMonth(), today.getDate() + (5 - today.getDay() + 7) % 7).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`,
-                module: 'time-entry' as Module,
-              },
-            ].slice(0, 4)
-
-            // Day-grid for time overview (current week range)
-            const dayGridDays = activeRange.days.slice(0, 7)
-
-            return (
-              <div className="dash-shell">
-
-                {/* ── Welcome Row ── */}
-                <div className="dash-welcome-row">
-                  <div>
-                    <h1 className="dash-welcome-title">Welcome back, {personalInfo.preferredName || personalInfo.firstName}! 👋</h1>
-                    <p className="dash-welcome-sub">Here's what's happening with your work today.</p>
-                  </div>
-                  <div className="dash-today-date">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                      <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
-                      <line x1="3" y1="10" x2="21" y2="10"/>
-                    </svg>
-                    {todayLabel}
-                  </div>
-                </div>
-
-                {/* ── Stat Cards ── */}
-                <div className="dash-stats-row">
-
-                  {/* Total Leave Balance */}
-                  <div className="dash-stat-card">
-                    <div className="dash-stat-icon dash-stat-icon--green">
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                        <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
-                        <line x1="3" y1="10" x2="21" y2="10"/>
-                      </svg>
-                    </div>
-                    <div className="dash-stat-body">
-                      <p className="dash-stat-label">Total Leave Balance</p>
-                      <p className="dash-stat-value">{totalAvailableDays}<span className="dash-stat-unit"> days</span></p>
-                      <p className="dash-stat-sub">Days Available</p>
-                    </div>
-                  </div>
-
-                  {/* Pending Leave Requests */}
-                  <div className="dash-stat-card">
-                    <div className="dash-stat-icon dash-stat-icon--orange">
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M17.8 19.2L16 11l3.5-3.5C21 6 21 4 19 4c-1.5 0-3 1-4.5 2.5L11 8 2.8 6.2c-.5-.1-.9.4-.6.8L6 10l-2 3.5c-.3.5.1 1 .6.9L8 14l.5 2.5c.1.5.6.8 1 .5l2.5-2.5L14 16l2.2.8c.7.3 1.4-.3 1.2-1l-.6-1.5-.8-.1z"/>
-                      </svg>
-                    </div>
-                    <div className="dash-stat-body">
-                      <p className="dash-stat-label">Pending Leave Requests</p>
-                      <p className="dash-stat-value">{leaveSummary.pending}</p>
-                      <p className="dash-stat-sub">Request Pending</p>
-                    </div>
-                  </div>
-
-                  {/* Timesheet This Week */}
-                  <div className="dash-stat-card">
-                    <div className="dash-stat-icon dash-stat-icon--blue">
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-                      </svg>
-                    </div>
-                    <div className="dash-stat-body">
-                      <p className="dash-stat-label">Timesheet This Week</p>
-                      <p className="dash-stat-value">{dashTimesheetLabel}</p>
-                      <p className="dash-stat-sub">Logged Hours</p>
-                    </div>
-                  </div>
-
-                  {/* Payslip */}
-                  <div className="dash-stat-card">
-                    <div className="dash-stat-icon dash-stat-icon--purple">
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
-                        <line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
-                      </svg>
-                    </div>
-                    <div className="dash-stat-body">
-                      <p className="dash-stat-label">Payslip ({latestPayslip.month})</p>
-                      <span className="dash-badge dash-badge--green">Generated</span>
-                      <button type="button" className="dash-link-btn" onClick={() => { setCurrentModule('my-pay'); setActivePayTab('Payslips') }}>
-                        View Payslip
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Documents Expiring */}
-                  <div className="dash-stat-card">
-                    <div className="dash-stat-icon dash-stat-icon--red">
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                        <polyline points="14 2 14 8 20 8"/>
-                        <line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="19" r="0.5" fill="currentColor"/>
-                      </svg>
-                    </div>
-                    <div className="dash-stat-body">
-                      <p className="dash-stat-label">Documents Expiring</p>
-                      <p className="dash-stat-value">{expiringDocs.length || 2}</p>
-                      <p className="dash-stat-sub">Require Attention</p>
-                    </div>
-                  </div>
-
-                </div>
-
-                {/* ── Dashboard Grid Layout ── */}
-                <div className="dash-grid-layout">
-
-                  {/* My Time Overview */}
-                  <div className="dash-card dash-time-card">
-                    <h3 className="dash-card-title">My Time Overview</h3>
-                    <div className="dash-time-week-bar">
-                      <div className="dash-time-week-label">
-                        <span>This Week ({getRangeLabel(activeRange.fromDateISO, activeRange.toDateISO)})</span>
-                        <strong>{dashTimesheetLabel} / 40h</strong>
-                      </div>
-                      <div className="dash-progress-track">
-                        <div className="dash-progress-fill" style={{ width: `${dashTimesheetPct}%` }}/>
-                      </div>
-                    </div>
-
-                    <div className="dash-day-grid">
-                      {dayGridDays.map(day => {
-                        const hrs = Math.floor(day.hours)
-                        const mins = Math.round((day.hours - hrs) * 60)
-                        const label = hrs > 0 ? `${hrs}h${mins > 0 ? ` ${mins}m` : ''}` : '–'
-                        return (
-                          <div key={day.key} className="dash-day-cell">
-                            <span className="dash-day-label">{day.label.slice(0,3)}</span>
-                            <span className="dash-day-hours">{label}</span>
-                            <span className={`dash-day-dot ${day.status === 'submitted' ? 'dot-submitted' : day.status === 'draft' ? 'dot-draft' : 'dot-none'}`}/>
-                          </div>
-                        )
-                      })}
-                    </div>
-
-                    <button type="button" className="dash-view-link" onClick={() => setCurrentModule('time-entry')}>
-                      View Time Entry →
-                    </button>
-                  </div>
-
-                  {/* My Leave Overview */}
-                  <div className="dash-card dash-leave-card">
-                    <h3 className="dash-card-title">My Leave Overview</h3>
-                    <div className="dash-leave-body">
-                      {/* Donut Chart SVG */}
-                      <div className="dash-donut-wrap">
-                        <svg width="140" height="140" viewBox="0 0 140 140">
-                          <circle cx="70" cy="70" r={donutR} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="18"/>
-                          {donutTotal > 0 && donutSegments.map(seg => {
-                            const dashLen = (seg.days / donutTotal) * donutCirc
-                            const gap = donutCirc - dashLen
-                            const currentOffset = donutOffset
-                            donutOffset += dashLen
-                            if (seg.days === 0) return null
-                            return (
-                              <circle
-                                key={seg.label}
-                                cx="70" cy="70" r={donutR}
-                                fill="none"
-                                stroke={seg.color}
-                                strokeWidth="18"
-                                strokeDasharray={`${dashLen} ${gap}`}
-                                strokeDashoffset={donutCirc / 4 - currentOffset}
-                                strokeLinecap="butt"
-                              />
-                            )
-                          })}
-                          <text x="70" y="66" textAnchor="middle" dominantBaseline="middle" style={{ fill: 'var(--ink)', fontSize: '22px', fontWeight: 700 }}>
-                            {totalAvailableDays}
-                          </text>
-                          <text x="70" y="84" textAnchor="middle" dominantBaseline="middle" style={{ fill: 'var(--muted)', fontSize: '11px' }}>
-                            Days
-                          </text>
-                        </svg>
-                      </div>
-
-                      {/* Legend */}
-                      <div className="dash-leave-legend">
-                        {donutSegments.map(seg => (
-                          <div key={seg.label} className="dash-legend-row">
-                            <span className="dash-legend-dot" style={{ background: seg.color }}/>
-                            <span className="dash-legend-label">{seg.label}</span>
-                            <span className="dash-legend-val">{seg.days.toFixed(1)} Days</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    <button type="button" className="dash-view-link" onClick={() => { setCurrentModule('time-entry'); setActiveTimeEntryTab('Leave'); setActiveLeaveTab('Leave Balance') }}>
-                      View Leave Balance
-                    </button>
-                  </div>
-
-                  {/* Upcoming Leave */}
-                  <div className="dash-card dash-upcoming-card">
-                    <div className="dash-card-header-row">
-                      <h3 className="dash-card-title">Upcoming Leave</h3>
-                      <button type="button" className="dash-view-all-btn" onClick={() => { setCurrentModule('time-entry'); setActiveTimeEntryTab('Leave'); setActiveLeaveTab('Leave History') }}>View All</button>
-                    </div>
-                    {upcomingLeaves.length === 0 ? (
-                      <p className="dash-empty-note">No upcoming leaves scheduled.</p>
-                    ) : (
-                      <div className="dash-upcoming-list">
-                        {upcomingLeaves.map(r => (
-                          <div key={r.id} className="dash-upcoming-item">
-                            <div className="dash-upcoming-info">
-                              <p className="dash-upcoming-type">{leaveTypeLabel[r.leaveType]}</p>
-                              <p className="dash-upcoming-dates">{formatDateWithYear(r.fromDateISO)} – {formatDateWithYear(r.toDateISO)}</p>
-                            </div>
-                            <div className="dash-upcoming-right">
-                              <span className={`dash-badge ${r.status === 'approved' ? 'dash-badge--green' : 'dash-badge--yellow'}`}>
-                                {r.status === 'approved' ? 'Approved' : 'Pending'}
-                              </span>
-                              <span className="dash-upcoming-days">{r.durationDays} Day{r.durationDays !== 1 ? 's' : ''}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Important Reminders */}
-                  <div className="dash-card dash-reminders-card">
-                    <div className="dash-card-header-row">
-                      <h3 className="dash-card-title">Important Reminders</h3>
-                    </div>
-                    <div className="dash-reminders-list">
-                      {reminders.map(rem => (
-                        <div key={rem.id} className="dash-reminder-item" role="button" tabIndex={0}
-                          onClick={() => setCurrentModule(rem.module)}
-                          onKeyDown={e => e.key === 'Enter' && setCurrentModule(rem.module)}>
-                          <span className="dash-reminder-icon">{rem.icon}</span>
-                          <div className="dash-reminder-body">
-                            <p className="dash-reminder-title">{rem.title}</p>
-                            <p className="dash-reminder-sub">{rem.sub}</p>
-                          </div>
-                          <span className="dash-reminder-arrow">→</span>
-                        </div>
-                      ))}
-                      {reminders.length === 0 && (
-                        <p className="dash-empty-note">No active reminders.</p>
-                      )}
-                    </div>
-                    <button type="button" className="dash-view-link" onClick={() => setIsNotificationDrawerOpen(true)}>View All Reminders</button>
-                  </div>
-
-                  {/* Quick Actions */}
-                  <div className="dash-card dash-quick-card">
-                    <h3 className="dash-card-title">Quick Actions</h3>
-                    <div className="dash-quick-grid">
-                      <button type="button" className="dash-quick-btn" onClick={() => { setCurrentModule('time-entry'); setActiveTimeEntryTab('My Timesheet') }}>
-                        <span className="dash-quick-icon dash-qi--green">
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
-                            <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-                          </svg>
-                        </span>
-                        Request Day Off / Leave
-                      </button>
-                      <button type="button" className="dash-quick-btn" onClick={() => setCurrentModule('time-entry')}>
-                        <span className="dash-quick-icon dash-qi--blue">
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-                          </svg>
-                        </span>
-                        Log Time
-                      </button>
-                      <button type="button" className="dash-quick-btn" onClick={() => { setCurrentModule('documents'); setActiveDocTab('Uploaded Documents') }}>
-                        <span className="dash-quick-icon dash-qi--purple">
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                            <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
-                          </svg>
-                        </span>
-                        Upload Document
-                      </button>
-                      <button type="button" className="dash-quick-btn" onClick={() => { setCurrentModule('my-pay'); setActivePayTab('Payslips') }}>
-                        <span className="dash-quick-icon dash-qi--red">
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <rect x="2" y="3" width="20" height="14" rx="2"/>
-                            <line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
-                          </svg>
-                        </span>
-                        View Payslip
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Recent Activity */}
-                  <div className="dash-card dash-activity-card">
-                    <div className="dash-card-header-row">
-                      <h3 className="dash-card-title">Recent Activity</h3>
-                      <button type="button" className="dash-view-all-btn" onClick={() => setIsNotificationDrawerOpen(true)}>View All</button>
-                    </div>
-                    <div className="dash-activity-list">
-                      {recentActivity.map(item => (
-                        <div key={item.id} className="dash-activity-item" role="button" tabIndex={0}
-                          onClick={() => handleNotificationClick(item)}
-                          onKeyDown={e => e.key === 'Enter' && handleNotificationClick(item)}>
-                          <span className="dash-activity-icon">
-                            {item.category === 'leave' ? '✈️' : item.category === 'payroll' ? '💰' : item.category === 'time-entry' ? '⏱️' : item.category === 'documents' ? '📄' : '🔔'}
-                          </span>
-                          <div className="dash-activity-body">
-                            <p className="dash-activity-title">{item.title}</p>
-                            <p className="dash-activity-sub">{item.description}</p>
-                          </div>
-                          <span className="dash-activity-time">{item.timestamp}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Company Announcements */}
-                  <div className="dash-card dash-announce-card">
-                    <div className="dash-card-header-row">
-                      <h3 className="dash-card-title">Company Announcements</h3>
-                      <button type="button" className="dash-view-all-btn" onClick={() => setIsNotificationDrawerOpen(true)}>View All</button>
-                    </div>
-                    <div className="dash-announcements-list">
-                      {announcements.map(ann => (
-                        <div key={ann.id} className="dash-announce-item">
-                          <span className="dash-announce-icon">{ann.icon}</span>
-                          <div className="dash-announce-body">
-                            <p className="dash-announce-title">{ann.title}</p>
-                            <p className="dash-announce-desc">{ann.body}</p>
-                            <p className="dash-announce-age">{ann.age}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                </div>
-
-              </div>
-            )
-          })() : currentModule === 'time-entry' ? (
-            <div className="time-entry-shell">
-              <div className="time-entry-top">
-                <div className="time-entry-tabs" role="tablist" aria-label="Time entry tabs">
-                  {timeEntryTabs.map((tab) => (
-                    <button
-                      key={tab}
-                      type="button"
-                      className={`time-tab ${activeTimeEntryTab === tab ? 'active' : ''}`}
-                      onClick={() => setActiveTimeEntryTab(tab)}
-                    >
-                      {tab}
-                    </button>
-                  ))}
-                </div>
-
-                {isCalendarTab ? (
-                  <div className="calendar-toolbar">
-                    <div className="calendar-nav-group" aria-label="Calendar navigation">
-                      <button type="button" className="calendar-chip-btn" onClick={() => setCalendarMonthDate(startOfMonth(fromIso(activeRange.fromDateISO)))}>
-                        Today
-                      </button>
-                      <button type="button" className="calendar-icon-btn" aria-label="Previous month" onClick={() => setCalendarMonthDate((prev) => addMonths(prev, -1))}>
-                        ‹
-                      </button>
-                      <div className="calendar-month-pill">{formatMonthYear(calendarMonthDate)}</div>
-                      <button type="button" className="calendar-icon-btn" aria-label="Next month" onClick={() => setCalendarMonthDate((prev) => addMonths(prev, 1))}>
-                        ›
-                      </button>
-                    </div>
-
-                    <div className="calendar-toolbar-actions">
-                      <button
-                        type="button"
-                        className={`calendar-chip-btn ${isCalendarFiltersOpen ? 'active' : ''}`}
-                        onClick={() => setIsCalendarFiltersOpen((prev) => !prev)}
-                      >
-                        Filters
-                      </button>
-                      <button type="button" className="btn" onClick={() => openEditModalForDay(selectedDay.key)}>
-                        Edit Selected
-                      </button>
-                      <button type="button" className="btn btn-primary" onClick={handleSubmit}>Submit</button>
-                    </div>
-
-                    {isCalendarFiltersOpen && (
-                      <div className="calendar-filter-popover" role="dialog" aria-label="Calendar filters">
-                        {(['submitted', 'draft', 'returned', 'none'] as TimeEntryStatus[]).map((status) => (
-                          <label key={status} className="calendar-filter-option">
-                            <input
-                              type="checkbox"
-                              checked={calendarVisibleStatuses.includes(status)}
-                              onChange={() => toggleCalendarStatus(status)}
-                            />
-                            <span className={`status-chip ${status}`}>{statusLabel[status] === '-' ? 'No Entry' : statusLabel[status]}</span>
-                          </label>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ) : isTimeHistoryTab ? (
-                  <div className="history-toolbar">
-                    <div className="history-range-group">
-                      <span className="history-range-label">Date Range</span>
-                      <label className="history-date-pill">
-                        <input
-                          type="date"
-                          value={historyFromDateInput}
-                          max={todayIso}
-                          onChange={(event) => setHistoryFromDateInput(event.target.value)}
-                        />
-                      </label>
-                      <span className="history-range-sep">-</span>
-                      <label className="history-date-pill">
-                        <input
-                          type="date"
-                          value={historyToDateInput}
-                          max={todayIso}
-                          onChange={(event) => setHistoryToDateInput(event.target.value)}
-                        />
-                      </label>
-                      <button type="button" className="history-ghost-btn" onClick={applyHistoryDateFilter}>
-                        Apply
-                      </button>
-                    </div>
-
-                    <div className="history-toolbar-actions">
-                      <button
-                        type="button"
-                        className={`history-ghost-btn ${isTimeHistoryFiltersOpen ? 'active' : ''}`}
-                        onClick={() => setIsTimeHistoryFiltersOpen((prev) => !prev)}
-                      >
-                        Filter
-                      </button>
-                      <button type="button" className="history-ghost-btn" onClick={handleExportTimeHistory}>
-                        Export
-                      </button>
-                    </div>
-
-                    {isTimeHistoryFiltersOpen && (
-                      <div className="history-filter-popover" role="dialog" aria-label="Time history filters">
-                        {(['all', 'approved', 'draft', 'returned'] as const).map((status) => (
-                          <button
-                            key={status}
-                            type="button"
-                            className={`history-filter-chip ${historyStatusFilter === status ? 'active' : ''}`}
-                            onClick={() => setHistoryStatusFilter(status)}
-                          >
-                            {status === 'all' ? 'All Statuses' : timeHistoryStatusLabel[status]}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ) : isApprovalsTab ? (
-                  <div className="approvals-toolbar">
-                    <div className="approvals-filter-row" role="tablist" aria-label="Approval filters">
-                      {([
-                        ['pending', `Pending (${approvalCounts.pending})`],
-                        ['approved', 'Approved'],
-                        ['returned', 'Returned'],
-                        ['all', 'All'],
-                      ] as const).map(([status, label]) => (
-                        <button
-                          key={status}
-                          type="button"
-                          className={`approval-filter-chip ${approvalFilter === status ? 'active' : ''}`}
-                          onClick={() => setApprovalFilter(status)}
-                        >
-                          {label}
-                        </button>
-                      ))}
-                    </div>
-
-                    <div className="approvals-toolbar-actions">
-                      <button
-                        type="button"
-                        className={`approval-toolbar-btn ${isApprovalsFilterOpen ? 'active' : ''}`}
-                        onClick={() => setIsApprovalsFilterOpen((prev) => !prev)}
-                      >
-                        Filter
-                      </button>
-                    </div>
-
-                    {isApprovalsFilterOpen && (
-                      <div className="approval-filter-popover" role="dialog" aria-label="Approvals filters">
-                        {(['pending', 'approved', 'returned', 'all'] as const).map((status) => (
-                          <button
-                            key={status}
-                            type="button"
-                            className={`approval-filter-chip ${approvalFilter === status ? 'active' : ''}`}
-                            onClick={() => {
-                              setApprovalFilter(status)
-                              setIsApprovalsFilterOpen(false)
-                            }}
-                          >
-                            {status === 'pending'
-                              ? `Pending (${approvalCounts.pending})`
-                              : status === 'all'
-                                ? 'All'
-                                : approvalStatusLabel[status]}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ) : isLeaveTab ? (
-                  null
-                ) : (
-                  <div className="time-entry-actions">
-                    <label className="date-control">
-                      From
-                      <input type="date" value={fromDateInput} max={todayIso} onChange={(event) => setFromDateInput(event.target.value)} />
-                    </label>
-                    <label className="date-control">
-                      To
-                      <input type="date" value={toDateInput} max={todayIso} onChange={(event) => setToDateInput(event.target.value)} />
-                    </label>
-                    <button type="button" className="btn" onClick={applyDateRange}>Apply Dates</button>
-                    <button type="button" className="btn btn-primary" onClick={handleSubmit}>Submit</button>
-                  </div>
-                )}
-              </div>
-
-              {dateRangeError && <p className="submit-error">{dateRangeError}</p>}
-              {submitError && <p className="submit-error">{submitError}</p>}
-              {isTimeHistoryTab && historyFilterError && <p className="submit-error">{historyFilterError}</p>}
-
-              {isCalendarTab ? (
-                <div className="time-calendar-layout">
-                  <section className="calendar-surface" aria-label="Monthly time entry calendar">
-                    <div className="calendar-week-header">
-                      {calendarWeekdays.map((label) => (
-                        <span key={label}>{label}</span>
-                      ))}
-                    </div>
-
-                    <div className="calendar-grid">
-                      {calendarDays.map((cell) => {
-                        const isLeave = cell.entry?.isLeave
-                        const status = isLeave ? 'leave' : (cell.entry?.status ?? 'none')
-                        const statusText = isLeave
-                          ? (cell.entry?.leaveType ? leaveTypeLabel[cell.entry.leaveType] : 'Leave')
-                          : (statusLabel[status] === '-' ? 'No Entry' : statusLabel[status])
-
-                        return (
-                          <button
-                            key={cell.iso}
-                            type="button"
-                            className={[
-                              'calendar-cell',
-                              cell.isCurrentMonth ? '' : 'is-outside',
-                              cell.isSelected ? 'is-selected' : '',
-                              cell.isToday ? 'is-today' : '',
-                              cell.isVisible ? '' : 'is-filtered',
-                            ].filter(Boolean).join(' ')}
-                            onClick={() => handleCalendarCellClick(cell.iso)}
-                          >
-                            <div className="calendar-cell-head">
-                              <span className="calendar-date-number">{cell.date.getDate()}</span>
-                              {cell.entry && cell.isVisible ? <i className={`dot ${status}`} /> : null}
-                            </div>
-                            <div className="calendar-cell-body">
-                              {cell.entry && cell.isVisible ? (
-                                <>
-                                  <span className={`calendar-hours-pill ${status}`}>
-                                    {isLeave ? 'Leave' : (cell.entry.hours > 0 ? `${formatHours(cell.entry.hours)}h` : '0h')}
-                                  </span>
-                                  <small>{statusText}</small>
-                                </>
-                              ) : (
-                                <small>{cell.isCurrentMonth ? 'No entry' : ''}</small>
-                              )}
-                            </div>
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </section>
-
-                  <aside className="calendar-summary-panel" aria-label="Calendar summary">
-                    <section className="calendar-summary-card">
-                      <h3>Summary</h3>
-                      <p className="calendar-summary-month">{formatMonthYear(calendarMonthDate)}</p>
-                      <div className="calendar-summary-metrics">
-                        <div>
-                          <span>Total Hours</span>
-                          <strong>{formatHours(visibleMonthTotals.totalHours)} hrs</strong>
-                        </div>
-                        <div>
-                          <span>Regular Hours</span>
-                          <strong>{formatHours(visibleMonthTotals.regularHours)} hrs</strong>
-                        </div>
-                        <div>
-                          <span>Overtime</span>
-                          <strong>{formatHours(visibleMonthTotals.overtimeHours)} hrs</strong>
-                        </div>
-                        <div>
-                          <span>Leave Hours</span>
-                          <strong>{formatHours(visibleMonthTotals.leaveHours)} hrs</strong>
-                        </div>
-                      </div>
-                    </section>
-
-                    <section className="calendar-summary-card">
-                      <h3>Status Mix</h3>
-                      <div className="calendar-status-list">
-                        <span><i className="dot leave" />Leave <strong>{visibleMonthTotals.leave}</strong></span>
-                        <span><i className="dot submitted" />Submitted <strong>{visibleMonthTotals.submitted}</strong></span>
-                        <span><i className="dot draft" />Draft <strong>{visibleMonthTotals.draft}</strong></span>
-                        <span><i className="dot returned" />Returned <strong>{visibleMonthTotals.returned}</strong></span>
-                        <span><i className="dot none" />No Entry <strong>{visibleMonthTotals.none}</strong></span>
-                      </div>
-                    </section>
-
-                    <section className="calendar-summary-card">
-                      <div className="day-card-head compact">
-                        <h4>{formatDateLong(selectedDay.key)}</h4>
-                        <button type="button" onClick={() => openEditModalForDay(selectedDay.key)}>Edit</button>
-                      </div>
-                      <dl className="calendar-detail-list">
-                        <div>
-                          <dt>Status</dt>
-                          <dd>
-                            <span className={`status-chip ${selectedDay.isLeave ? 'leave' : selectedDay.status}`}>
-                              {selectedDay.isLeave
-                                ? (selectedDay.leaveType ? leaveTypeLabel[selectedDay.leaveType] : 'Leave')
-                                : (statusLabel[selectedDay.status] === '-' ? 'No Entry' : statusLabel[selectedDay.status])}
-                            </span>
-                          </dd>
-                        </div>
-                        <div><dt>Work Location</dt><dd>{selectedDay.workLocation}</dd></div>
-                        <div><dt>Start Time</dt><dd>{selectedDay.isLeave ? '--' : selectedDay.startTime}</dd></div>
-                        <div><dt>End Time</dt><dd>{selectedDay.isLeave ? '--' : selectedDay.endTime}</dd></div>
-                        <div><dt>Break</dt><dd>{selectedDay.isLeave ? '--' : selectedDay.breakDuration}</dd></div>
-                        <div><dt>Notes</dt><dd>{selectedDay.notes || 'No notes.'}</dd></div>
-                      </dl>
-                    </section>
-                  </aside>
-                </div>
-              ) : isTimeHistoryTab ? (
-                <div className="time-history-shell">
-                  <p className="history-range-note">Showing history for {appliedHistoryRangeLabel}</p>
-                  <section className="time-history-card" aria-label="Time history table">
-                    <table className="time-history-table">
-                      <thead>
-                        <tr>
-                          <th>Week</th>
-                          <th>Total Hours</th>
-                          <th>Regular Hours</th>
-                          <th>Overtime</th>
-                          <th>Leave Hours</th>
-                          <th>Status</th>
-                          <th>Submitted On</th>
-                          <th>Approved On</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredTimeHistoryItems.map((item) => (
-                          <tr key={item.key}>
-                            <td>{getRangeLabel(item.fromDateISO, item.toDateISO)}</td>
-                            <td>{formatHours(item.totalHours)}</td>
-                            <td>{formatHours(item.regularHours)}</td>
-                            <td>{formatHours(item.overtimeHours)}</td>
-                            <td>{formatHours(item.leaveHours)}</td>
-                            <td>
-                              <span className={`history-status-chip ${item.status}`}>
-                                {timeHistoryStatusLabel[item.status]}
-                              </span>
-                            </td>
-                            <td>{item.submittedOnISO ? formatDateWithYear(item.submittedOnISO) : '-'}</td>
-                            <td>{item.approvedOnISO ? formatDateWithYear(item.approvedOnISO) : '-'}</td>
-                          </tr>
-                        ))}
-                        {filteredTimeHistoryItems.length === 0 && (
-                          <tr>
-                            <td colSpan={8} className="history-empty-row">No time history found for the current filters.</td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </section>
-                </div>
-              ) : isApprovalsTab ? (
-                <div className="approvals-shell">
-                  {filteredApprovalItems.map((item) => {
-                    const isExpanded = expandedApprovalKey === item.key
-
-                    return (
-                      <section key={item.key} className="approval-card" aria-label={`Approval item ${item.employeeName}`}>
-                        <div className="approval-card-head">
-                          <div className="approval-employee">
-                            <div className="approval-avatar">JD</div>
-                            <div>
-                              <h4>{item.employeeName}</h4>
-                              <p>{item.employeeRole}</p>
-                            </div>
-                          </div>
-
-                          <div className="approval-summary-grid">
-                            <div>
-                              <span>Week</span>
-                              <strong>{getRangeLabel(item.fromDateISO, item.toDateISO)}</strong>
-                            </div>
-                            <div>
-                              <span>Total Hours</span>
-                              <strong>{formatHours(item.totalHours)}</strong>
-                            </div>
-                            <div>
-                              <span>Submitted On</span>
-                              <strong>{formatDateWithYear(item.submittedOnISO)}</strong>
-                            </div>
-                            <div>
-                              <span>Status</span>
-                              <strong><span className={`approval-status-pill ${item.status}`}>{approvalStatusLabel[item.status]}</span></strong>
-                            </div>
-                          </div>
-
-                          <button
-                            type="button"
-                            className="approval-toggle-btn"
-                            onClick={() => setExpandedApprovalKey((prev) => (prev === item.key ? null : item.key))}
-                            aria-label={isExpanded ? 'Collapse approval details' : 'Expand approval details'}
-                          >
-                            {isExpanded ? '⌃' : '⌄'}
-                          </button>
-                        </div>
-
-                        {isExpanded && (
-                          <>
-                            <div className="approval-detail-table-wrap">
-                              <table className="approval-detail-table">
+                          {/* Main Table */}
+                          <div className="dash-card" style={{ padding: 0, overflow: 'hidden' }}>
+                            <div className="tbl">
+                              <table>
                                 <thead>
                                   <tr>
-                                    <th>Day</th>
-                                    {item.details.map((day) => (
-                                      <th key={day.key}>
-                                        <span>{day.label}</span>
-                                        <small>{day.dateLabel}</small>
-                                      </th>
-                                    ))}
-                                    <th>Total</th>
+                                    <th>{reconciliationDimension.charAt(0).toUpperCase() + reconciliationDimension.slice(1)} Group / Name</th>
+                                    <th className="num">June 2025 completed (Prev)</th>
+                                    <th className="num">July 2025 in-progress (Curr)</th>
+                                    <th className="num">Difference (Amt)</th>
+                                    <th className="num">Difference (%)</th>
+                                    <th>Trend Status</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {reconciliationData.map((row, idx) => {
+                                    const diff = row.curr - row.prev
+                                    const pct = row.prev > 0 ? (diff / row.prev) * 100 : 0
+                                    let statusLabel = 'Equal'
+                                    let statusClass = 'neutral'
+                                    if (diff > 0) { statusLabel = 'Increased ↗'; statusClass = 'increase' }
+                                    else if (diff < 0) { statusLabel = 'Decreased ↘'; statusClass = 'decrease' }
+
+                                    return (
+                                      <tr key={idx}>
+                                        <td><strong>{row.name}</strong></td>
+                                        <td className="num">₹ {row.prev.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                                        <td className="num">₹ {row.curr.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                                        <td className={`num ${statusClass}`}>
+                                          {diff > 0 ? '+' : ''}₹ {diff.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                        </td>
+                                        <td className={`num ${statusClass}`}>{pct.toFixed(2)}%</td>
+                                        <td>
+                                          <span className={`trend-badge ${statusClass}`}>{statusLabel}</span>
+                                        </td>
+                                      </tr>
+                                    )
+                                  })}
+                                </tbody>
+                                <tfoot>
+                                  <tr>
+                                    <td><strong>Grand Total:</strong></td>
+                                    <td className="num"><strong>₹ {totalsAdmin.prev.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong></td>
+                                    <td className="num"><strong>₹ {totalsAdmin.curr.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong></td>
+                                    <td className={`num ${totalsAdmin.curr - totalsAdmin.prev >= 0 ? 'increase' : 'decrease'}`}>
+                                      <strong>
+                                        {totalsAdmin.curr - totalsAdmin.prev >= 0 ? '+' : ''}
+                                        ₹ {(totalsAdmin.curr - totalsAdmin.prev).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                      </strong>
+                                    </td>
+                                    <td className={`num ${totalsAdmin.curr - totalsAdmin.prev >= 0 ? 'increase' : 'decrease'}`}>
+                                      <strong>
+                                        {(totalsAdmin.prev > 0 ? ((totalsAdmin.curr - totalsAdmin.prev) / totalsAdmin.prev) * 100 : 0).toFixed(2)}%
+                                      </strong>
+                                    </td>
+                                    <td>
+                                      <span className="trend-badge neutral">Checked</span>
+                                    </td>
+                                  </tr>
+                                </tfoot>
+                              </table>
+                            </div>
+                          </div>
+
+                        </div>
+                      )
+                    })() : currentModule === 'admin-payslips' ? (() => {
+                      const clientNames = ['All', 'Acme Corp', 'Stark Industries', 'Wayne Enterprises', 'Globex Corp']
+                      return (
+                        <div className="dash-shell">
+                          <div className="dash-welcome-row">
+                            <div>
+                              <h1 className="dash-welcome-title">Employee Payslips & Year-End Records 📄</h1>
+                              <p className="dash-welcome-sub">View and generate historical payslips or Form 16 / tax documentation details.</p>
+                            </div>
+                          </div>
+
+                          {/* Filter bar */}
+                          <div className="admin-filters-bar" style={{ display: 'flex', gap: '16px', background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '10px', border: '1px solid var(--line)' }}>
+                            <div className="filter-input-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px', minWidth: '200px' }}>
+                              <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--muted)' }}>Filter Client Corporate</label>
+                              <select value={filterClientName} onChange={(e) => setFilterClientName(e.target.value)} className="btn" style={{ padding: '8px 12px', background: 'var(--surface)', color: '#fff', border: '1px solid var(--line)' }}>
+                                {clientNames.map((c) => <option key={c} value={c}>{c}</option>)}
+                              </select>
+                            </div>
+
+                            <div className="filter-input-group flex-fill" style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
+                              <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--muted)' }}>Search Employee Name / ID</label>
+                              <input
+                                type="text"
+                                className="btn"
+                                style={{ padding: '8px 12px', background: 'var(--surface)', color: '#fff', border: '1px solid var(--line)', textAlign: 'left', cursor: 'text' }}
+                                placeholder="Type employee name or ID..."
+                                value={searchEmployeeQuery}
+                                onChange={(e) => setSearchEmployeeQuery(e.target.value)}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Employees list Table */}
+                          <div className="dash-card" style={{ padding: 0, overflow: 'hidden' }}>
+                            <div className="tbl">
+                              <table>
+                                <thead>
+                                  <tr>
+                                    <th>ID</th>
+                                    <th>Employee Name</th>
+                                    <th>Corporate Client</th>
+                                    <th>Role</th>
+                                    <th>Monthly Gross</th>
+                                    <th>Year-End Statement</th>
+                                    <th className="num">Actions</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {filteredAdminEmployees.map((emp) => (
+                                    <tr key={emp.id}>
+                                      <td><code>{emp.id}</code></td>
+                                      <td><strong>{emp.name}</strong></td>
+                                      <td>{emp.clientName}</td>
+                                      <td><span className="badge done">{emp.role}</span></td>
+                                      <td>₹ {emp.currGross.toLocaleString('en-IN')}</td>
+                                      <td><span className="badge done">Form 16 Generated</span></td>
+                                      <td className="num">
+                                        <button type="button" className="btn btn-secondary btn-sm" style={{ marginRight: '8px' }}
+                                          onClick={() => setSelectedEmployeeForPayslipModal(emp)}>
+                                          📄 View Payslips
+                                        </button>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                  {filteredAdminEmployees.length === 0 && (
+                                    <tr>
+                                      <td colSpan={7} className="text-center" style={{ padding: '24px', color: 'var(--muted)', textAlign: 'center' }}>
+                                        No matching employee records found.
+                                      </td>
+                                    </tr>
+                                  )}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+
+                          {/* Payslips drilldown modal */}
+                          {selectedEmployeeForPayslipModal && (() => {
+                            const emp = selectedEmployeeForPayslipModal
+                            const months = ['June 2025', 'May 2025', 'April 2025', 'March 2025', 'February 2025', 'January 2025']
+                            return (
+                              <div className="time-modal-backdrop" role="dialog" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 9999, display: 'grid', placeItems: 'center' }}>
+                                <div className="time-modal-content" style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '24px', width: '90%', maxWidth: '550px' }}>
+                                  <div className="time-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--line)', paddingBottom: '12px' }}>
+                                    <h3 style={{ margin: 0, color: '#fff' }}>Payslips history for {emp.name}</h3>
+                                    <button type="button" className="close-btn" style={{ background: 'none', border: 'none', color: '#fff', fontSize: '20px', cursor: 'pointer' }}
+                                      onClick={() => setSelectedEmployeeForPayslipModal(null)}>✕</button>
+                                  </div>
+                                  <div className="time-modal-body" style={{ padding: '16px 0 0', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                    <div className="admin-payslip-info-box" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: 'var(--muted)', padding: '10px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px' }}>
+                                      <div><strong>Employee ID:</strong> {emp.id}</div>
+                                      <div><strong>Client Portal:</strong> {emp.clientName}</div>
+                                    </div>
+
+                                    <div className="admin-payslips-drill-list" style={{ maxHeight: '250px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', paddingRight: '4px' }}>
+                                      {months.map((m, idx) => (
+                                        <div key={idx} className="admin-payslip-drill-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: '1px solid var(--line-soft)' }}>
+                                          <div>
+                                            <div style={{ fontWeight: 'bold', fontSize: '13.5px' }}>{m}</div>
+                                            <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px' }}>Gross: ₹ {emp.currGross.toLocaleString('en-IN')}</div>
+                                          </div>
+                                          <button type="button" className="btn btn-secondary btn-sm"
+                                            onClick={() => showToast(`Downloaded ${emp.name}'s ${m} payslip PDF.`)}>
+                                            📥 Download PDF
+                                          </button>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            )
+                          })()}
+
+                        </div>
+                      )
+                    })() : currentModule === 'admin-access' ? (() => {
+                      return (
+                        <div className="dash-shell">
+                          <div className="dash-welcome-row">
+                            <div>
+                              <h1 className="dash-welcome-title">User Roles & Access Privilege Control 🔐</h1>
+                              <p className="dash-welcome-sub">Manage active view permissions (Employee View, Admin View, Client View) across corporate personnel.</p>
+                            </div>
+                          </div>
+
+                          <div className="dash-card" style={{ padding: 0, overflow: 'hidden' }}>
+                            <div className="tbl">
+                              <table>
+                                <thead>
+                                  <tr>
+                                    <th>Personnel ID</th>
+                                    <th>Full Name</th>
+                                    <th>Corporate Client</th>
+                                    <th className="text-center" style={{ textAlign: 'center' }}>Employee View</th>
+                                    <th className="text-center" style={{ textAlign: 'center' }}>Admin View</th>
+                                    <th className="text-center" style={{ textAlign: 'center' }}>Client View</th>
+                                    <th className="num">Perspective Actions</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {adminEmployees.map((emp) => (
+                                    <tr key={emp.id}>
+                                      <td><code>{emp.id}</code></td>
+                                      <td><strong>{emp.name}</strong></td>
+                                      <td>{emp.clientName}</td>
+                                      <td className="text-center" style={{ textAlign: 'center' }}>
+                                        <input
+                                          type="checkbox"
+                                          style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                                          checked={emp.hasEmployeeView}
+                                          onChange={() => handleToggleAccess(emp.id, 'employee')}
+                                        />
+                                      </td>
+                                      <td className="text-center" style={{ textAlign: 'center' }}>
+                                        <input
+                                          type="checkbox"
+                                          style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                                          checked={emp.hasAdminView}
+                                          disabled={emp.id === 'EMP-005' || emp.id === 'EMP-009'} // Safeguard primary admins
+                                          onChange={() => handleToggleAccess(emp.id, 'admin')}
+                                        />
+                                      </td>
+                                      <td className="text-center" style={{ textAlign: 'center' }}>
+                                        <input
+                                          type="checkbox"
+                                          style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                                          checked={emp.hasClientView}
+                                          onChange={() => handleToggleAccess(emp.id, 'client')}
+                                        />
+                                      </td>
+                                      <td className="num">
+                                        {emp.hasEmployeeView && (
+                                          <button type="button" className="btn btn-secondary btn-sm" style={{ marginRight: '6px' }}
+                                            onClick={() => {
+                                              setPreviewRoleMode('employee');
+                                              setCurrentModule('dashboard');
+                                              showToast(`Impersonating ${emp.name} (Employee perspective)`);
+                                            }}>
+                                            👁️ Preview Employee
+                                          </button>
+                                        )}
+                                        {emp.hasClientView && (
+                                          <button type="button" className="btn btn-secondary btn-sm"
+                                            onClick={() => {
+                                              setPreviewRoleMode('client');
+                                              setCurrentModule('client-dashboard');
+                                              showToast('Impersonating Client Portal Dashboard.');
+                                            }}>
+                                            🏢 Preview Client
+                                          </button>
+                                        )}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+
+                        </div>
+                      )
+                    })() : currentModule === 'client-dashboard' ? (() => {
+                      return (
+                        <div className="dash-shell">
+                          <div className="dash-welcome-row">
+                            <div>
+                              <h1 className="dash-welcome-title">Acme & Stark Industries - Corporate Client Dashboard 🏢</h1>
+                              <p className="dash-welcome-sub">View overall staff lists, aggregate gross pay volume, and timesheet processing status.</p>
+                            </div>
+                          </div>
+
+                          <div className="dash-stats-row">
+                            <div className="dash-stat-card">
+                              <div className="dash-stat-icon dash-stat-icon--blue">👥</div>
+                              <div className="dash-stat-body">
+                                <p className="dash-stat-label">Total Employee Count</p>
+                                <p className="dash-stat-value">5</p>
+                                <p className="dash-stat-sub">Managed under entity</p>
+                              </div>
+                            </div>
+
+                            <div className="dash-stat-card">
+                              <div className="dash-stat-icon dash-stat-icon--green">⏱️</div>
+                              <div className="dash-stat-body">
+                                <p className="dash-stat-label">Timesheets Approved</p>
+                                <p className="dash-stat-value">100%</p>
+                                <p className="dash-stat-sub">All logged hours verified</p>
+                              </div>
+                            </div>
+
+                            <div className="dash-stat-card">
+                              <div className="dash-stat-icon dash-stat-icon--purple">💰</div>
+                              <div className="dash-stat-body">
+                                <p className="dash-stat-label">Total Entity Payroll</p>
+                                <p className="dash-stat-value" style={{ fontSize: '20px' }}>₹ 3,78,000.00</p>
+                                <p className="dash-stat-sub">Pending final partner wire</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="dash-card">
+                            <h3 className="dash-card-title">Corporate Personnel Directory</h3>
+                            <div className="tbl">
+                              <table>
+                                <thead>
+                                  <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Role</th>
+                                    <th>Pay Group</th>
+                                    <th>Payment Method</th>
                                   </tr>
                                 </thead>
                                 <tbody>
                                   <tr>
-                                    <td>Hours</td>
-                                    {item.details.map((day) => <td key={`hours-${day.key}`}>{formatHours(day.hours)}</td>)}
-                                    <td>{formatHours(item.totalHours)}</td>
+                                    <td><code>EMP-001</code></td>
+                                    <td>John Doe</td>
+                                    <td>Senior Developer</td>
+                                    <td>Engineering</td>
+                                    <td>Direct Deposit</td>
                                   </tr>
                                   <tr>
-                                    <td>Regular Hours</td>
-                                    {item.details.map((day) => <td key={`regular-${day.key}`}>{formatHours(day.regularHours)}</td>)}
-                                    <td>{formatHours(item.regularHours)}</td>
+                                    <td><code>EMP-002</code></td>
+                                    <td>Jane Smith</td>
+                                    <td>UI/UX Designer</td>
+                                    <td>Design</td>
+                                    <td>Direct Deposit</td>
                                   </tr>
                                   <tr>
-                                    <td>Overtime</td>
-                                    {item.details.map((day) => <td key={`ot-${day.key}`}>{formatHours(day.overtimeHours)}</td>)}
-                                    <td>{formatHours(item.overtimeHours)}</td>
+                                    <td><code>EMP-003</code></td>
+                                    <td>Robert Brown</td>
+                                    <td>Security Architect</td>
+                                    <td>Engineering</td>
+                                    <td>Direct Deposit</td>
+                                  </tr>
+                                  <tr>
+                                    <td><code>EMP-004</code></td>
+                                    <td>Emily Johnson</td>
+                                    <td>QA Lead</td>
+                                    <td>QA</td>
+                                    <td>Direct Deposit</td>
+                                  </tr>
+                                  <tr>
+                                    <td><code>EMP-008</code></td>
+                                    <td>Peter Parker</td>
+                                    <td>Photographer</td>
+                                    <td>Editorial</td>
+                                    <td>Check</td>
                                   </tr>
                                 </tbody>
                               </table>
                             </div>
-                          </>
-                        )}
-                      </section>
-                    )
-                  })}
-
-                  {filteredApprovalItems.length === 0 && (
-                    <section className="approval-card approval-empty-card">
-                      <p>No approvals found for the selected filter.</p>
-                    </section>
-                  )}
-                </div>
-              ) : isLeaveTab ? (
-                renderLeaveModuleContent()
-              ) : (
-                <>
-                  <div className="time-entry-cards">
-                    <section className="time-card summary-card" aria-label="Summary">
-                      <h3>Summary</h3>
-                      <div className="summary-grid">
-                        <div className="summary-item">
-                          <span>Total Hours</span>
-                          <strong>{formatHours(totals.totalHours)}</strong>
-                          <small>/ 40 hrs</small>
+                          </div>
                         </div>
-                        <div className="summary-item">
-                          <span>Regular Hours</span>
-                          <strong>{formatHours(totals.regularHours)}</strong>
-                          <small>/ 40 hrs</small>
-                        </div>
-                        <div className="summary-item">
-                          <span>Overtime</span>
-                          <strong>{formatHours(totals.overtimeHours)}</strong>
-                          <small>hrs</small>
-                        </div>
-                        <div className="summary-item">
-                          <span>Leave Hours</span>
-                          <strong>{formatHours(leaveHours)}</strong>
-                          <small>hrs</small>
-                        </div>
-                      </div>
-                    </section>
+                      )
+                    })() : currentModule === 'dashboard' ? (() => {
+                      /* ── Dashboard computed values ── */
+                      const today = new Date()
+                      const todayLabel = today.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 
-                    <section className="time-card status-card" aria-label="Status">
-                      <h3>Status</h3>
-                      <span className={`status-chip ${rangeStatus.toLowerCase()}`}>{rangeStatus}</span>
-                      <p>Last saved: {activeRange.lastSaved}</p>
-                      <p>{getRangeLabel(activeRange.fromDateISO, activeRange.toDateISO)}</p>
-                      <div className="status-progress">
-                        <div className="status-progress-fill" style={{ width: `${completionPct}%` }} />
-                      </div>
-                      <small>{completionPct}% completed</small>
-                    </section>
+                      // Timesheet – current range
+                      const dashHrs = Math.floor(totals.totalHours)
+                      const dashMins = Math.round((totals.totalHours - dashHrs) * 60)
+                      const dashTimesheetLabel = `${dashHrs}h${dashMins > 0 ? ` ${dashMins}m` : ''}`
+                      const dashTimesheetPct = Math.min(100, Math.round((totals.totalHours / 40) * 100))
 
-                    <section className="time-card quick-card" aria-label="Quick actions">
-                      <h3>Quick Actions</h3>
-                      <button type="button" className="quick-link" onClick={requestClockInOut}>
-                        Clock In / Out <span>›</span>
-                      </button>
-                      <button type="button" className="quick-link" onClick={requestCopyPreviousPeriod}>
-                        Copy Previous Period <span>›</span>
-                      </button>
-                      <button type="button" className="quick-link" onClick={handleRequestCorrection}>
-                        Request Correction <span>›</span>
-                      </button>
-                    </section>
-                  </div>
+                      // Leave overview derived from leaveBalances
+                      const totalAvailableDays = leaveBalances.reduce((s, b) => s + Math.max(0, b.entitlement - b.used - b.pending), 0)
+                      const totalTakenDays = leaveBalances.reduce((s, b) => s + b.used, 0)
+                      const totalPendingDays = leaveBalances.reduce((s, b) => s + b.pending, 0)
+                      const totalPlannedDays = leaveRequests.filter(r => r.status === 'approved' && fromIso(r.fromDateISO) > today).reduce((s, r) => s + r.durationDays, 0)
 
-                  <div className="time-entry-main">
-                    <div className="time-table-card">
-                      <table className="time-table">
-                        <thead>
-                          <tr>
-                            <th>Date</th>
-                            {activeRange.days.map((day) => (
-                              <th
-                                key={day.key}
-                                className={selectedDayKey === day.key ? 'selected' : ''}
-                                onClick={() => handleDaySelection(day.key)}
+                      // Donut chart
+                      const donutTotal = totalAvailableDays + totalPlannedDays + totalPendingDays + totalTakenDays
+                      const donutR = 54
+                      const donutCirc = 2 * Math.PI * donutR
+                      const donutSegments = [
+                        { label: 'Available', days: totalAvailableDays, color: '#48b36a' },
+                        { label: 'Planned', days: totalPlannedDays, color: '#5a7dff' },
+                        { label: 'Pending Approval', days: totalPendingDays, color: '#f4ac3f' },
+                        { label: 'Taken', days: totalTakenDays, color: '#e74c3c' },
+                      ]
+                      let donutOffset = 0
+
+                      // Upcoming leaves (future pending/approved)
+                      const upcomingLeaves = leaveRequests
+                        .filter(r => (r.status === 'approved' || r.status === 'pending') && fromIso(r.fromDateISO) > today)
+                        .slice(0, 3)
+
+                      // Expiring identity docs (within 90 days)
+                      const expiringDocs = identityDocs.filter(d => {
+                        if (!d.expiryDate || d.expiryDate === '-') return false
+                        const [dd, mm, yyyy] = d.expiryDate.split(' ')
+                        const monthIdx = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(mm)
+                        if (monthIdx === -1 || !yyyy) return false
+                        const exp = new Date(Number(yyyy), monthIdx, Number(dd))
+                        const diff = (exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+                        return diff >= 0 && diff <= 90
+                      })
+
+                      // Latest payslip
+                      const latestPayslip = payslipSeedData[0]
+
+                      // Recent activity from notifications (last 4)
+                      const recentActivity = notifications.slice(0, 4)
+
+                      // Company announcements (static)
+                      const announcements = [
+                        { id: 'a1', icon: '📢', title: 'Public Holiday on 27 June 2025', body: 'Please note that 27 June 2025 (Friday) will be a public holiday for all employees.', age: '2 days ago' },
+                        { id: 'a2', icon: '📋', title: 'Policy Update', body: 'We have updated our Remote Work Policy. Please read the updated policy.', age: '5 days ago' },
+                        { id: 'a3', icon: '🎤', title: 'Townhall Meeting', body: 'Quarterly townhall meeting is scheduled on 20 June 2025 at 4:00 PM IST.', age: '1 week ago' },
+                      ]
+
+                      // Reminders
+                      const reminders = [
+                        ...expiringDocs.map(d => ({
+                          id: d.id,
+                          icon: '🔴',
+                          title: `${d.name} Expiring Soon`,
+                          sub: `Expires on ${d.expiryDate}`,
+                          module: 'documents' as Module,
+                        })),
+                        {
+                          id: 'rem-ts',
+                          icon: '🕐',
+                          title: 'Timesheet Submission',
+                          sub: `Submit before ${new Date(today.getFullYear(), today.getMonth(), today.getDate() + (5 - today.getDay() + 7) % 7).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`,
+                          module: 'time-entry' as Module,
+                        },
+                      ].slice(0, 4)
+
+                      // Day-grid for time overview (current week range)
+                      const dayGridDays = activeRange.days.slice(0, 7)
+
+                      return (
+                        <div className="dash-shell">
+
+                          {/* ── Welcome Row ── */}
+                          <div className="dash-welcome-row">
+                            <div>
+                              <h1 className="dash-welcome-title">Welcome back, {personalInfo.preferredName || personalInfo.firstName}! 👋</h1>
+                              <p className="dash-welcome-sub">Here's what's happening with your work today.</p>
+                            </div>
+                            <div className="dash-today-date">
+                              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                <line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" />
+                                <line x1="3" y1="10" x2="21" y2="10" />
+                              </svg>
+                              {todayLabel}
+                            </div>
+                          </div>
+
+                          {/* ── Stat Cards ── */}
+                          <div className="dash-stats-row">
+
+                            {/* Total Leave Balance */}
+                            <div className="dash-stat-card">
+                              <div className="dash-stat-icon dash-stat-icon--green">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                  <line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" />
+                                  <line x1="3" y1="10" x2="21" y2="10" />
+                                </svg>
+                              </div>
+                              <div className="dash-stat-body">
+                                <p className="dash-stat-label">Total Leave Balance</p>
+                                <p className="dash-stat-value">{totalAvailableDays}<span className="dash-stat-unit"> days</span></p>
+                                <p className="dash-stat-sub">Days Available</p>
+                              </div>
+                            </div>
+
+                            {/* Pending Leave Requests */}
+                            <div className="dash-stat-card">
+                              <div className="dash-stat-icon dash-stat-icon--orange">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M17.8 19.2L16 11l3.5-3.5C21 6 21 4 19 4c-1.5 0-3 1-4.5 2.5L11 8 2.8 6.2c-.5-.1-.9.4-.6.8L6 10l-2 3.5c-.3.5.1 1 .6.9L8 14l.5 2.5c.1.5.6.8 1 .5l2.5-2.5L14 16l2.2.8c.7.3 1.4-.3 1.2-1l-.6-1.5-.8-.1z" />
+                                </svg>
+                              </div>
+                              <div className="dash-stat-body">
+                                <p className="dash-stat-label">Pending Leave Requests</p>
+                                <p className="dash-stat-value">{leaveSummary.pending}</p>
+                                <p className="dash-stat-sub">Request Pending</p>
+                              </div>
+                            </div>
+
+                            {/* Timesheet This Week */}
+                            <div className="dash-stat-card">
+                              <div className="dash-stat-icon dash-stat-icon--blue">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+                                </svg>
+                              </div>
+                              <div className="dash-stat-body">
+                                <p className="dash-stat-label">Timesheet This Week</p>
+                                <p className="dash-stat-value">{dashTimesheetLabel}</p>
+                                <p className="dash-stat-sub">Logged Hours</p>
+                              </div>
+                            </div>
+
+                            {/* Payslip */}
+                            <div className="dash-stat-card">
+                              <div className="dash-stat-icon dash-stat-icon--purple">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                                  <line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" />
+                                </svg>
+                              </div>
+                              <div className="dash-stat-body">
+                                <p className="dash-stat-label">Payslip ({latestPayslip.month})</p>
+                                <span className="dash-badge dash-badge--green">Generated</span>
+                                <button type="button" className="dash-link-btn" onClick={() => { setCurrentModule('my-pay'); setActivePayTab('Payslips') }}>
+                                  View Payslip
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Documents Expiring */}
+                            <div className="dash-stat-card">
+                              <div className="dash-stat-icon dash-stat-icon--red">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                  <polyline points="14 2 14 8 20 8" />
+                                  <line x1="12" y1="11" x2="12" y2="16" /><circle cx="12" cy="19" r="0.5" fill="currentColor" />
+                                </svg>
+                              </div>
+                              <div className="dash-stat-body">
+                                <p className="dash-stat-label">Documents Expiring</p>
+                                <p className="dash-stat-value">{expiringDocs.length || 2}</p>
+                                <p className="dash-stat-sub">Require Attention</p>
+                              </div>
+                            </div>
+
+                          </div>
+
+                          {/* ── Dashboard Grid Layout ── */}
+                          <div className="dash-grid-layout">
+
+                            {/* My Time Overview */}
+                            <div className="dash-card dash-time-card">
+                              <h3 className="dash-card-title">My Time Overview</h3>
+                              <div className="dash-time-week-bar">
+                                <div className="dash-time-week-label">
+                                  <span>This Week ({getRangeLabel(activeRange.fromDateISO, activeRange.toDateISO)})</span>
+                                  <strong>{dashTimesheetLabel} / 40h</strong>
+                                </div>
+                                <div className="dash-progress-track">
+                                  <div className="dash-progress-fill" style={{ width: `${dashTimesheetPct}%` }} />
+                                </div>
+                              </div>
+
+                              <div className="dash-day-grid">
+                                {dayGridDays.map(day => {
+                                  const hrs = Math.floor(day.hours)
+                                  const mins = Math.round((day.hours - hrs) * 60)
+                                  const label = hrs > 0 ? `${hrs}h${mins > 0 ? ` ${mins}m` : ''}` : '–'
+                                  return (
+                                    <div key={day.key} className="dash-day-cell">
+                                      <span className="dash-day-label">{day.label.slice(0, 3)}</span>
+                                      <span className="dash-day-hours">{label}</span>
+                                      <span className={`dash-day-dot ${day.status === 'submitted' ? 'dot-submitted' : day.status === 'draft' ? 'dot-draft' : 'dot-none'}`} />
+                                    </div>
+                                  )
+                                })}
+                              </div>
+
+                              <button type="button" className="dash-view-link" onClick={() => setCurrentModule('time-entry')}>
+                                View Time Entry →
+                              </button>
+                            </div>
+
+                            {/* My Leave Overview */}
+                            <div className="dash-card dash-leave-card">
+                              <h3 className="dash-card-title">My Leave Overview</h3>
+                              <div className="dash-leave-body">
+                                {/* Donut Chart SVG */}
+                                <div className="dash-donut-wrap">
+                                  <svg width="140" height="140" viewBox="0 0 140 140">
+                                    <circle cx="70" cy="70" r={donutR} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="18" />
+                                    {donutTotal > 0 && donutSegments.map(seg => {
+                                      const dashLen = (seg.days / donutTotal) * donutCirc
+                                      const gap = donutCirc - dashLen
+                                      const currentOffset = donutOffset
+                                      donutOffset += dashLen
+                                      if (seg.days === 0) return null
+                                      return (
+                                        <circle
+                                          key={seg.label}
+                                          cx="70" cy="70" r={donutR}
+                                          fill="none"
+                                          stroke={seg.color}
+                                          strokeWidth="18"
+                                          strokeDasharray={`${dashLen} ${gap}`}
+                                          strokeDashoffset={donutCirc / 4 - currentOffset}
+                                          strokeLinecap="butt"
+                                        />
+                                      )
+                                    })}
+                                    <text x="70" y="66" textAnchor="middle" dominantBaseline="middle" style={{ fill: 'var(--ink)', fontSize: '22px', fontWeight: 700 }}>
+                                      {totalAvailableDays}
+                                    </text>
+                                    <text x="70" y="84" textAnchor="middle" dominantBaseline="middle" style={{ fill: 'var(--muted)', fontSize: '11px' }}>
+                                      Days
+                                    </text>
+                                  </svg>
+                                </div>
+
+                                {/* Legend */}
+                                <div className="dash-leave-legend">
+                                  {donutSegments.map(seg => (
+                                    <div key={seg.label} className="dash-legend-row">
+                                      <span className="dash-legend-dot" style={{ background: seg.color }} />
+                                      <span className="dash-legend-label">{seg.label}</span>
+                                      <span className="dash-legend-val">{seg.days.toFixed(1)} Days</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                              <button type="button" className="dash-view-link" onClick={() => { setCurrentModule('time-entry'); setActiveTimeEntryTab('Leave'); setActiveLeaveTab('Leave Balance') }}>
+                                View Leave Balance
+                              </button>
+                            </div>
+
+                            {/* Upcoming Leave */}
+                            <div className="dash-card dash-upcoming-card">
+                              <div className="dash-card-header-row">
+                                <h3 className="dash-card-title">Upcoming Leave</h3>
+                                <button type="button" className="dash-view-all-btn" onClick={() => { setCurrentModule('time-entry'); setActiveTimeEntryTab('Leave'); setActiveLeaveTab('Leave History') }}>View All</button>
+                              </div>
+                              {upcomingLeaves.length === 0 ? (
+                                <p className="dash-empty-note">No upcoming leaves scheduled.</p>
+                              ) : (
+                                <div className="dash-upcoming-list">
+                                  {upcomingLeaves.map(r => (
+                                    <div key={r.id} className="dash-upcoming-item">
+                                      <div className="dash-upcoming-info">
+                                        <p className="dash-upcoming-type">{leaveTypeLabel[r.leaveType]}</p>
+                                        <p className="dash-upcoming-dates">{formatDateWithYear(r.fromDateISO)} – {formatDateWithYear(r.toDateISO)}</p>
+                                      </div>
+                                      <div className="dash-upcoming-right">
+                                        <span className={`dash-badge ${r.status === 'approved' ? 'dash-badge--green' : 'dash-badge--yellow'}`}>
+                                          {r.status === 'approved' ? 'Approved' : 'Pending'}
+                                        </span>
+                                        <span className="dash-upcoming-days">{r.durationDays} Day{r.durationDays !== 1 ? 's' : ''}</span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Important Reminders */}
+                            <div className="dash-card dash-reminders-card">
+                              <div className="dash-card-header-row">
+                                <h3 className="dash-card-title">Important Reminders</h3>
+                              </div>
+                              <div className="dash-reminders-list">
+                                {reminders.map(rem => (
+                                  <div key={rem.id} className="dash-reminder-item" role="button" tabIndex={0}
+                                    onClick={() => setCurrentModule(rem.module)}
+                                    onKeyDown={e => e.key === 'Enter' && setCurrentModule(rem.module)}>
+                                    <span className="dash-reminder-icon">{rem.icon}</span>
+                                    <div className="dash-reminder-body">
+                                      <p className="dash-reminder-title">{rem.title}</p>
+                                      <p className="dash-reminder-sub">{rem.sub}</p>
+                                    </div>
+                                    <span className="dash-reminder-arrow">→</span>
+                                  </div>
+                                ))}
+                                {reminders.length === 0 && (
+                                  <p className="dash-empty-note">No active reminders.</p>
+                                )}
+                              </div>
+                              <button type="button" className="dash-view-link" onClick={() => setIsNotificationDrawerOpen(true)}>View All Reminders</button>
+                            </div>
+
+                            {/* Quick Actions */}
+                            <div className="dash-card dash-quick-card">
+                              <h3 className="dash-card-title">Quick Actions</h3>
+                              <div className="dash-quick-grid">
+                                <button type="button" className="dash-quick-btn" onClick={() => { setCurrentModule('time-entry'); setActiveTimeEntryTab('My Timesheet') }}>
+                                  <span className="dash-quick-icon dash-qi--green">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" />
+                                      <line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+                                    </svg>
+                                  </span>
+                                  Request Day Off / Leave
+                                </button>
+                                <button type="button" className="dash-quick-btn" onClick={() => setCurrentModule('time-entry')}>
+                                  <span className="dash-quick-icon dash-qi--blue">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+                                    </svg>
+                                  </span>
+                                  Log Time
+                                </button>
+                                <button type="button" className="dash-quick-btn" onClick={() => { setCurrentModule('documents'); setActiveDocTab('Uploaded Documents') }}>
+                                  <span className="dash-quick-icon dash-qi--purple">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                      <polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" />
+                                    </svg>
+                                  </span>
+                                  Upload Document
+                                </button>
+                                <button type="button" className="dash-quick-btn" onClick={() => { setCurrentModule('my-pay'); setActivePayTab('Payslips') }}>
+                                  <span className="dash-quick-icon dash-qi--red">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <rect x="2" y="3" width="20" height="14" rx="2" />
+                                      <line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" />
+                                    </svg>
+                                  </span>
+                                  View Payslip
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Recent Activity */}
+                            <div className="dash-card dash-activity-card">
+                              <div className="dash-card-header-row">
+                                <h3 className="dash-card-title">Recent Activity</h3>
+                                <button type="button" className="dash-view-all-btn" onClick={() => setIsNotificationDrawerOpen(true)}>View All</button>
+                              </div>
+                              <div className="dash-activity-list">
+                                {recentActivity.map(item => (
+                                  <div key={item.id} className="dash-activity-item" role="button" tabIndex={0}
+                                    onClick={() => handleNotificationClick(item)}
+                                    onKeyDown={e => e.key === 'Enter' && handleNotificationClick(item)}>
+                                    <span className="dash-activity-icon">
+                                      {item.category === 'leave' ? '✈️' : item.category === 'payroll' ? '💰' : item.category === 'time-entry' ? '⏱️' : item.category === 'documents' ? '📄' : '🔔'}
+                                    </span>
+                                    <div className="dash-activity-body">
+                                      <p className="dash-activity-title">{item.title}</p>
+                                      <p className="dash-activity-sub">{item.description}</p>
+                                    </div>
+                                    <span className="dash-activity-time">{item.timestamp}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* Company Announcements */}
+                            <div className="dash-card dash-announce-card">
+                              <div className="dash-card-header-row">
+                                <h3 className="dash-card-title">Company Announcements</h3>
+                                <button type="button" className="dash-view-all-btn" onClick={() => setIsNotificationDrawerOpen(true)}>View All</button>
+                              </div>
+                              <div className="dash-announcements-list">
+                                {announcements.map(ann => (
+                                  <div key={ann.id} className="dash-announce-item">
+                                    <span className="dash-announce-icon">{ann.icon}</span>
+                                    <div className="dash-announce-body">
+                                      <p className="dash-announce-title">{ann.title}</p>
+                                      <p className="dash-announce-desc">{ann.body}</p>
+                                      <p className="dash-announce-age">{ann.age}</p>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                          </div>
+
+                        </div>
+                      )
+                    })() : currentModule === 'time-entry' ? (
+                      <div className="time-entry-shell">
+                        <div className="time-entry-top">
+                          <div className="time-entry-tabs" role="tablist" aria-label="Time entry tabs">
+                            {timeEntryTabs.map((tab) => (
+                              <button
+                                key={tab}
+                                type="button"
+                                className={`time-tab ${activeTimeEntryTab === tab ? 'active' : ''}`}
+                                onClick={() => setActiveTimeEntryTab(tab)}
                               >
-                                <span>{day.label}</span>
-                                <small>{day.dateLabel}</small>
-                              </th>
+                                {tab}
+                              </button>
                             ))}
-                            <th>Total</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr>
-                            <td>Status</td>
-                            {activeRange.days.map((day) => (
-                              <td key={`status-${day.key}`} className={selectedDayKey === day.key ? 'selected' : ''}>
+                          </div>
+
+                          {isCalendarTab ? (
+                            <div className="calendar-toolbar">
+                              <div className="calendar-nav-group" aria-label="Calendar navigation">
+                                <button type="button" className="calendar-chip-btn" onClick={() => setCalendarMonthDate(startOfMonth(fromIso(activeRange.fromDateISO)))}>
+                                  Today
+                                </button>
+                                <button type="button" className="calendar-icon-btn" aria-label="Previous month" onClick={() => setCalendarMonthDate((prev) => addMonths(prev, -1))}>
+                                  ‹
+                                </button>
+                                <div className="calendar-month-pill">{formatMonthYear(calendarMonthDate)}</div>
+                                <button type="button" className="calendar-icon-btn" aria-label="Next month" onClick={() => setCalendarMonthDate((prev) => addMonths(prev, 1))}>
+                                  ›
+                                </button>
+                              </div>
+
+                              <div className="calendar-toolbar-actions">
                                 <button
                                   type="button"
-                                  className={`status-chip status-chip-btn ${day.isLeave ? 'leave' : day.status}`}
-                                  onClick={() => openEditModalForDay(day.key)}
-                                  title="Edit this date"
+                                  className={`calendar-chip-btn ${isCalendarFiltersOpen ? 'active' : ''}`}
+                                  onClick={() => setIsCalendarFiltersOpen((prev) => !prev)}
                                 >
-                                  {day.isLeave ? (day.leaveType ? leaveTypeLabel[day.leaveType] : 'Leave') : statusLabel[day.status]}
+                                  Filters
                                 </button>
-                              </td>
-                            ))}
-                            <td> </td>
-                          </tr>
-                          <tr>
-                            <td>Hours</td>
-                            {activeRange.days.map((day) => (
-                              <td key={`hours-${day.key}`} className={selectedDayKey === day.key ? 'selected' : ''}>
-                                {day.isLeave ? '--' : formatHours(day.hours)}
-                              </td>
-                            ))}
-                            <td>{formatHours(totals.totalHours)}</td>
-                          </tr>
-                          <tr>
-                            <td>Regular Hours</td>
-                            {activeRange.days.map((day) => (
-                              <td key={`regular-${day.key}`} className={selectedDayKey === day.key ? 'selected' : ''}>
-                                {day.isLeave ? '--' : formatHours(day.regularHours)}
-                              </td>
-                            ))}
-                            <td>{formatHours(totals.regularHours)}</td>
-                          </tr>
-                          <tr>
-                            <td>Overtime</td>
-                            {activeRange.days.map((day) => (
-                              <td key={`ot-${day.key}`} className={selectedDayKey === day.key ? 'selected' : ''}>
-                                {day.isLeave ? '--' : formatHours(day.overtimeHours)}
-                              </td>
-                            ))}
-                            <td>{formatHours(totals.overtimeHours)}</td>
-                          </tr>
-                        </tbody>
-                      </table>
-
-                      <div className="time-legend">
-                        <span>
-                          <i className="dot submitted" />Submitted
-                        </span>
-                        <span>
-                          <i className="dot draft" />Draft
-                        </span>
-                        <span>
-                          <i className="dot returned" />Returned
-                        </span>
-                        <span>
-                          <i className="dot none" />No Entry
-                        </span>
-                      </div>
-                    </div>
-
-                    <aside className="time-day-card" aria-label="Selected date details">
-                      <div className="day-card-head">
-                        <h4>{formatDateLong(selectedDay.key)}</h4>
-                        <button type="button" onClick={() => openEditModalForDay(selectedDay.key)}>Edit</button>
-                      </div>
-                      <dl>
-                        <div><dt>Work Location</dt><dd>{selectedDay.workLocation}</dd></div>
-                        <div><dt>Start Time</dt><dd>{selectedDay.startTime}</dd></div>
-                        <div><dt>End Time</dt><dd>{selectedDay.endTime}</dd></div>
-                        <div><dt>Break</dt><dd>{selectedDay.breakDuration}</dd></div>
-                        <div><dt>Regular Hours</dt><dd>{formatHours(selectedDay.regularHours)} hrs</dd></div>
-                        <div><dt>Overtime</dt><dd>{formatHours(selectedDay.overtimeHours)} hrs</dd></div>
-                        <div><dt>Notes</dt><dd>{selectedDay.notes || 'No notes.'}</dd></div>
-                      </dl>
-                    </aside>
-                  </div>
-
-                  <div className="foot">
-                    <button
-                      className="btn"
-                      onClick={handlePrevDate}
-                      disabled={selectedDayIndex === 0}
-                    >
-                      ← Back
-                    </button>
-                    <div className="progress">
-                      <div className="pmeta">
-                        <span>Date {selectedDayIndex + 1} of {activeRange.days.length}</span>
-                        <span>{dateProgressPct}% complete</span>
-                      </div>
-                      <div className="pbar">
-                        <div className="fill" style={{ width: `${dateProgressPct}%` }} />
-                      </div>
-                    </div>
-                    <button
-                      className="btn btn-primary"
-                      onClick={handleNextDate}
-                      disabled={selectedDayIndex >= activeRange.days.length - 1}
-                    >
-                      Next →
-                    </button>
-                  </div>
-                </>
-              )}
-
-              {isEditModalOpen && (
-                <div className="time-modal-backdrop" role="presentation" onClick={closeEditModal}>
-                  <div
-                    className="time-modal"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-label="Edit time entry"
-                    onClick={(event) => event.stopPropagation()}
-                  >
-                    <h3>Edit Entry · {formatDateLong(selectedDay.key)}</h3>
-                    <div className="time-modal-grid">
-                      <label className="checkbox-container-label" style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', margin: '4px 0', color: 'var(--ink)' }}>
-                        <input
-                          type="checkbox"
-                          checked={editForm.isLeave || false}
-                          onChange={(event) =>
-                            setEditForm((prev) => ({ ...prev, isLeave: event.target.checked }))
-                          }
-                        />
-                        <span className="checkbox-custom"></span>
-                        Request Day Off / Leave
-                      </label>
-
-                      {editForm.isLeave ? (
-                        <label style={{ gridColumn: '1 / -1' }}>
-                          Leave Type
-                          <select
-                            value={editForm.leaveType || 'annual'}
-                            onChange={(event) =>
-                              setEditForm((prev) => ({ ...prev, leaveType: event.target.value as LeaveTypeId }))
-                            }
-                          >
-                            {(Object.keys(leaveTypeLabel) as LeaveTypeId[]).map((typeId) => (
-                              <option key={typeId} value={typeId}>
-                                {leaveTypeLabel[typeId]}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-                      ) : (
-                        <>
-                          <label>
-                            Start Time
-                            <input
-                              type="time"
-                              value={editForm.startTime}
-                              onChange={(event) => setEditForm((prev) => ({ ...prev, startTime: event.target.value }))}
-                            />
-                          </label>
-                          <label>
-                            End Time
-                            <input
-                              type="time"
-                              value={editForm.endTime}
-                              onChange={(event) => setEditForm((prev) => ({ ...prev, endTime: event.target.value }))}
-                            />
-                          </label>
-                          <label style={{ gridColumn: '1 / -1' }}>
-                            Break (minutes)
-                            <input
-                              type="number"
-                              min={0}
-                              max={300}
-                              value={editForm.breakMinutes}
-                              onChange={(event) =>
-                                setEditForm((prev) => ({ ...prev, breakMinutes: Number(event.target.value || 0) }))
-                              }
-                            />
-                          </label>
-                        </>
-                      )}
-
-                      <label className="full">
-                        Notes / Reason
-                        <textarea
-                          rows={3}
-                          value={editForm.notes}
-                          onChange={(event) => setEditForm((prev) => ({ ...prev, notes: event.target.value }))}
-                          placeholder={editForm.isLeave ? "Provide the reason for leave" : ""}
-                        />
-                      </label>
-                    </div>
-                    {editError && <p className="time-modal-error">{editError}</p>}
-                    <div className="time-modal-actions">
-                      <button type="button" className="btn" onClick={closeEditModal}>Cancel</button>
-                      <button type="button" className="btn btn-primary" onClick={handleSaveDayEdit}>Save Entry</button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {confirmAction && confirmContent && (
-                <div className="time-modal-backdrop" role="presentation" onClick={closeConfirmModal}>
-                  <div
-                    className="time-modal"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-label="Confirm quick action"
-                    onClick={(event) => event.stopPropagation()}
-                  >
-                    <h3>{confirmContent.title}</h3>
-                    <p className="time-confirm-message">{confirmContent.message}</p>
-                    <div className="time-modal-actions">
-                      <button type="button" className="btn" onClick={closeConfirmModal}>Cancel</button>
-                      <button type="button" className="btn btn-primary" onClick={handleConfirmAction}>Yes, Continue</button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {warningModal && (
-                <div className="time-modal-backdrop" role="presentation" onClick={closeWarningModal}>
-                  <div
-                    className="time-modal"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-label="Time entry warning"
-                    onClick={(event) => event.stopPropagation()}
-                  >
-                    <h3>{warningModal.title}</h3>
-                    <p className="time-confirm-message">{warningModal.message}</p>
-                    <div className="time-modal-actions">
-                      <button type="button" className="btn btn-primary" onClick={closeWarningModal}>OK</button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : currentModule === 'my-pay' ? (
-            <div className="pay-shell">
-              {/* Pay Tab Navigation */}
-              <div className="pay-top" ref={payTabRef}>
-                <div className="pay-tabs" role="tablist" aria-label="My Pay tabs">
-                  {myPayTabs.map((tab) => (
-                    <button
-                      key={tab}
-                      type="button"
-                      className={`pay-tab ${activePayTab === tab ? 'active' : ''}`}
-                      onClick={() => setActivePayTab(tab)}
-                      role="tab"
-                      aria-selected={activePayTab === tab}
-                    >
-                      {tab}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* ── OVERVIEW TAB ── */}
-              {activePayTab === 'Overview' && (() => {
-                const ytdGross = payslipSeedData.filter(p => p.status === 'Paid').reduce((s, p) => s + p.grossSalary, 0)
-                const ytdNet = payslipSeedData.filter(p => p.status === 'Paid').reduce((s, p) => s + p.netSalary, 0)
-                const ytdTax = salaryDeductions.find(d => d.label === 'Income Tax (TDS)')?.amount ?? 0
-                const ytdDeductions = salaryDeductions.reduce((s, d) => s + d.amount, 0)
-                const recentPayslips = payslipSeedData.slice(0, 3)
-                return (
-                  <div className="pay-overview-grid">
-                    {/* Current Month Card */}
-                    <section className="pay-card pay-current-month" aria-label="Current month salary">
-                      <div className="pay-card-label">Current Month <span className="pay-month-badge">(June 2025)</span></div>
-                      <div className="pay-net-row">
-                        <div>
-                          <div className="pay-net-label">Net Salary</div>
-                          <div className="pay-net-amount">{formatCurrency(68750)}</div>
-                        </div>
-                        <span className="pay-status-chip paid">Paid</span>
-                      </div>
-                      <div className="pay-meta-row">
-                        <div><span>Gross Salary</span><strong>{formatCurrency(98500)}</strong></div>
-                        <div><span>Pay Date</span><strong>30 Jun 2025</strong></div>
-                        <div><span>Next Payday</span><strong>31 Jul 2025</strong></div>
-                      </div>
-                    </section>
-
-                    {/* Quick Actions Card */}
-                    <section className="pay-card pay-quick-actions" aria-label="Quick actions">
-                      <div className="pay-card-label">Quick Actions</div>
-                      <div className="pay-actions-list">
-                        <button type="button" className="pay-action-btn" onClick={() => {
-                          setSelectedPayslipForView(payslipSeedData[0])
-                          setActivePayTab('Payslips')
-                        }}>
-                          <span className="pay-action-icon">📄</span>
-                          <span>View Payslip</span>
-                        </button>
-                        <button type="button" className="pay-action-btn" onClick={() => setActivePayTab('Payslips')}>
-                          <span className="pay-action-icon">⬇️</span>
-                          <span>Download Payslip</span>
-                        </button>
-                        <button type="button" className="pay-action-btn" onClick={() => setActivePayTab('Salary Breakdown')}>
-                          <span className="pay-action-icon">📊</span>
-                          <span>View Salary Breakdown</span>
-                        </button>
-                      </div>
-                    </section>
-
-                    {/* Employment Details Card */}
-                    <section className="pay-card pay-emp-details" aria-label="Employment details">
-                      <div className="pay-card-label">Employment Details</div>
-                      <dl className="pay-emp-dl">
-                        <div><dt>Employment Country</dt><dd>🇮🇳 India</dd></div>
-                        <div><dt>Payroll Entity</dt><dd>Pynk India Pvt Ltd</dd></div>
-                        <div><dt>Payroll Cycle</dt><dd>Monthly</dd></div>
-                        <div><dt>Next Payday</dt><dd>31 Jul 2025</dd></div>
-                      </dl>
-                    </section>
-
-                    {/* Year To Date Card */}
-                    <section className="pay-card pay-ytd" aria-label="Year to date">
-                      <div className="pay-card-label">Year To Date <span className="pay-fy-label">(FY 2025-26)</span></div>
-                      <div className="pay-ytd-grid">
-                        <div className="pay-ytd-item">
-                          <span>Gross Earnings</span>
-                          <strong className="pay-ytd-gross">{formatCurrency(ytdGross)}</strong>
-                        </div>
-                        <div className="pay-ytd-item">
-                          <span>Net Earnings</span>
-                          <strong className="pay-ytd-net">{formatCurrency(ytdNet)}</strong>
-                        </div>
-                        <div className="pay-ytd-item">
-                          <span>Total Tax</span>
-                          <strong className="pay-ytd-tax">{formatCurrency(ytdTax * 12)}</strong>
-                        </div>
-                        <div className="pay-ytd-item">
-                          <span>Total Deductions</span>
-                          <strong>{formatCurrency(ytdDeductions * 12)}</strong>
-                        </div>
-                      </div>
-                      <button type="button" className="pay-view-link" onClick={() => setActivePayTab('Payment History')}>
-                        View full Year To Date details →
-                      </button>
-                    </section>
-
-                    {/* Recent Payslips Card */}
-                    <section className="pay-card pay-recent" aria-label="Recent payslips">
-                      <div className="pay-card-label">Recent Payslips</div>
-                      <div className="pay-recent-list">
-                        {recentPayslips.map((ps) => (
-                          <div key={ps.id} className="pay-recent-row">
-                            <span className="pay-recent-month">{ps.month}</span>
-                            <span className="pay-recent-date">{ps.payDate}</span>
-                            <span className={`pay-status-chip ${ps.status.toLowerCase()}`}>{ps.status}</span>
-                            <button type="button" className="pay-view-link" onClick={() => {
-                              setSelectedPayslipForView(ps)
-                              setActivePayTab('Payslips')
-                            }}>View</button>
-                          </div>
-                        ))}
-                      </div>
-                      <button type="button" className="pay-view-link" onClick={() => setActivePayTab('Payslips')}>
-                        View all payslips →
-                      </button>
-                    </section>
-                  </div>
-                )
-              })()}
-
-              {/* ── PAYSLIPS TAB ── */}
-              {activePayTab === 'Payslips' && (() => {
-                const years = [...new Set(payslipSeedData.map(p => p.month.split(' ')[1]))]
-                const ITEMS_PER_PAGE = 6
-                const filtered = payslipSeedData.filter(p => {
-                  const yearMatch = p.month.includes(payslipYear)
-                  const monthMatch = payslipSearchMonth === '' || p.month.toLowerCase().includes(payslipSearchMonth.toLowerCase())
-                  return yearMatch && monthMatch
-                })
-                const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE))
-                const safePage = Math.min(payslipPage, totalPages)
-                const pageItems = filtered.slice((safePage - 1) * ITEMS_PER_PAGE, safePage * ITEMS_PER_PAGE)
-
-                return (
-                  <div className="pay-payslips-shell">
-                    {/* Filters */}
-                    <div className="pay-payslips-filters">
-                      <label className="pay-filter-group">
-                        <span>Year</span>
-                        <select
-                          id="payslip-year-select"
-                          value={payslipYear}
-                          onChange={e => { setPayslipYear(e.target.value); setPayslipPage(1) }}
-                        >
-                          {years.map(y => <option key={y} value={y}>{y}</option>)}
-                        </select>
-                      </label>
-                      <label className="pay-filter-group">
-                        <span>Search by month</span>
-                        <div className="pay-search-input">
-                          <input
-                            id="payslip-month-search"
-                            type="text"
-                            placeholder="e.g. June"
-                            value={payslipSearchMonth}
-                            onChange={e => { setPayslipSearchMonth(e.target.value); setPayslipPage(1) }}
-                          />
-                          <span className="pay-search-icon">📅</span>
-                        </div>
-                      </label>
-                    </div>
-
-                    {/* Table */}
-                    <section className="pay-table-card" aria-label="Payslips table">
-                      <div className="pay-table-wrap">
-                        <table className="pay-table">
-                          <thead>
-                            <tr>
-                              <th>Month</th>
-                              <th>Pay Date</th>
-                              <th>Gross Salary</th>
-                              <th>Net Salary</th>
-                              <th>Status</th>
-                              <th>Actions</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {pageItems.map(ps => (
-                              <tr key={ps.id}>
-                                <td>{ps.month}</td>
-                                <td>{ps.payDate}</td>
-                                <td>{formatCurrency(ps.grossSalary)}</td>
-                                <td>{formatCurrency(ps.netSalary)}</td>
-                                <td><span className={`pay-status-chip ${ps.status.toLowerCase()}`}>{ps.status}</span></td>
-                                <td>
-                                  <div className="pay-table-actions">
-                                    <button type="button" className="pay-action-link" onClick={() => setSelectedPayslipForView(ps)}>
-                                      👁️ View
-                                    </button>
-                                    <button type="button" className="pay-action-link" onClick={() => {
-                                      const csv = `Month,Pay Date,Gross Salary,Net Salary,Status\n${ps.month},${ps.payDate},${ps.grossSalary},${ps.netSalary},${ps.status}`
-                                      const blob = new Blob([csv], { type: 'text/csv' })
-                                      const url = URL.createObjectURL(blob)
-                                      const a = document.createElement('a')
-                                      a.href = url
-                                      a.download = `payslip-${ps.month.replace(' ', '-')}.csv`
-                                      a.click()
-                                      URL.revokeObjectURL(url)
-                                    }}>
-                                      ⬇️ Download
-                                    </button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
-                            {pageItems.length === 0 && (
-                              <tr><td colSpan={6} className="pay-empty-row">No payslips found for the selected filters.</td></tr>
-                            )}
-                          </tbody>
-                        </table>
-                      </div>
-
-                      {/* Pagination */}
-                      <div className="pay-pagination">
-                        <span className="pay-pagination-info">Showing {Math.min((safePage - 1) * ITEMS_PER_PAGE + 1, filtered.length)} to {Math.min(safePage * ITEMS_PER_PAGE, filtered.length)} of {filtered.length} payslips</span>
-                        <div className="pay-pagination-controls">
-                          <button type="button" className="pay-page-btn" disabled={safePage === 1} onClick={() => setPayslipPage(p => Math.max(1, p - 1))}>‹</button>
-                          {Array.from({ length: totalPages }, (_, i) => i + 1).map(pg => (
-                            <button
-                              key={pg}
-                              type="button"
-                              className={`pay-page-btn ${safePage === pg ? 'active' : ''}`}
-                              onClick={() => setPayslipPage(pg)}
-                            >{pg}</button>
-                          ))}
-                          <button type="button" className="pay-page-btn" disabled={safePage === totalPages} onClick={() => setPayslipPage(p => Math.min(totalPages, p + 1))}>›</button>
-                        </div>
-                      </div>
-                    </section>
-
-                    {/* Payslip View Modal */}
-                    {selectedPayslipForView && (
-                      <div className="pay-modal-backdrop" role="presentation" onClick={() => setSelectedPayslipForView(null)}>
-                        <div
-                          className="pay-modal pay-payslip-modal"
-                          role="dialog"
-                          aria-modal="true"
-                          aria-label={`Payslip for ${selectedPayslipForView.month}`}
-                          onClick={e => e.stopPropagation()}
-                        >
-                          <div className="pay-modal-head">
-                            <div>
-                              <h3>Payslip · {selectedPayslipForView.month}</h3>
-                              <p className="pay-modal-sub">Pynk India Pvt Ltd · John Doe</p>
-                            </div>
-                            <button type="button" className="pay-modal-close" onClick={() => setSelectedPayslipForView(null)}>✕</button>
-                          </div>
-
-                          <div className="payslip-view-grid">
-                            <div className="payslip-section">
-                              <h4>Earnings</h4>
-                              {salaryEarnings.map(e => (
-                                <div key={e.label} className="payslip-row">
-                                  <span><i className="pay-dot" style={{ background: e.color }} />{e.label}</span>
-                                  <strong>{formatCurrency(e.amount)}</strong>
-                                </div>
-                              ))}
-                              <div className="payslip-total-row">
-                                <span>Total Earnings</span>
-                                <strong>{formatCurrency(salaryEarnings.reduce((s, e) => s + e.amount, 0))}</strong>
-                              </div>
-                            </div>
-                            <div className="payslip-section">
-                              <h4>Deductions</h4>
-                              {salaryDeductions.map(d => (
-                                <div key={d.label} className="payslip-row">
-                                  <span><i className="pay-dot" style={{ background: d.color }} />{d.label}</span>
-                                  <strong>{formatCurrency(d.amount)}</strong>
-                                </div>
-                              ))}
-                              <div className="payslip-total-row">
-                                <span>Total Deductions</span>
-                                <strong>{formatCurrency(salaryDeductions.reduce((s, d) => s + d.amount, 0))}</strong>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="payslip-net-row">
-                            <span>Net Salary (Take Home)</span>
-                            <strong>{formatCurrency(selectedPayslipForView.netSalary)}</strong>
-                          </div>
-
-                          <div className="pay-modal-actions">
-                            <button type="button" className="btn" onClick={() => setSelectedPayslipForView(null)}>Close</button>
-                            <button type="button" className="btn btn-primary" onClick={() => {
-                              const ps = selectedPayslipForView
-                              const csv = `Month,Pay Date,Gross Salary,Net Salary,Status\n${ps.month},${ps.payDate},${ps.grossSalary},${ps.netSalary},${ps.status}`
-                              const blob = new Blob([csv], { type: 'text/csv' })
-                              const url = URL.createObjectURL(blob)
-                              const a = document.createElement('a')
-                              a.href = url
-                              a.download = `payslip-${ps.month.replace(' ', '-')}.csv`
-                              a.click()
-                              URL.revokeObjectURL(url)
-                            }}>⬇️ Download PDF</button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )
-              })()}
-
-              {/* ── SALARY BREAKDOWN TAB ── */}
-              {activePayTab === 'Salary Breakdown' && (() => {
-                const totalEarnings = salaryEarnings.reduce((s, e) => s + e.amount, 0)
-                const totalDeductions = salaryDeductions.reduce((s, d) => s + d.amount, 0)
-                const netSalary = totalEarnings - totalDeductions
-                const months = payslipSeedData.map(p => p.month)
-                return (
-                  <div className="pay-breakdown-shell">
-                    <div className="pay-breakdown-sidebar">
-                      <label className="pay-filter-group">
-                        <span>Select Month</span>
-                        <select
-                          id="breakdown-month-select"
-                          value={salaryBreakdownMonth}
-                          onChange={e => setSalaryBreakdownMonth(e.target.value)}
-                        >
-                          {months.map(m => <option key={m} value={m}>{m}</option>)}
-                        </select>
-                      </label>
-
-                      <div className="pay-breakdown-summary">
-                        <div className="pay-breakdown-kpi">
-                          <span>Gross Salary</span>
-                          <strong>{formatCurrency(totalEarnings)}</strong>
-                        </div>
-                        <div className="pay-breakdown-kpi">
-                          <span>Total Deductions</span>
-                          <strong>{formatCurrency(totalDeductions)}</strong>
-                        </div>
-                        <div className="pay-breakdown-kpi net">
-                          <span>Net Salary (Take Home)</span>
-                          <strong>{formatCurrency(netSalary)}</strong>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="pay-breakdown-main">
-                      <h3>Salary Breakdown</h3>
-                      <div className="pay-breakdown-grid">
-                        <section className="pay-breakdown-card" aria-label="Earnings">
-                          <h4>Earnings</h4>
-                          {salaryEarnings.map(e => (
-                            <div key={e.label} className="pay-breakdown-row">
-                              <span><i className="pay-dot" style={{ background: e.color }} />{e.label}</span>
-                              <strong>{formatCurrency(e.amount)}</strong>
-                            </div>
-                          ))}
-                          <div className="pay-breakdown-total">
-                            <span>Total Earnings</span>
-                            <strong>{formatCurrency(totalEarnings)}</strong>
-                          </div>
-                        </section>
-
-                        <section className="pay-breakdown-card" aria-label="Deductions">
-                          <h4>Deductions</h4>
-                          {salaryDeductions.map(d => (
-                            <div key={d.label} className="pay-breakdown-row">
-                              <span><i className="pay-dot" style={{ background: d.color }} />{d.label}</span>
-                              <strong>{formatCurrency(d.amount)}</strong>
-                            </div>
-                          ))}
-                          <div className="pay-breakdown-total">
-                            <span>Total Deductions</span>
-                            <strong>{formatCurrency(totalDeductions)}</strong>
-                          </div>
-                        </section>
-                      </div>
-
-                      <p className="pay-breakdown-note">* The salary breakdown is for informational purposes only.</p>
-                    </div>
-                  </div>
-                )
-              })()}
-
-              {/* ── TAX DOCUMENTS TAB ── */}
-              {activePayTab === 'Tax Documents' && (
-                <div className="pay-taxdocs-shell">
-                  <div className="pay-taxdocs-banner">
-                    <div className="pay-taxdocs-banner-left">
-                      <span className="pay-taxdocs-icon">📋</span>
-                      <div>
-                        <div className="pay-taxdocs-fy-label">Financial Year</div>
-                        <div className="pay-taxdocs-fy">2024-25 (01 Apr 2024 - 31 Mar 2025)</div>
-                      </div>
-                    </div>
-                    <div className="pay-taxdocs-help">
-                      <span>ℹ️</span>
-                      <div>
-                        <strong>Need help?</strong>
-                        <p>For any tax related queries, contact your HR or check our Help Center.</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <section className="pay-table-card" aria-label="Tax documents">
-                    <div className="pay-table-wrap">
-                      <table className="pay-table">
-                        <thead>
-                          <tr>
-                            <th>Document</th>
-                            <th>Financial Year</th>
-                            <th>Description</th>
-                            <th>Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {taxDocumentSeedData.map(doc => (
-                            <tr key={doc.id}>
-                              <td><strong>{doc.name}</strong></td>
-                              <td>{doc.financialYear}</td>
-                              <td>{doc.description}</td>
-                              <td>
-                                <button type="button" className="pay-download-btn" onClick={() => {
-                                  const csv = `Document,Financial Year,Description\n${doc.name},${doc.financialYear},${doc.description}`
-                                  const blob = new Blob([csv], { type: 'text/csv' })
-                                  const url = URL.createObjectURL(blob)
-                                  const a = document.createElement('a')
-                                  a.href = url
-                                  a.download = `${doc.name.replace(/\s+/g, '-')}-${doc.financialYear}.csv`
-                                  a.click()
-                                  URL.revokeObjectURL(url)
-                                }}>
-                                  ⬇️ Download
+                                <button type="button" className="btn" onClick={() => openEditModalForDay(selectedDay.key)}>
+                                  Edit Selected
                                 </button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </section>
+                                <button type="button" className="btn btn-primary" onClick={handleSubmit}>Submit</button>
+                              </div>
 
-                  <p className="pay-breakdown-note">You can download these documents for your tax filing purposes.</p>
-                </div>
-              )}
+                              {isCalendarFiltersOpen && (
+                                <div className="calendar-filter-popover" role="dialog" aria-label="Calendar filters">
+                                  {(['submitted', 'draft', 'returned', 'none'] as TimeEntryStatus[]).map((status) => (
+                                    <label key={status} className="calendar-filter-option">
+                                      <input
+                                        type="checkbox"
+                                        checked={calendarVisibleStatuses.includes(status)}
+                                        onChange={() => toggleCalendarStatus(status)}
+                                      />
+                                      <span className={`status-chip ${status}`}>{statusLabel[status] === '-' ? 'No Entry' : statusLabel[status]}</span>
+                                    </label>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          ) : isTimeHistoryTab ? (
+                            <div className="history-toolbar">
+                              <div className="history-range-group">
+                                <span className="history-range-label">Date Range</span>
+                                <label className="history-date-pill">
+                                  <input
+                                    type="date"
+                                    value={historyFromDateInput}
+                                    max={todayIso}
+                                    onChange={(event) => setHistoryFromDateInput(event.target.value)}
+                                  />
+                                </label>
+                                <span className="history-range-sep">-</span>
+                                <label className="history-date-pill">
+                                  <input
+                                    type="date"
+                                    value={historyToDateInput}
+                                    max={todayIso}
+                                    onChange={(event) => setHistoryToDateInput(event.target.value)}
+                                  />
+                                </label>
+                                <button type="button" className="history-ghost-btn" onClick={applyHistoryDateFilter}>
+                                  Apply
+                                </button>
+                              </div>
 
-              {/* ── BANK DETAILS TAB ── */}
-              {activePayTab === 'Bank Details' && (
-                <div className="pay-bank-shell">
-                  <div className="pay-bank-grid">
-                    {/* Salary Account Card */}
-                    <section className="pay-card pay-bank-card" aria-label="Salary account">
-                      <h3>Salary Account</h3>
-                      <div className="pay-bank-inner">
-                        <div className="pay-bank-icon-wrap">
-                          <span className="pay-bank-icon">🏛️</span>
-                          {bankDetailsSeed.verified && (
-                            <span className="pay-bank-verified">✅ Verified</span>
+                              <div className="history-toolbar-actions">
+                                <button
+                                  type="button"
+                                  className={`history-ghost-btn ${isTimeHistoryFiltersOpen ? 'active' : ''}`}
+                                  onClick={() => setIsTimeHistoryFiltersOpen((prev) => !prev)}
+                                >
+                                  Filter
+                                </button>
+                                <button type="button" className="history-ghost-btn" onClick={handleExportTimeHistory}>
+                                  Export
+                                </button>
+                              </div>
+
+                              {isTimeHistoryFiltersOpen && (
+                                <div className="history-filter-popover" role="dialog" aria-label="Time history filters">
+                                  {(['all', 'approved', 'draft', 'returned'] as const).map((status) => (
+                                    <button
+                                      key={status}
+                                      type="button"
+                                      className={`history-filter-chip ${historyStatusFilter === status ? 'active' : ''}`}
+                                      onClick={() => setHistoryStatusFilter(status)}
+                                    >
+                                      {status === 'all' ? 'All Statuses' : timeHistoryStatusLabel[status]}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          ) : isApprovalsTab ? (
+                            <div className="approvals-toolbar">
+                              <div className="approvals-filter-row" role="tablist" aria-label="Approval filters">
+                                {([
+                                  ['pending', `Pending (${approvalCounts.pending})`],
+                                  ['approved', 'Approved'],
+                                  ['returned', 'Returned'],
+                                  ['all', 'All'],
+                                ] as const).map(([status, label]) => (
+                                  <button
+                                    key={status}
+                                    type="button"
+                                    className={`approval-filter-chip ${approvalFilter === status ? 'active' : ''}`}
+                                    onClick={() => setApprovalFilter(status)}
+                                  >
+                                    {label}
+                                  </button>
+                                ))}
+                              </div>
+
+                              <div className="approvals-toolbar-actions">
+                                <button
+                                  type="button"
+                                  className={`approval-toolbar-btn ${isApprovalsFilterOpen ? 'active' : ''}`}
+                                  onClick={() => setIsApprovalsFilterOpen((prev) => !prev)}
+                                >
+                                  Filter
+                                </button>
+                              </div>
+
+                              {isApprovalsFilterOpen && (
+                                <div className="approval-filter-popover" role="dialog" aria-label="Approvals filters">
+                                  {(['pending', 'approved', 'returned', 'all'] as const).map((status) => (
+                                    <button
+                                      key={status}
+                                      type="button"
+                                      className={`approval-filter-chip ${approvalFilter === status ? 'active' : ''}`}
+                                      onClick={() => {
+                                        setApprovalFilter(status)
+                                        setIsApprovalsFilterOpen(false)
+                                      }}
+                                    >
+                                      {status === 'pending'
+                                        ? `Pending (${approvalCounts.pending})`
+                                        : status === 'all'
+                                          ? 'All'
+                                          : approvalStatusLabel[status]}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          ) : isLeaveTab ? (
+                            null
+                          ) : (
+                            <div className="time-entry-actions">
+                              <label className="date-control">
+                                From
+                                <input type="date" value={fromDateInput} max={todayIso} onChange={(event) => setFromDateInput(event.target.value)} />
+                              </label>
+                              <label className="date-control">
+                                To
+                                <input type="date" value={toDateInput} max={todayIso} onChange={(event) => setToDateInput(event.target.value)} />
+                              </label>
+                              <button type="button" className="btn" onClick={applyDateRange}>Apply Dates</button>
+                              <button type="button" className="btn btn-primary" onClick={handleSubmit}>Submit</button>
+                            </div>
                           )}
                         </div>
-                        <dl className="pay-bank-dl">
-                          <div><dt>Bank Name</dt><dd><strong>{bankDetailsSeed.bankName}</strong></dd></div>
-                          <div><dt>Account Number</dt><dd>{maskAccountNumber(bankDetailsSeed.accountNumber)}</dd></div>
-                          <div><dt>IFSC Code</dt><dd>{bankDetailsSeed.ifscCode}</dd></div>
-                          <div><dt>Account Holder Name</dt><dd>{bankDetailsSeed.accountHolderName}</dd></div>
-                        </dl>
-                      </div>
-                    </section>
 
-                    {/* Update Request Card */}
-                    <section className="pay-card pay-bank-update-card" aria-label="Bank update request">
-                      <h3>Need to update bank details?</h3>
-                      <p className="pay-bank-update-desc">You can request for bank details update. The request will be reviewed and updated by HR.</p>
-                      {bankUpdateRequestSent ? (
-                        <div className="pay-bank-success">
-                          ✅ Your bank update request has been submitted successfully. HR will review and update your details.
-                        </div>
-                      ) : (
-                        <button
-                          type="button"
-                          className="btn btn-primary"
-                          id="request-bank-update-btn"
-                          onClick={() => { setBankUpdateModalOpen(true); setBankUpdateError(''); setBankUpdateSuccess(false) }}
-                        >
-                          Request Bank Update
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        className="pay-view-link"
-                        style={{ marginTop: '12px' }}
-                        onClick={() => { }}
-                      >
-                        View Request Status ›
-                      </button>
-                    </section>
-                  </div>
+                        {dateRangeError && <p className="submit-error">{dateRangeError}</p>}
+                        {submitError && <p className="submit-error">{submitError}</p>}
+                        {isTimeHistoryTab && historyFilterError && <p className="submit-error">{historyFilterError}</p>}
 
-                  <p className="pay-breakdown-note">* Salary is credited to your above bank account every month.</p>
+                        {isCalendarTab ? (
+                          <div className="time-calendar-layout">
+                            <section className="calendar-surface" aria-label="Monthly time entry calendar">
+                              <div className="calendar-week-header">
+                                {calendarWeekdays.map((label) => (
+                                  <span key={label}>{label}</span>
+                                ))}
+                              </div>
 
-                  {/* Bank Update Modal */}
-                  {bankUpdateModalOpen && (
-                    <div className="pay-modal-backdrop" role="presentation" onClick={() => setBankUpdateModalOpen(false)}>
-                      <div
-                        className="pay-modal"
-                        role="dialog"
-                        aria-modal="true"
-                        aria-label="Request bank details update"
-                        onClick={e => e.stopPropagation()}
-                      >
-                        <div className="pay-modal-head">
-                          <h3>Request Bank Details Update</h3>
-                          <button type="button" className="pay-modal-close" onClick={() => setBankUpdateModalOpen(false)}>✕</button>
-                        </div>
-                        <p className="pay-modal-sub">Fill in the new bank details below. HR will verify and update.</p>
+                              <div className="calendar-grid">
+                                {calendarDays.map((cell) => {
+                                  const isLeave = cell.entry?.isLeave
+                                  const status = isLeave ? 'leave' : (cell.entry?.status ?? 'none')
+                                  const statusText = isLeave
+                                    ? (cell.entry?.leaveType ? leaveTypeLabel[cell.entry.leaveType] : 'Leave')
+                                    : (statusLabel[status] === '-' ? 'No Entry' : statusLabel[status])
 
-                        <div className="pay-bank-form-grid">
-                          <label>
-                            Bank Name <span className="pay-req">*</span>
-                            <input
-                              id="bank-name-input"
-                              type="text"
-                              placeholder="e.g. HDFC Bank Limited"
-                              value={bankUpdateForm.bankName}
-                              onChange={e => setBankUpdateForm(p => ({ ...p, bankName: e.target.value }))}
-                            />
-                          </label>
-                          <label>
-                            Account Number <span className="pay-req">*</span>
-                            <input
-                              id="bank-account-input"
-                              type="text"
-                              placeholder="Enter account number"
-                              value={bankUpdateForm.accountNumber}
-                              onChange={e => setBankUpdateForm(p => ({ ...p, accountNumber: e.target.value }))}
-                            />
-                          </label>
-                          <label>
-                            IFSC Code <span className="pay-req">*</span>
-                            <input
-                              id="bank-ifsc-input"
-                              type="text"
-                              placeholder="e.g. HDFC0001234"
-                              value={bankUpdateForm.ifscCode}
-                              onChange={e => setBankUpdateForm(p => ({ ...p, ifscCode: e.target.value.toUpperCase() }))}
-                            />
-                          </label>
-                          <label>
-                            Account Holder Name <span className="pay-req">*</span>
-                            <input
-                              id="bank-holder-input"
-                              type="text"
-                              placeholder="Name as on bank account"
-                              value={bankUpdateForm.accountHolderName}
-                              onChange={e => setBankUpdateForm(p => ({ ...p, accountHolderName: e.target.value }))}
-                            />
-                          </label>
-                          <label className="pay-form-full">
-                            Reason for Update <span className="pay-req">*</span>
-                            <textarea
-                              id="bank-reason-input"
-                              rows={3}
-                              placeholder="Provide reason for bank account change"
-                              value={bankUpdateForm.reason}
-                              onChange={e => setBankUpdateForm(p => ({ ...p, reason: e.target.value }))}
-                            />
-                          </label>
-                        </div>
+                                  return (
+                                    <button
+                                      key={cell.iso}
+                                      type="button"
+                                      className={[
+                                        'calendar-cell',
+                                        cell.isCurrentMonth ? '' : 'is-outside',
+                                        cell.isSelected ? 'is-selected' : '',
+                                        cell.isToday ? 'is-today' : '',
+                                        cell.isVisible ? '' : 'is-filtered',
+                                      ].filter(Boolean).join(' ')}
+                                      onClick={() => handleCalendarCellClick(cell.iso)}
+                                    >
+                                      <div className="calendar-cell-head">
+                                        <span className="calendar-date-number">{cell.date.getDate()}</span>
+                                        {cell.entry && cell.isVisible ? <i className={`dot ${status}`} /> : null}
+                                      </div>
+                                      <div className="calendar-cell-body">
+                                        {cell.entry && cell.isVisible ? (
+                                          <>
+                                            <span className={`calendar-hours-pill ${status}`}>
+                                              {isLeave ? 'Leave' : (cell.entry.hours > 0 ? `${formatHours(cell.entry.hours)}h` : '0h')}
+                                            </span>
+                                            <small>{statusText}</small>
+                                          </>
+                                        ) : (
+                                          <small>{cell.isCurrentMonth ? 'No entry' : ''}</small>
+                                        )}
+                                      </div>
+                                    </button>
+                                  )
+                                })}
+                              </div>
+                            </section>
 
-                        {bankUpdateError && <p className="pay-form-error">{bankUpdateError}</p>}
-                        {bankUpdateSuccess && <p className="pay-form-success">{bankUpdateSuccess}</p>}
+                            <aside className="calendar-summary-panel" aria-label="Calendar summary">
+                              <section className="calendar-summary-card">
+                                <h3>Summary</h3>
+                                <p className="calendar-summary-month">{formatMonthYear(calendarMonthDate)}</p>
+                                <div className="calendar-summary-metrics">
+                                  <div>
+                                    <span>Total Hours</span>
+                                    <strong>{formatHours(visibleMonthTotals.totalHours)} hrs</strong>
+                                  </div>
+                                  <div>
+                                    <span>Regular Hours</span>
+                                    <strong>{formatHours(visibleMonthTotals.regularHours)} hrs</strong>
+                                  </div>
+                                  <div>
+                                    <span>Overtime</span>
+                                    <strong>{formatHours(visibleMonthTotals.overtimeHours)} hrs</strong>
+                                  </div>
+                                  <div>
+                                    <span>Leave Hours</span>
+                                    <strong>{formatHours(visibleMonthTotals.leaveHours)} hrs</strong>
+                                  </div>
+                                </div>
+                              </section>
 
-                        <div className="pay-modal-actions">
-                          <button type="button" className="btn" onClick={() => setBankUpdateModalOpen(false)}>Cancel</button>
-                          <button
-                            type="button"
-                            className="btn btn-primary"
-                            id="submit-bank-update-btn"
-                            onClick={() => {
-                              setBankUpdateError('')
-                              const { bankName, accountNumber, ifscCode, accountHolderName, reason } = bankUpdateForm
-                              if (!bankName.trim()) { setBankUpdateError('Bank name is required.'); return }
-                              if (!accountNumber.trim() || accountNumber.trim().length < 9) { setBankUpdateError('Please enter a valid account number (min 9 digits).'); return }
-                              if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifscCode.trim())) { setBankUpdateError('IFSC Code must be in format: 4 letters, 0, 6 alphanumeric (e.g. HDFC0001234).'); return }
-                              if (!accountHolderName.trim()) { setBankUpdateError('Account holder name is required.'); return }
-                              if (!reason.trim() || reason.trim().length < 10) { setBankUpdateError('Please provide a reason (min 10 characters).'); return }
-                              setBankUpdateRequestSent(true)
-                              setBankUpdateModalOpen(false)
-                              setBankUpdateForm({ bankName: '', accountNumber: '', ifscCode: '', accountHolderName: '', reason: '' })
-                            }}
-                          >
-                            Submit Request
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
+                              <section className="calendar-summary-card">
+                                <h3>Status Mix</h3>
+                                <div className="calendar-status-list">
+                                  <span><i className="dot leave" />Leave <strong>{visibleMonthTotals.leave}</strong></span>
+                                  <span><i className="dot submitted" />Submitted <strong>{visibleMonthTotals.submitted}</strong></span>
+                                  <span><i className="dot draft" />Draft <strong>{visibleMonthTotals.draft}</strong></span>
+                                  <span><i className="dot returned" />Returned <strong>{visibleMonthTotals.returned}</strong></span>
+                                  <span><i className="dot none" />No Entry <strong>{visibleMonthTotals.none}</strong></span>
+                                </div>
+                              </section>
 
-              {/* ── PAYMENT HISTORY TAB ── */}
-              {activePayTab === 'Payment History' && (() => {
-                const filtered = payHistoryStatusFilter === 'All'
-                  ? paymentHistorySeed
-                  : paymentHistorySeed.filter(p => p.status === payHistoryStatusFilter)
-                return (
-                  <div className="pay-payhistory-shell">
-                    <div className="pay-history-filters">
-                      {(['All', 'Credited', 'Pending', 'Failed'] as const).map(status => (
-                        <button
-                          key={status}
-                          type="button"
-                          className={`pay-history-chip ${payHistoryStatusFilter === status ? 'active' : ''}`}
-                          onClick={() => setPayHistoryStatusFilter(status)}
-                        >
-                          {status}
-                        </button>
-                      ))}
-                    </div>
+                              <section className="calendar-summary-card">
+                                <div className="day-card-head compact">
+                                  <h4>{formatDateLong(selectedDay.key)}</h4>
+                                  <button type="button" onClick={() => openEditModalForDay(selectedDay.key)}>Edit</button>
+                                </div>
+                                <dl className="calendar-detail-list">
+                                  <div>
+                                    <dt>Status</dt>
+                                    <dd>
+                                      <span className={`status-chip ${selectedDay.isLeave ? 'leave' : selectedDay.status}`}>
+                                        {selectedDay.isLeave
+                                          ? (selectedDay.leaveType ? leaveTypeLabel[selectedDay.leaveType] : 'Leave')
+                                          : (statusLabel[selectedDay.status] === '-' ? 'No Entry' : statusLabel[selectedDay.status])}
+                                      </span>
+                                    </dd>
+                                  </div>
+                                  <div><dt>Work Location</dt><dd>{selectedDay.workLocation}</dd></div>
+                                  <div><dt>Start Time</dt><dd>{selectedDay.isLeave ? '--' : selectedDay.startTime}</dd></div>
+                                  <div><dt>End Time</dt><dd>{selectedDay.isLeave ? '--' : selectedDay.endTime}</dd></div>
+                                  <div><dt>Break</dt><dd>{selectedDay.isLeave ? '--' : selectedDay.breakDuration}</dd></div>
+                                  <div><dt>Notes</dt><dd>{selectedDay.notes || 'No notes.'}</dd></div>
+                                </dl>
+                              </section>
+                            </aside>
+                          </div>
+                        ) : isTimeHistoryTab ? (
+                          <div className="time-history-shell">
+                            <p className="history-range-note">Showing history for {appliedHistoryRangeLabel}</p>
+                            <section className="time-history-card" aria-label="Time history table">
+                              <table className="time-history-table">
+                                <thead>
+                                  <tr>
+                                    <th>Week</th>
+                                    <th>Total Hours</th>
+                                    <th>Regular Hours</th>
+                                    <th>Overtime</th>
+                                    <th>Leave Hours</th>
+                                    <th>Status</th>
+                                    <th>Submitted On</th>
+                                    <th>Approved On</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {filteredTimeHistoryItems.map((item) => (
+                                    <tr key={item.key}>
+                                      <td>{getRangeLabel(item.fromDateISO, item.toDateISO)}</td>
+                                      <td>{formatHours(item.totalHours)}</td>
+                                      <td>{formatHours(item.regularHours)}</td>
+                                      <td>{formatHours(item.overtimeHours)}</td>
+                                      <td>{formatHours(item.leaveHours)}</td>
+                                      <td>
+                                        <span className={`history-status-chip ${item.status}`}>
+                                          {timeHistoryStatusLabel[item.status]}
+                                        </span>
+                                      </td>
+                                      <td>{item.submittedOnISO ? formatDateWithYear(item.submittedOnISO) : '-'}</td>
+                                      <td>{item.approvedOnISO ? formatDateWithYear(item.approvedOnISO) : '-'}</td>
+                                    </tr>
+                                  ))}
+                                  {filteredTimeHistoryItems.length === 0 && (
+                                    <tr>
+                                      <td colSpan={8} className="history-empty-row">No time history found for the current filters.</td>
+                                    </tr>
+                                  )}
+                                </tbody>
+                              </table>
+                            </section>
+                          </div>
+                        ) : isApprovalsTab ? (
+                          <div className="approvals-shell">
+                            {filteredApprovalItems.map((item) => {
+                              const isExpanded = expandedApprovalKey === item.key
 
-                    <section className="pay-table-card" aria-label="Payment history table">
-                      <div className="pay-table-wrap">
-                        <table className="pay-table">
-                          <thead>
-                            <tr>
-                              <th>Month</th>
-                              <th>Pay Date</th>
-                              <th>Gross Salary</th>
-                              <th>Net Salary</th>
-                              <th>Payment Mode</th>
-                              <th>Transaction ID</th>
-                              <th>Status</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {filtered.map(ph => (
-                              <tr key={ph.id}>
-                                <td>{ph.month}</td>
-                                <td>{ph.payDate}</td>
-                                <td>{formatCurrency(ph.grossSalary)}</td>
-                                <td>{formatCurrency(ph.netSalary)}</td>
-                                <td>{ph.paymentMode}</td>
-                                <td><span className="pay-txn-id">{ph.transactionId}</span></td>
-                                <td><span className={`pay-history-status ${ph.status.toLowerCase()}`}>{ph.status}</span></td>
-                              </tr>
-                            ))}
-                            {filtered.length === 0 && (
-                              <tr><td colSpan={7} className="pay-empty-row">No payment history found.</td></tr>
+                              return (
+                                <section key={item.key} className="approval-card" aria-label={`Approval item ${item.employeeName}`}>
+                                  <div className="approval-card-head">
+                                    <div className="approval-employee">
+                                      <div className="approval-avatar">JD</div>
+                                      <div>
+                                        <h4>{item.employeeName}</h4>
+                                        <p>{item.employeeRole}</p>
+                                      </div>
+                                    </div>
+
+                                    <div className="approval-summary-grid">
+                                      <div>
+                                        <span>Week</span>
+                                        <strong>{getRangeLabel(item.fromDateISO, item.toDateISO)}</strong>
+                                      </div>
+                                      <div>
+                                        <span>Total Hours</span>
+                                        <strong>{formatHours(item.totalHours)}</strong>
+                                      </div>
+                                      <div>
+                                        <span>Submitted On</span>
+                                        <strong>{formatDateWithYear(item.submittedOnISO)}</strong>
+                                      </div>
+                                      <div>
+                                        <span>Status</span>
+                                        <strong><span className={`approval-status-pill ${item.status}`}>{approvalStatusLabel[item.status]}</span></strong>
+                                      </div>
+                                    </div>
+
+                                    <button
+                                      type="button"
+                                      className="approval-toggle-btn"
+                                      onClick={() => setExpandedApprovalKey((prev) => (prev === item.key ? null : item.key))}
+                                      aria-label={isExpanded ? 'Collapse approval details' : 'Expand approval details'}
+                                    >
+                                      {isExpanded ? '⌃' : '⌄'}
+                                    </button>
+                                  </div>
+
+                                  {isExpanded && (
+                                    <>
+                                      <div className="approval-detail-table-wrap">
+                                        <table className="approval-detail-table">
+                                          <thead>
+                                            <tr>
+                                              <th>Day</th>
+                                              {item.details.map((day) => (
+                                                <th key={day.key}>
+                                                  <span>{day.label}</span>
+                                                  <small>{day.dateLabel}</small>
+                                                </th>
+                                              ))}
+                                              <th>Total</th>
+                                            </tr>
+                                          </thead>
+                                          <tbody>
+                                            <tr>
+                                              <td>Hours</td>
+                                              {item.details.map((day) => <td key={`hours-${day.key}`}>{formatHours(day.hours)}</td>)}
+                                              <td>{formatHours(item.totalHours)}</td>
+                                            </tr>
+                                            <tr>
+                                              <td>Regular Hours</td>
+                                              {item.details.map((day) => <td key={`regular-${day.key}`}>{formatHours(day.regularHours)}</td>)}
+                                              <td>{formatHours(item.regularHours)}</td>
+                                            </tr>
+                                            <tr>
+                                              <td>Overtime</td>
+                                              {item.details.map((day) => <td key={`ot-${day.key}`}>{formatHours(day.overtimeHours)}</td>)}
+                                              <td>{formatHours(item.overtimeHours)}</td>
+                                            </tr>
+                                          </tbody>
+                                        </table>
+                                      </div>
+                                    </>
+                                  )}
+                                </section>
+                              )
+                            })}
+
+                            {filteredApprovalItems.length === 0 && (
+                              <section className="approval-card approval-empty-card">
+                                <p>No approvals found for the selected filter.</p>
+                              </section>
                             )}
-                          </tbody>
-                        </table>
-                      </div>
-                    </section>
-
-                    <p className="pay-breakdown-note">* Payment history shows salary credits to your registered bank account.</p>
-                  </div>
-                )
-              })()}
-            </div>
-          ) : currentModule === 'documents' ? (
-            <div className="doc-shell">
-              <div className="doc-top">
-                <div className="doc-tabs">
-                  {documentTabs.map((tab) => (
-                    <button
-                      key={tab}
-                      type="button"
-                      className={`doc-tab ${activeDocTab === tab ? 'active' : ''}`}
-                      onClick={() => {
-                        setActiveDocTab(tab)
-                        setDocSearchQuery('')
-                      }}
-                    >
-                      {tab}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* ── MY DOCUMENTS (OVERVIEW) ── */}
-              {activeDocTab === 'My Documents' && (
-                <div className="doc-overview-tab">
-                  <div className="doc-metrics-grid">
-                    <div className="doc-metric-card">
-                      <div className="doc-metric-icon blue">📄</div>
-                      <div className="doc-metric-content">
-                        <span className="doc-metric-label">Total Documents</span>
-                        <strong className="doc-metric-value">24</strong>
-                        <span className="doc-metric-sub">All time</span>
-                      </div>
-                    </div>
-                    <div className="doc-metric-card">
-                      <div className="doc-metric-icon green">⬇️</div>
-                      <div className="doc-metric-content">
-                        <span className="doc-metric-label">Downloaded This Month</span>
-                        <strong className="doc-metric-value">5</strong>
-                        <span className="doc-metric-sub">Files</span>
-                      </div>
-                    </div>
-                    <div className="doc-metric-card">
-                      <div className="doc-metric-icon orange">⬆️</div>
-                      <div className="doc-metric-content">
-                        <span className="doc-metric-label">Pending Uploads</span>
-                        <strong className="doc-metric-value">2</strong>
-                        <span className="doc-metric-sub">Files</span>
-                      </div>
-                    </div>
-                    <div className="doc-metric-card">
-                      <div className="doc-metric-icon red">📅</div>
-                      <div className="doc-metric-content">
-                        <span className="doc-metric-label">Expiring Soon</span>
-                        <strong className="doc-metric-value">1</strong>
-                        <span className="doc-metric-sub">Documents</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="doc-overview-split">
-                    <section className="doc-card" aria-label="Quick Actions">
-                      <h3>Quick Actions</h3>
-                      <div className="doc-quick-actions-grid">
-                        <button type="button" className="doc-quick-btn" onClick={() => setActiveDocTab('Uploaded Documents')}>
-                          <div className="doc-quick-icon blue">📤</div>
-                          <div className="doc-quick-text">
-                            <strong>Upload Document</strong>
-                            <span>Upload new document</span>
                           </div>
-                        </button>
-                        <button type="button" className="doc-quick-btn" onClick={() => setActiveDocTab('Employment Documents')}>
-                          <div className="doc-quick-icon blue">📄</div>
-                          <div className="doc-quick-text">
-                            <strong>View Employment Contract</strong>
-                            <span>View your contract</span>
-                          </div>
-                        </button>
-                        <button type="button" className="doc-quick-btn" onClick={() => setActiveDocTab('Payroll Documents')}>
-                          <div className="doc-quick-icon green">💵</div>
-                          <div className="doc-quick-text">
-                            <strong>Download Latest Payslip</strong>
-                            <span>June 2025</span>
-                          </div>
-                        </button>
-                        <button type="button" className="doc-quick-btn" onClick={() => setActiveDocTab('Tax Documents')}>
-                          <div className="doc-quick-icon purple">🧾</div>
-                          <div className="doc-quick-text">
-                            <strong>View Tax Documents</strong>
-                            <span>Download tax files</span>
-                          </div>
-                        </button>
-                      </div>
-                    </section>
+                        ) : isLeaveTab ? (
+                          renderLeaveModuleContent()
+                        ) : (
+                          <>
+                            <div className="time-entry-cards">
+                              <section className="time-card summary-card" aria-label="Summary">
+                                <h3>Summary</h3>
+                                <div className="summary-grid">
+                                  <div className="summary-item">
+                                    <span>Total Hours</span>
+                                    <strong>{formatHours(totals.totalHours)}</strong>
+                                    <small>/ 40 hrs</small>
+                                  </div>
+                                  <div className="summary-item">
+                                    <span>Regular Hours</span>
+                                    <strong>{formatHours(totals.regularHours)}</strong>
+                                    <small>/ 40 hrs</small>
+                                  </div>
+                                  <div className="summary-item">
+                                    <span>Overtime</span>
+                                    <strong>{formatHours(totals.overtimeHours)}</strong>
+                                    <small>hrs</small>
+                                  </div>
+                                  <div className="summary-item">
+                                    <span>Leave Hours</span>
+                                    <strong>{formatHours(leaveHours)}</strong>
+                                    <small>hrs</small>
+                                  </div>
+                                </div>
+                              </section>
 
-                    <section className="doc-card" aria-label="Recent Documents">
-                      <div className="doc-card-head">
-                        <h3>Recent Documents</h3>
-                        <button type="button" className="doc-view-all" onClick={() => setActiveDocTab('Employment Documents')}>View All</button>
-                      </div>
-                      <div className="doc-recent-list">
-                        {[employmentDocsSeed[0], employmentDocsSeed[1], uploadedDocsSeed[0], payrollDocsSeed[0], taxDocsSeed[0]].map((doc, idx) => (
-                          <div key={idx} className="doc-recent-row">
-                            <span className="doc-recent-icon">📄</span>
-                            <span className="doc-recent-name">{doc.name}</span>
-                            <span className="doc-recent-meta">PDF • {doc.size}</span>
-                            <span className="doc-recent-date">{doc.issuedOn || doc.monthYear || doc.uploadedOn || doc.financialYear}</span>
-                            <button type="button" className="doc-action-btn" onClick={() => handleDownloadDoc(doc)}>⬇️</button>
-                          </div>
-                        ))}
-                      </div>
-                    </section>
-                  </div>
+                              <section className="time-card status-card" aria-label="Status">
+                                <h3>Status</h3>
+                                <span className={`status-chip ${rangeStatus.toLowerCase()}`}>{rangeStatus}</span>
+                                <p>Last saved: {activeRange.lastSaved}</p>
+                                <p>{getRangeLabel(activeRange.fromDateISO, activeRange.toDateISO)}</p>
+                                <div className="status-progress">
+                                  <div className="status-progress-fill" style={{ width: `${completionPct}%` }} />
+                                </div>
+                                <small>{completionPct}% completed</small>
+                              </section>
 
-                  <div className="doc-info-tip">
-                    <span>ℹ️</span> Tip: You can upload documents in PDF, JPG, PNG format. Max file size 10MB.
-                  </div>
-                </div>
-              )}
+                              <section className="time-card quick-card" aria-label="Quick actions">
+                                <h3>Quick Actions</h3>
+                                <button type="button" className="quick-link" onClick={requestClockInOut}>
+                                  Clock In / Out <span>›</span>
+                                </button>
+                                <button type="button" className="quick-link" onClick={requestCopyPreviousPeriod}>
+                                  Copy Previous Period <span>›</span>
+                                </button>
+                                <button type="button" className="quick-link" onClick={handleRequestCorrection}>
+                                  Request Correction <span>›</span>
+                                </button>
+                              </section>
+                            </div>
 
-              {/* ── SHARED TABLE LAYOUT FOR OTHER TABS ── */}
-              {activeDocTab !== 'My Documents' && (
-                <div className="doc-table-shell">
-                  <div className="doc-table-header">
-                    <div className="doc-table-title">
-                      <h3>{activeDocTab}</h3>
-                      <p>
-                        {activeDocTab === 'Employment Documents' && 'Documents issued by your employer.'}
-                        {activeDocTab === 'Payroll Documents' && 'Payroll related documents and salary information.'}
-                        {activeDocTab === 'Tax Documents' && 'Tax related documents and certificates.'}
-                        {activeDocTab === 'Uploaded Documents' && 'Documents uploaded by you for verification.'}
-                        {activeDocTab === 'Expiring Documents' && 'Documents that are expiring soon.'}
-                      </p>
-                    </div>
+                            <div className="time-entry-main">
+                              <div className="time-table-card">
+                                <table className="time-table">
+                                  <thead>
+                                    <tr>
+                                      <th>Date</th>
+                                      {activeRange.days.map((day) => (
+                                        <th
+                                          key={day.key}
+                                          className={selectedDayKey === day.key ? 'selected' : ''}
+                                          onClick={() => handleDaySelection(day.key)}
+                                        >
+                                          <span>{day.label}</span>
+                                          <small>{day.dateLabel}</small>
+                                        </th>
+                                      ))}
+                                      <th>Total</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr>
+                                      <td>Status</td>
+                                      {activeRange.days.map((day) => (
+                                        <td key={`status-${day.key}`} className={selectedDayKey === day.key ? 'selected' : ''}>
+                                          <button
+                                            type="button"
+                                            className={`status-chip status-chip-btn ${day.isLeave ? 'leave' : day.status}`}
+                                            onClick={() => openEditModalForDay(day.key)}
+                                            title="Edit this date"
+                                          >
+                                            {day.isLeave ? (day.leaveType ? leaveTypeLabel[day.leaveType] : 'Leave') : statusLabel[day.status]}
+                                          </button>
+                                        </td>
+                                      ))}
+                                      <td> </td>
+                                    </tr>
+                                    <tr>
+                                      <td>Hours</td>
+                                      {activeRange.days.map((day) => (
+                                        <td key={`hours-${day.key}`} className={selectedDayKey === day.key ? 'selected' : ''}>
+                                          {day.isLeave ? '--' : formatHours(day.hours)}
+                                        </td>
+                                      ))}
+                                      <td>{formatHours(totals.totalHours)}</td>
+                                    </tr>
+                                    <tr>
+                                      <td>Regular Hours</td>
+                                      {activeRange.days.map((day) => (
+                                        <td key={`regular-${day.key}`} className={selectedDayKey === day.key ? 'selected' : ''}>
+                                          {day.isLeave ? '--' : formatHours(day.regularHours)}
+                                        </td>
+                                      ))}
+                                      <td>{formatHours(totals.regularHours)}</td>
+                                    </tr>
+                                    <tr>
+                                      <td>Overtime</td>
+                                      {activeRange.days.map((day) => (
+                                        <td key={`ot-${day.key}`} className={selectedDayKey === day.key ? 'selected' : ''}>
+                                          {day.isLeave ? '--' : formatHours(day.overtimeHours)}
+                                        </td>
+                                      ))}
+                                      <td>{formatHours(totals.overtimeHours)}</td>
+                                    </tr>
+                                  </tbody>
+                                </table>
 
-                    <div className="doc-table-controls">
-                      {activeDocTab === 'Tax Documents' ? (
-                        <div className="doc-filter-group">
-                          <label>Financial Year</label>
-                          <select value={taxYearFilter} onChange={(e) => { setTaxYearFilter(e.target.value); setDocCurrentPage(1); }}>
-                            <option value="2024-25">2024-25 (Apr 2024 - Mar 2025)</option>
-                            <option value="2023-24">2023-24 (Apr 2023 - Mar 2024)</option>
-                          </select>
-                        </div>
-                      ) : (
-                        <div className="doc-search-box">
-                          <input
-                            type="text"
-                            placeholder="Search document"
-                            value={docSearchQuery}
-                            onChange={(e) => { setDocSearchQuery(e.target.value); setDocCurrentPage(1); }}
-                          />
-                          <span className="doc-search-icon">🔍</span>
-                        </div>
-                      )}
+                                <div className="time-legend">
+                                  <span>
+                                    <i className="dot submitted" />Submitted
+                                  </span>
+                                  <span>
+                                    <i className="dot draft" />Draft
+                                  </span>
+                                  <span>
+                                    <i className="dot returned" />Returned
+                                  </span>
+                                  <span>
+                                    <i className="dot none" />No Entry
+                                  </span>
+                                </div>
+                              </div>
 
-                      {activeDocTab === 'Uploaded Documents' && (
-                        <button type="button" className="doc-upload-btn" onClick={() => setIsDocUploadModalOpen(true)}>📤 Upload Document</button>
-                      )}
-                      <select className="doc-filter-btn" value={docStatusFilter} onChange={(e) => { setDocStatusFilter(e.target.value); setDocCurrentPage(1); }} style={{ appearance: 'auto' }}>
-                        <option value="All">All Status</option>
-                        <option value="Available">Available</option>
-                        <option value="Verified">Verified</option>
-                        <option value="Pending Verification">Pending</option>
-                      </select>
-                    </div>
-                  </div>
+                              <aside className="time-day-card" aria-label="Selected date details">
+                                <div className="day-card-head">
+                                  <h4>{formatDateLong(selectedDay.key)}</h4>
+                                  <button type="button" onClick={() => openEditModalForDay(selectedDay.key)}>Edit</button>
+                                </div>
+                                <dl>
+                                  <div><dt>Work Location</dt><dd>{selectedDay.workLocation}</dd></div>
+                                  <div><dt>Start Time</dt><dd>{selectedDay.startTime}</dd></div>
+                                  <div><dt>End Time</dt><dd>{selectedDay.endTime}</dd></div>
+                                  <div><dt>Break</dt><dd>{selectedDay.breakDuration}</dd></div>
+                                  <div><dt>Regular Hours</dt><dd>{formatHours(selectedDay.regularHours)} hrs</dd></div>
+                                  <div><dt>Overtime</dt><dd>{formatHours(selectedDay.overtimeHours)} hrs</dd></div>
+                                  <div><dt>Notes</dt><dd>{selectedDay.notes || 'No notes.'}</dd></div>
+                                </dl>
+                              </aside>
+                            </div>
 
-                  <div className="doc-table-card">
-                    <div className="doc-table-wrap">
-                      <table className="doc-table">
-                        <thead>
-                          <tr>
-                            <th>Document Name</th>
-                            {activeDocTab === 'Uploaded Documents' ? (
-                              <th>Category</th>
-                            ) : (
-                              <th>Description</th>
-                            )}
-                            {activeDocTab === 'Employment Documents' && <th>Issued On</th>}
-                            {activeDocTab === 'Payroll Documents' && <th>Month / Year</th>}
-                            {activeDocTab === 'Tax Documents' && <th>Financial Year</th>}
-                            {activeDocTab === 'Uploaded Documents' && <th>Uploaded On</th>}
-                            <th>Status</th>
-                            {activeDocTab === 'Uploaded Documents' && <th>Verified On</th>}
-                            <th>Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {(() => {
-                            let source: PortalDocument[] = []
-                            if (activeDocTab === 'Employment Documents') source = employmentDocsSeed
-                            else if (activeDocTab === 'Payroll Documents') source = payrollDocsSeed
-                            else if (activeDocTab === 'Tax Documents') source = taxDocsSeed
-                            else if (activeDocTab === 'Uploaded Documents') source = uploadedDocsState
-                            else if (activeDocTab === 'Expiring Documents') source = [uploadedDocsState[1]]
+                            <div className="foot">
+                              <button
+                                className="btn"
+                                onClick={handlePrevDate}
+                                disabled={selectedDayIndex === 0}
+                              >
+                                ← Back
+                              </button>
+                              <div className="progress">
+                                <div className="pmeta">
+                                  <span>Date {selectedDayIndex + 1} of {activeRange.days.length}</span>
+                                  <span>{dateProgressPct}% complete</span>
+                                </div>
+                                <div className="pbar">
+                                  <div className="fill" style={{ width: `${dateProgressPct}%` }} />
+                                </div>
+                              </div>
+                              <button
+                                className="btn btn-primary"
+                                onClick={handleNextDate}
+                                disabled={selectedDayIndex >= activeRange.days.length - 1}
+                              >
+                                Next →
+                              </button>
+                            </div>
+                          </>
+                        )}
 
-                            let filtered = source.filter(d => d.name.toLowerCase().includes(docSearchQuery.toLowerCase()))
+                        {isEditModalOpen && (
+                          <div className="time-modal-backdrop" role="presentation" onClick={closeEditModal}>
+                            <div
+                              className="time-modal"
+                              role="dialog"
+                              aria-modal="true"
+                              aria-label="Edit time entry"
+                              onClick={(event) => event.stopPropagation()}
+                            >
+                              <h3>Edit Entry · {formatDateLong(selectedDay.key)}</h3>
+                              <div className="time-modal-grid">
+                                <label className="checkbox-container-label" style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', margin: '4px 0', color: 'var(--ink)' }}>
+                                  <input
+                                    type="checkbox"
+                                    checked={editForm.isLeave || false}
+                                    onChange={(event) =>
+                                      setEditForm((prev) => ({ ...prev, isLeave: event.target.checked }))
+                                    }
+                                  />
+                                  <span className="checkbox-custom"></span>
+                                  Request Day Off / Leave
+                                </label>
 
-                            if (activeDocTab === 'Tax Documents') {
-                              filtered = filtered.filter(d => d.financialYear === taxYearFilter)
-                            }
-
-                            if (docStatusFilter !== 'All') {
-                              filtered = filtered.filter(d => {
-                                if (docStatusFilter === 'Pending') return d.status === 'Pending Verification'
-                                return d.status === docStatusFilter
-                              })
-                            }
-
-                            const totalItems: number = filtered.length
-                            if (totalItems === 0) return 'Showing 0 documents'
-                            const startIndex = (docCurrentPage - 1) * DOCS_PER_PAGE
-                            const paginated = filtered.slice(startIndex, startIndex + DOCS_PER_PAGE)
-
-                            if (paginated.length === 0) {
-                              return <tr><td colSpan={6} className="doc-empty">No documents found.</td></tr>
-                            }
-
-                            return paginated.map((doc) => (
-                              <tr key={doc.id}>
-                                <td className="doc-cell-name">{doc.name}</td>
-
-                                {activeDocTab === 'Uploaded Documents' ? (
-                                  <td>{doc.category}</td>
+                                {editForm.isLeave ? (
+                                  <label style={{ gridColumn: '1 / -1' }}>
+                                    Leave Type
+                                    <select
+                                      value={editForm.leaveType || 'annual'}
+                                      onChange={(event) =>
+                                        setEditForm((prev) => ({ ...prev, leaveType: event.target.value as LeaveTypeId }))
+                                      }
+                                    >
+                                      {(Object.keys(leaveTypeLabel) as LeaveTypeId[]).map((typeId) => (
+                                        <option key={typeId} value={typeId}>
+                                          {leaveTypeLabel[typeId]}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </label>
                                 ) : (
-                                  <td>{doc.description}</td>
+                                  <>
+                                    <label>
+                                      Start Time
+                                      <input
+                                        type="time"
+                                        value={editForm.startTime}
+                                        onChange={(event) => setEditForm((prev) => ({ ...prev, startTime: event.target.value }))}
+                                      />
+                                    </label>
+                                    <label>
+                                      End Time
+                                      <input
+                                        type="time"
+                                        value={editForm.endTime}
+                                        onChange={(event) => setEditForm((prev) => ({ ...prev, endTime: event.target.value }))}
+                                      />
+                                    </label>
+                                    <label style={{ gridColumn: '1 / -1' }}>
+                                      Break (minutes)
+                                      <input
+                                        type="number"
+                                        min={0}
+                                        max={300}
+                                        value={editForm.breakMinutes}
+                                        onChange={(event) =>
+                                          setEditForm((prev) => ({ ...prev, breakMinutes: Number(event.target.value || 0) }))
+                                        }
+                                      />
+                                    </label>
+                                  </>
                                 )}
 
-                                {activeDocTab === 'Employment Documents' && <td>{doc.issuedOn}</td>}
-                                {activeDocTab === 'Payroll Documents' && <td>{doc.monthYear}</td>}
-                                {activeDocTab === 'Tax Documents' && <td>{doc.financialYear}</td>}
-                                {activeDocTab === 'Uploaded Documents' && <td>{doc.uploadedOn}</td>}
-
-                                <td>
-                                  <span className={`doc-status ${doc.status === 'Available' || doc.status === 'Verified' ? 'success' : 'warning'}`}>
-                                    {doc.status}
-                                  </span>
-                                </td>
-
-                                {activeDocTab === 'Uploaded Documents' && <td>{doc.verifiedOn}</td>}
-
-                                <td>
-                                  <div className="doc-table-actions">
-                                    <button type="button" title="View" onClick={() => setDocPreview(doc)}>👁️</button>
-                                    <button type="button" title="Download" onClick={() => handleDownloadDoc(doc)}>⬇️</button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))
-                          })()}
-                        </tbody>
-                      </table>
-                    </div>
-                    <div className="doc-pagination" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span className="doc-pagination-info">
-                        {(() => {
-                          let source: PortalDocument[] = []
-                          if (activeDocTab === 'Employment Documents') source = employmentDocsSeed
-                          else if (activeDocTab === 'Payroll Documents') source = payrollDocsSeed
-                          else if (activeDocTab === 'Tax Documents') source = taxDocsSeed
-                          else if (activeDocTab === 'Uploaded Documents') source = uploadedDocsState
-                          else if (activeDocTab === 'Expiring Documents') source = [uploadedDocsState[1]]
-
-                          let filtered = source.filter(d => d.name.toLowerCase().includes(docSearchQuery.toLowerCase()))
-                          if (activeDocTab === 'Tax Documents') {
-                            filtered = filtered.filter(d => d.financialYear === taxYearFilter)
-                          }
-                          if (docStatusFilter !== 'All') {
-                            filtered = filtered.filter(d => d.status === (docStatusFilter === 'Pending' ? 'Pending Verification' : docStatusFilter))
-                          }
-
-                          const totalItems = filtered.length
-                          if (totalItems === 0) return 'Showing 0 documents'
-                          const start = (docCurrentPage - 1) * DOCS_PER_PAGE + 1
-                          const end = Math.min(docCurrentPage * DOCS_PER_PAGE, totalItems)
-                          return `Showing ${start} to ${end} of ${totalItems} documents`
-                        })()}
-                      </span>
-                      <div className="doc-pagination-controls" style={{ display: 'flex', gap: '8px' }}>
-                        <button type="button" className="btn" disabled={docCurrentPage === 1} onClick={() => setDocCurrentPage(p => Math.max(1, p - 1))}>Prev</button>
-                        <button type="button" className="btn" disabled={
-                          (() => {
-                            let source: PortalDocument[] = []
-                            if (activeDocTab === 'Employment Documents') source = employmentDocsSeed
-                            else if (activeDocTab === 'Payroll Documents') source = payrollDocsSeed
-                            else if (activeDocTab === 'Tax Documents') source = taxDocsSeed
-                            else if (activeDocTab === 'Uploaded Documents') source = uploadedDocsState
-                            else if (activeDocTab === 'Expiring Documents') source = [uploadedDocsState[1]]
-
-                            let filtered = source.filter(d => d.name.toLowerCase().includes(docSearchQuery.toLowerCase()))
-                            if (activeDocTab === 'Tax Documents') {
-                              filtered = filtered.filter(d => d.financialYear === taxYearFilter)
-                            }
-                            if (docStatusFilter !== 'All') {
-                              filtered = filtered.filter(d => d.status === (docStatusFilter === 'Pending' ? 'Pending Verification' : docStatusFilter))
-                            }
-                            return docCurrentPage >= Math.ceil(filtered.length / DOCS_PER_PAGE)
-                          })()
-                        } onClick={() => setDocCurrentPage(p => p + 1)}>Next</button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {activeDocTab === 'Uploaded Documents' && (
-                    <div className="doc-info-tip" style={{ marginTop: '14px' }}>
-                      <span>ℹ️</span> You will be notified once your documents are verified by HR.
-                    </div>
-                  )}
-
-                  {isDocUploadModalOpen && (
-                    <div className="time-modal-backdrop" role="presentation" onClick={() => setIsDocUploadModalOpen(false)}>
-                      <div className="time-modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
-                        <div className="time-modal-head">
-                          <h3>Upload Document</h3>
-                          <button type="button" onClick={() => setIsDocUploadModalOpen(false)}>✕</button>
-                        </div>
-                        <div className="time-modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px' }}>
-                          {docUploadError && <div className="login-error">{docUploadError}</div>}
-                          <div className="login-group">
-                            <label>Document Name *</label>
-                            <input type="text" value={docUploadName} onChange={e => setDocUploadName(e.target.value)} placeholder="e.g. Passport Copy" />
-                          </div>
-                          <div className="login-group">
-                            <label>Category *</label>
-                            <select value={docUploadCategory} onChange={e => setDocUploadCategory(e.target.value)}>
-                              <option value="">Select Category</option>
-                              <option value="Identity Proof">Identity Proof</option>
-                              <option value="Address Proof">Address Proof</option>
-                              <option value="Work Authorization">Work Authorization</option>
-                              <option value="Qualification">Qualification</option>
-                              <option value="Tax Document">Tax Document</option>
-                              <option value="Bank Details">Bank Details</option>
-                              <option value="Other">Other</option>
-                            </select>
-                          </div>
-                          <div className="login-group">
-                            <label>File *</label>
-                            <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => setDocUploadFile(e.target.files?.[0] || null)} />
-                          </div>
-                        </div>
-                        <div className="time-modal-foot">
-                          <button type="button" className="btn" onClick={() => setIsDocUploadModalOpen(false)}>Cancel</button>
-                          <button type="button" className="btn btn-primary" onClick={() => {
-                            if (!docUploadName || !docUploadCategory || !docUploadFile) {
-                              setDocUploadError('Please fill all required fields and select a file.')
-                              return
-                            }
-                            const newDoc: PortalDocument = {
-                              id: `ud-new-${Date.now()}`,
-                              name: docUploadName,
-                              category: docUploadCategory,
-                              status: 'Pending Verification',
-                              size: `${(docUploadFile.size / 1024).toFixed(0)} KB`,
-                              uploadedOn: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-                              verifiedOn: '-'
-                            }
-                            setUploadedDocsState([newDoc, ...uploadedDocsState])
-                            setIsDocUploadModalOpen(false)
-                            setDocUploadName('')
-                            setDocUploadCategory('')
-                            setDocUploadFile(null)
-                            setDocUploadError('')
-                          }}>Upload</button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {docPreview && (
-                    <div className="time-modal-backdrop" role="presentation" onClick={() => setDocPreview(null)}>
-                      <div className="time-modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
-                        <div className="time-modal-head">
-                          <h3>{docPreview.name}</h3>
-                          <button type="button" onClick={() => setDocPreview(null)}>✕</button>
-                        </div>
-                        <div className="time-modal-body" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', padding: '32px' }}>
-                          <span style={{ fontSize: '48px' }}>📄</span>
-                          <p style={{ textAlign: 'center', color: '#9ea2bd', margin: 0 }}>This is a preview of the document.<br />(Preview not available in demo)</p>
-                          <div style={{ marginTop: '16px', display: 'flex', gap: '8px', fontSize: '13px', color: '#c6c8de' }}>
-                            <span>Size: {docPreview.size}</span>
-                            <span>|</span>
-                            <span>Status: {docPreview.status}</span>
-                          </div>
-                        </div>
-                        <div className="time-modal-foot">
-                          <button type="button" className="btn" onClick={() => setDocPreview(null)}>Close</button>
-                          <button type="button" className="btn btn-primary" onClick={() => {
-                            setDocPreview(null)
-                            handleDownloadDoc(docPreview)
-                          }}>Download</button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {docNotification && (
-                    <div style={{
-                      position: 'fixed',
-                      bottom: '24px',
-                      right: '24px',
-                      background: '#2ecc71',
-                      color: '#fff',
-                      padding: '12px 24px',
-                      border: '1px solid #1a4d2e',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                      fontWeight: '700',
-                      zIndex: 1000,
-                    }}>
-                      {docNotification}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          ) : currentModule === 'leave' ? (
-            null
-          ) : currentModule === 'profile' ? (
-            <div className="profile-shell">
-              <div className="profile-top">
-                <div className="profile-tabs" role="tablist" aria-label="Profile tabs">
-                  {profileTabs.map((tab) => (
-                    <button
-                      key={tab}
-                      type="button"
-                      className={`profile-tab ${activeProfileTab === tab ? 'active' : ''}`}
-                      onClick={() => setActiveProfileTab(tab)}
-                    >
-                      {tab}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {activeProfileTab === 'Overview' && (
-                <div className="profile-overview-shell">
-                  <div className="profile-overview-grid">
-                    {/* Left Card: Summary Card */}
-                    <div className="profile-card profile-summary-card">
-                      <div className="profile-avatar-large">
-                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&h=256&q=80" alt="John Doe" />
-                      </div>
-                      <h2 className="profile-name">{personalInfo.firstName} {personalInfo.lastName}</h2>
-                      <p className="profile-title">Software Engineer</p>
-                      <p className="profile-emp-id">EMP001245</p>
-                      <span className="profile-status-badge active">Active</span>
-                    </div>
-
-                    {/* Middle Card: Employee Snapshot */}
-                    <div className="profile-card profile-info-card">
-                      <h3>Employee Snapshot</h3>
-                      <div className="profile-details-list">
-                        <div className="profile-detail-row">
-                          <span className="label">Department</span>
-                          <span className="value">Engineering</span>
-                        </div>
-                        <div className="profile-detail-row">
-                          <span className="label">Manager</span>
-                          <span className="value">Sarah Johnson</span>
-                        </div>
-                        <div className="profile-detail-row">
-                          <span className="label">Location</span>
-                          <span className="value">Bangalore, India</span>
-                        </div>
-                        <div className="profile-detail-row">
-                          <span className="label">Employment Type</span>
-                          <span className="value">Full Time</span>
-                        </div>
-                        <div className="profile-detail-row">
-                          <span className="label">Joining Date</span>
-                          <span className="value">15 Mar 2023</span>
-                        </div>
-                        <div className="profile-detail-row">
-                          <span className="label">Work Email</span>
-                          <span className="value">{contactDetails.workEmail}</span>
-                        </div>
-                        <div className="profile-detail-row">
-                          <span className="label">Work Phone</span>
-                          <span className="value">{contactDetails.mobileNumber}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Right Card: Employment Details */}
-                    <div className="profile-card profile-info-card">
-                      <h3>Employment Details</h3>
-                      <div className="profile-details-list">
-                        <div className="profile-detail-row">
-                          <span className="label">Employment Country</span>
-                          <span className="value">🇮🇳 India</span>
-                        </div>
-                        <div className="profile-detail-row">
-                          <span className="label">Employer of Record</span>
-                          <span className="value">Pynk India Pvt Ltd</span>
-                        </div>
-                        <div className="profile-detail-row">
-                          <span className="label">Client Company</span>
-                          <span className="value">ABC Technologies</span>
-                        </div>
-                        <div className="profile-detail-row">
-                          <span className="label">Payroll Entity</span>
-                          <span className="value">Pynk India Pvt Ltd</span>
-                        </div>
-                        <div className="profile-detail-row">
-                          <span className="label">Payroll Cycle</span>
-                          <span className="value">Monthly</span>
-                        </div>
-                        <div className="profile-detail-row">
-                          <span className="label">Next Payday</span>
-                          <span className="value">31 Jul 2025</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Quick Actions Row */}
-                  <div className="quick-actions-section">
-                    <h3>Quick Actions</h3>
-                    <div className="quick-actions-grid">
-                      <button type="button" className="quick-action-tile" onClick={() => setActiveProfileTab('Contact')}>
-                        <div className="tile-icon-wrapper">
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-                          </svg>
-                        </div>
-                        <div className="tile-content">
-                          <span className="tile-title">Update Contact</span>
-                          <span className="tile-desc">Update your contact details</span>
-                        </div>
-                      </button>
-
-                      <button type="button" className="quick-action-tile" onClick={() => setActiveProfileTab('Bank')}>
-                        <div className="tile-icon-wrapper">
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <rect x="2" y="22" width="20" height="2" />
-                            <path d="M5 22V10M19 22V10M12 22V10M2 10l10-8 10 8" />
-                          </svg>
-                        </div>
-                        <div className="tile-content">
-                          <span className="tile-title">Request Bank Change</span>
-                          <span className="tile-desc">Submit bank detail change</span>
-                        </div>
-                      </button>
-
-                      <button type="button" className="quick-action-tile" onClick={() => {
-                        setDocNotification("Downloading ID Card...");
-                        setTimeout(() => setDocNotification(null), 3000);
-                      }}>
-                        <div className="tile-icon-wrapper">
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <rect x="3" y="4" width="18" height="16" rx="2" ry="2" />
-                            <line x1="7" y1="8" x2="17" y2="8" />
-                            <line x1="7" y1="12" x2="17" y2="12" />
-                            <line x1="7" y1="16" x2="12" y2="16" />
-                          </svg>
-                        </div>
-                        <div className="tile-content">
-                          <span className="tile-title">Download ID Card</span>
-                          <span className="tile-desc">View and download ID card</span>
-                        </div>
-                      </button>
-
-                      <button type="button" className="quick-action-tile" onClick={() => setCurrentModule('documents')}>
-                        <div className="tile-icon-wrapper">
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                            <polyline points="14 2 14 8 20 8" />
-                            <line x1="16" y1="13" x2="8" y2="13" />
-                            <line x1="16" y1="17" x2="8" y2="17" />
-                          </svg>
-                        </div>
-                        <div className="tile-content">
-                          <span className="tile-title">View Documents</span>
-                          <span className="tile-desc">Access your documents</span>
-                        </div>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeProfileTab === 'Personal' && (
-                <div className="profile-personal-shell">
-                  <div className="profile-personal-grid">
-                    {/* Personal Information */}
-                    <div className="profile-card profile-personal-info-card">
-                      <h3>Personal Information</h3>
-                      <div className="personal-form-grid">
-                        <label>
-                          First Name
-                          <input type="text" value={personalInfo.firstName} disabled className="disabled-input" />
-                        </label>
-                        <label>
-                          Middle Name
-                          <input type="text" value={personalInfo.middleName} disabled className="disabled-input" />
-                        </label>
-                        <label>
-                          Last Name
-                          <input type="text" value={personalInfo.lastName} disabled className="disabled-input" />
-                        </label>
-                        <label>
-                          Preferred Name
-                          <input type="text" value={personalInfo.preferredName} disabled className="disabled-input" />
-                        </label>
-                        <label className="with-icon">
-                          Date of Birth
-                          <div className="input-with-icon-wrapper">
-                            <input type="text" value="14 May 1992" disabled className="disabled-input" />
-                            <span className="input-inner-icon">📅</span>
-                          </div>
-                        </label>
-                        <label className="with-icon">
-                          Gender
-                          <div className="input-with-icon-wrapper">
-                            <input type="text" value={personalInfo.gender} disabled className="disabled-input" />
-                            <span className="input-inner-icon">▼</span>
-                          </div>
-                        </label>
-                        <label className="with-icon">
-                          Marital Status
-                          <div className="input-with-icon-wrapper">
-                            <input type="text" value={personalInfo.maritalStatus} disabled className="disabled-input" />
-                            <span className="input-inner-icon">▼</span>
-                          </div>
-                        </label>
-                        <label className="with-icon">
-                          Nationality
-                          <div className="input-with-icon-wrapper">
-                            <input type="text" value={personalInfo.nationality} disabled className="disabled-input" />
-                            <span className="input-inner-icon">▼</span>
-                          </div>
-                        </label>
-                        <label>
-                          PAN Number
-                          <input type="text" value={personalInfo.panNumber} disabled className="disabled-input" />
-                        </label>
-                        <label>
-                          Aadhaar Number
-                          <input type="text" value={personalInfo.aadhaarNumber} disabled className="disabled-input" />
-                        </label>
-                      </div>
-                    </div>
-
-                    <div className="profile-personal-sidebar">
-                      {/* Request Change Card */}
-                      <div className="profile-card request-change-card">
-                        <h3>Request Change</h3>
-                        <div className="request-change-content">
-                          <div className="request-change-illustration">
-                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#aa3bff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                              <circle cx="12" cy="7" r="4" />
-                              <path d="M12 11h.01" />
-                            </svg>
-                          </div>
-                          <p>To update your personal information, please raise a request.</p>
-                          <button type="button" className="btn btn-primary" onClick={handleOpenRequestChange}>
-                            Request Change
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Recent Requests Card */}
-                      <div className="profile-card recent-requests-card">
-                        <h3>Recent Requests</h3>
-                        <div className="requests-list">
-                          {profileChangeRequests.map((req) => (
-                            <div key={req.id} className="request-item">
-                              <div className="request-info">
-                                <span className="request-type">{req.type}</span>
-                                <span className="request-date">Requested on {req.requestedDate}</span>
+                                <label className="full">
+                                  Notes / Reason
+                                  <textarea
+                                    rows={3}
+                                    value={editForm.notes}
+                                    onChange={(event) => setEditForm((prev) => ({ ...prev, notes: event.target.value }))}
+                                    placeholder={editForm.isLeave ? "Provide the reason for leave" : ""}
+                                  />
+                                </label>
                               </div>
-                              <span className={`request-status-pill ${req.status.toLowerCase()}`}>
-                                {req.status}
+                              {editError && <p className="time-modal-error">{editError}</p>}
+                              <div className="time-modal-actions">
+                                <button type="button" className="btn" onClick={closeEditModal}>Cancel</button>
+                                <button type="button" className="btn btn-primary" onClick={handleSaveDayEdit}>Save Entry</button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {confirmAction && confirmContent && (
+                          <div className="time-modal-backdrop" role="presentation" onClick={closeConfirmModal}>
+                            <div
+                              className="time-modal"
+                              role="dialog"
+                              aria-modal="true"
+                              aria-label="Confirm quick action"
+                              onClick={(event) => event.stopPropagation()}
+                            >
+                              <h3>{confirmContent.title}</h3>
+                              <p className="time-confirm-message">{confirmContent.message}</p>
+                              <div className="time-modal-actions">
+                                <button type="button" className="btn" onClick={closeConfirmModal}>Cancel</button>
+                                <button type="button" className="btn btn-primary" onClick={handleConfirmAction}>Yes, Continue</button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {warningModal && (
+                          <div className="time-modal-backdrop" role="presentation" onClick={closeWarningModal}>
+                            <div
+                              className="time-modal"
+                              role="dialog"
+                              aria-modal="true"
+                              aria-label="Time entry warning"
+                              onClick={(event) => event.stopPropagation()}
+                            >
+                              <h3>{warningModal.title}</h3>
+                              <p className="time-confirm-message">{warningModal.message}</p>
+                              <div className="time-modal-actions">
+                                <button type="button" className="btn btn-primary" onClick={closeWarningModal}>OK</button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : currentModule === 'my-pay' ? (
+                      <div className="pay-shell">
+                        {/* Pay Tab Navigation */}
+                        <div className="pay-top" ref={payTabRef}>
+                          <div className="pay-tabs" role="tablist" aria-label="My Pay tabs">
+                            {myPayTabs.map((tab) => (
+                              <button
+                                key={tab}
+                                type="button"
+                                className={`pay-tab ${activePayTab === tab ? 'active' : ''}`}
+                                onClick={() => setActivePayTab(tab)}
+                                role="tab"
+                                aria-selected={activePayTab === tab}
+                              >
+                                {tab}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* ── OVERVIEW TAB ── */}
+                        {activePayTab === 'Overview' && (() => {
+                          const ytdGross = payslipSeedData.filter(p => p.status === 'Paid').reduce((s, p) => s + p.grossSalary, 0)
+                          const ytdNet = payslipSeedData.filter(p => p.status === 'Paid').reduce((s, p) => s + p.netSalary, 0)
+                          const ytdTax = salaryDeductions.find(d => d.label === 'Income Tax (TDS)')?.amount ?? 0
+                          const ytdDeductions = salaryDeductions.reduce((s, d) => s + d.amount, 0)
+                          const recentPayslips = payslipSeedData.slice(0, 3)
+                          return (
+                            <div className="pay-overview-grid">
+                              {/* Current Month Card */}
+                              <section className="pay-card pay-current-month" aria-label="Current month salary">
+                                <div className="pay-card-label">Current Month <span className="pay-month-badge">(June 2025)</span></div>
+                                <div className="pay-net-row">
+                                  <div>
+                                    <div className="pay-net-label">Net Salary</div>
+                                    <div className="pay-net-amount">{formatCurrency(68750)}</div>
+                                  </div>
+                                  <span className="pay-status-chip paid">Paid</span>
+                                </div>
+                                <div className="pay-meta-row">
+                                  <div><span>Gross Salary</span><strong>{formatCurrency(98500)}</strong></div>
+                                  <div><span>Pay Date</span><strong>30 Jun 2025</strong></div>
+                                  <div><span>Next Payday</span><strong>31 Jul 2025</strong></div>
+                                </div>
+                              </section>
+
+                              {/* Quick Actions Card */}
+                              <section className="pay-card pay-quick-actions" aria-label="Quick actions">
+                                <div className="pay-card-label">Quick Actions</div>
+                                <div className="pay-actions-list">
+                                  <button type="button" className="pay-action-btn" onClick={() => {
+                                    setSelectedPayslipForView(payslipSeedData[0])
+                                    setActivePayTab('Payslips')
+                                  }}>
+                                    <span className="pay-action-icon">📄</span>
+                                    <span>View Payslip</span>
+                                  </button>
+                                  <button type="button" className="pay-action-btn" onClick={() => setActivePayTab('Payslips')}>
+                                    <span className="pay-action-icon">⬇️</span>
+                                    <span>Download Payslip</span>
+                                  </button>
+                                  <button type="button" className="pay-action-btn" onClick={() => setActivePayTab('Salary Breakdown')}>
+                                    <span className="pay-action-icon">📊</span>
+                                    <span>View Salary Breakdown</span>
+                                  </button>
+                                </div>
+                              </section>
+
+                              {/* Employment Details Card */}
+                              <section className="pay-card pay-emp-details" aria-label="Employment details">
+                                <div className="pay-card-label">Employment Details</div>
+                                <dl className="pay-emp-dl">
+                                  <div><dt>Employment Country</dt><dd>🇮🇳 India</dd></div>
+                                  <div><dt>Payroll Entity</dt><dd>Pynk India Pvt Ltd</dd></div>
+                                  <div><dt>Payroll Cycle</dt><dd>Monthly</dd></div>
+                                  <div><dt>Next Payday</dt><dd>31 Jul 2025</dd></div>
+                                </dl>
+                              </section>
+
+                              {/* Year To Date Card */}
+                              <section className="pay-card pay-ytd" aria-label="Year to date">
+                                <div className="pay-card-label">Year To Date <span className="pay-fy-label">(FY 2025-26)</span></div>
+                                <div className="pay-ytd-grid">
+                                  <div className="pay-ytd-item">
+                                    <span>Gross Earnings</span>
+                                    <strong className="pay-ytd-gross">{formatCurrency(ytdGross)}</strong>
+                                  </div>
+                                  <div className="pay-ytd-item">
+                                    <span>Net Earnings</span>
+                                    <strong className="pay-ytd-net">{formatCurrency(ytdNet)}</strong>
+                                  </div>
+                                  <div className="pay-ytd-item">
+                                    <span>Total Tax</span>
+                                    <strong className="pay-ytd-tax">{formatCurrency(ytdTax * 12)}</strong>
+                                  </div>
+                                  <div className="pay-ytd-item">
+                                    <span>Total Deductions</span>
+                                    <strong>{formatCurrency(ytdDeductions * 12)}</strong>
+                                  </div>
+                                </div>
+                                <button type="button" className="pay-view-link" onClick={() => setActivePayTab('Payment History')}>
+                                  View full Year To Date details →
+                                </button>
+                              </section>
+
+                              {/* Recent Payslips Card */}
+                              <section className="pay-card pay-recent" aria-label="Recent payslips">
+                                <div className="pay-card-label">Recent Payslips</div>
+                                <div className="pay-recent-list">
+                                  {recentPayslips.map((ps) => (
+                                    <div key={ps.id} className="pay-recent-row">
+                                      <span className="pay-recent-month">{ps.month}</span>
+                                      <span className="pay-recent-date">{ps.payDate}</span>
+                                      <span className={`pay-status-chip ${ps.status.toLowerCase()}`}>{ps.status}</span>
+                                      <button type="button" className="pay-view-link" onClick={() => {
+                                        setSelectedPayslipForView(ps)
+                                        setActivePayTab('Payslips')
+                                      }}>View</button>
+                                    </div>
+                                  ))}
+                                </div>
+                                <button type="button" className="pay-view-link" onClick={() => setActivePayTab('Payslips')}>
+                                  View all payslips →
+                                </button>
+                              </section>
+                            </div>
+                          )
+                        })()}
+
+                        {/* ── PAYSLIPS TAB ── */}
+                        {activePayTab === 'Payslips' && (() => {
+                          const years = [...new Set(payslipSeedData.map(p => p.month.split(' ')[1]))]
+                          const ITEMS_PER_PAGE = 6
+                          const filtered = payslipSeedData.filter(p => {
+                            const yearMatch = p.month.includes(payslipYear)
+                            const monthMatch = payslipSearchMonth === '' || p.month.toLowerCase().includes(payslipSearchMonth.toLowerCase())
+                            return yearMatch && monthMatch
+                          })
+                          const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE))
+                          const safePage = Math.min(payslipPage, totalPages)
+                          const pageItems = filtered.slice((safePage - 1) * ITEMS_PER_PAGE, safePage * ITEMS_PER_PAGE)
+
+                          return (
+                            <div className="pay-payslips-shell">
+                              {/* Filters */}
+                              <div className="pay-payslips-filters">
+                                <label className="pay-filter-group">
+                                  <span>Year</span>
+                                  <select
+                                    id="payslip-year-select"
+                                    value={payslipYear}
+                                    onChange={e => { setPayslipYear(e.target.value); setPayslipPage(1) }}
+                                  >
+                                    {years.map(y => <option key={y} value={y}>{y}</option>)}
+                                  </select>
+                                </label>
+                                <label className="pay-filter-group">
+                                  <span>Search by month</span>
+                                  <div className="pay-search-input">
+                                    <input
+                                      id="payslip-month-search"
+                                      type="text"
+                                      placeholder="e.g. June"
+                                      value={payslipSearchMonth}
+                                      onChange={e => { setPayslipSearchMonth(e.target.value); setPayslipPage(1) }}
+                                    />
+                                    <span className="pay-search-icon">📅</span>
+                                  </div>
+                                </label>
+                              </div>
+
+                              {/* Table */}
+                              <section className="pay-table-card" aria-label="Payslips table">
+                                <div className="pay-table-wrap">
+                                  <table className="pay-table">
+                                    <thead>
+                                      <tr>
+                                        <th>Month</th>
+                                        <th>Pay Date</th>
+                                        <th>Gross Salary</th>
+                                        <th>Net Salary</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {pageItems.map(ps => (
+                                        <tr key={ps.id}>
+                                          <td>{ps.month}</td>
+                                          <td>{ps.payDate}</td>
+                                          <td>{formatCurrency(ps.grossSalary)}</td>
+                                          <td>{formatCurrency(ps.netSalary)}</td>
+                                          <td><span className={`pay-status-chip ${ps.status.toLowerCase()}`}>{ps.status}</span></td>
+                                          <td>
+                                            <div className="pay-table-actions">
+                                              <button type="button" className="pay-action-link" onClick={() => setSelectedPayslipForView(ps)}>
+                                                👁️ View
+                                              </button>
+                                              <button type="button" className="pay-action-link" onClick={() => {
+                                                const csv = `Month,Pay Date,Gross Salary,Net Salary,Status\n${ps.month},${ps.payDate},${ps.grossSalary},${ps.netSalary},${ps.status}`
+                                                const blob = new Blob([csv], { type: 'text/csv' })
+                                                const url = URL.createObjectURL(blob)
+                                                const a = document.createElement('a')
+                                                a.href = url
+                                                a.download = `payslip-${ps.month.replace(' ', '-')}.csv`
+                                                a.click()
+                                                URL.revokeObjectURL(url)
+                                              }}>
+                                                ⬇️ Download
+                                              </button>
+                                            </div>
+                                          </td>
+                                        </tr>
+                                      ))}
+                                      {pageItems.length === 0 && (
+                                        <tr><td colSpan={6} className="pay-empty-row">No payslips found for the selected filters.</td></tr>
+                                      )}
+                                    </tbody>
+                                  </table>
+                                </div>
+
+                                {/* Pagination */}
+                                <div className="pay-pagination">
+                                  <span className="pay-pagination-info">Showing {Math.min((safePage - 1) * ITEMS_PER_PAGE + 1, filtered.length)} to {Math.min(safePage * ITEMS_PER_PAGE, filtered.length)} of {filtered.length} payslips</span>
+                                  <div className="pay-pagination-controls">
+                                    <button type="button" className="pay-page-btn" disabled={safePage === 1} onClick={() => setPayslipPage(p => Math.max(1, p - 1))}>‹</button>
+                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(pg => (
+                                      <button
+                                        key={pg}
+                                        type="button"
+                                        className={`pay-page-btn ${safePage === pg ? 'active' : ''}`}
+                                        onClick={() => setPayslipPage(pg)}
+                                      >{pg}</button>
+                                    ))}
+                                    <button type="button" className="pay-page-btn" disabled={safePage === totalPages} onClick={() => setPayslipPage(p => Math.min(totalPages, p + 1))}>›</button>
+                                  </div>
+                                </div>
+                              </section>
+
+                              {/* Payslip View Modal */}
+                              {selectedPayslipForView && (
+                                <div className="pay-modal-backdrop" role="presentation" onClick={() => setSelectedPayslipForView(null)}>
+                                  <div
+                                    className="pay-modal pay-payslip-modal"
+                                    role="dialog"
+                                    aria-modal="true"
+                                    aria-label={`Payslip for ${selectedPayslipForView.month}`}
+                                    onClick={e => e.stopPropagation()}
+                                  >
+                                    <div className="pay-modal-head">
+                                      <div>
+                                        <h3>Payslip · {selectedPayslipForView.month}</h3>
+                                        <p className="pay-modal-sub">Pynk India Pvt Ltd · John Doe</p>
+                                      </div>
+                                      <button type="button" className="pay-modal-close" onClick={() => setSelectedPayslipForView(null)}>✕</button>
+                                    </div>
+
+                                    <div className="payslip-view-grid">
+                                      <div className="payslip-section">
+                                        <h4>Earnings</h4>
+                                        {salaryEarnings.map(e => (
+                                          <div key={e.label} className="payslip-row">
+                                            <span><i className="pay-dot" style={{ background: e.color }} />{e.label}</span>
+                                            <strong>{formatCurrency(e.amount)}</strong>
+                                          </div>
+                                        ))}
+                                        <div className="payslip-total-row">
+                                          <span>Total Earnings</span>
+                                          <strong>{formatCurrency(salaryEarnings.reduce((s, e) => s + e.amount, 0))}</strong>
+                                        </div>
+                                      </div>
+                                      <div className="payslip-section">
+                                        <h4>Deductions</h4>
+                                        {salaryDeductions.map(d => (
+                                          <div key={d.label} className="payslip-row">
+                                            <span><i className="pay-dot" style={{ background: d.color }} />{d.label}</span>
+                                            <strong>{formatCurrency(d.amount)}</strong>
+                                          </div>
+                                        ))}
+                                        <div className="payslip-total-row">
+                                          <span>Total Deductions</span>
+                                          <strong>{formatCurrency(salaryDeductions.reduce((s, d) => s + d.amount, 0))}</strong>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    <div className="payslip-net-row">
+                                      <span>Net Salary (Take Home)</span>
+                                      <strong>{formatCurrency(selectedPayslipForView.netSalary)}</strong>
+                                    </div>
+
+                                    <div className="pay-modal-actions">
+                                      <button type="button" className="btn" onClick={() => setSelectedPayslipForView(null)}>Close</button>
+                                      <button type="button" className="btn btn-primary" onClick={() => {
+                                        const ps = selectedPayslipForView
+                                        const csv = `Month,Pay Date,Gross Salary,Net Salary,Status\n${ps.month},${ps.payDate},${ps.grossSalary},${ps.netSalary},${ps.status}`
+                                        const blob = new Blob([csv], { type: 'text/csv' })
+                                        const url = URL.createObjectURL(blob)
+                                        const a = document.createElement('a')
+                                        a.href = url
+                                        a.download = `payslip-${ps.month.replace(' ', '-')}.csv`
+                                        a.click()
+                                        URL.revokeObjectURL(url)
+                                      }}>⬇️ Download PDF</button>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })()}
+
+                        {/* ── SALARY BREAKDOWN TAB ── */}
+                        {activePayTab === 'Salary Breakdown' && (() => {
+                          const totalEarnings = salaryEarnings.reduce((s, e) => s + e.amount, 0)
+                          const totalDeductions = salaryDeductions.reduce((s, d) => s + d.amount, 0)
+                          const netSalary = totalEarnings - totalDeductions
+                          const months = payslipSeedData.map(p => p.month)
+                          return (
+                            <div className="pay-breakdown-shell">
+                              <div className="pay-breakdown-sidebar">
+                                <label className="pay-filter-group">
+                                  <span>Select Month</span>
+                                  <select
+                                    id="breakdown-month-select"
+                                    value={salaryBreakdownMonth}
+                                    onChange={e => setSalaryBreakdownMonth(e.target.value)}
+                                  >
+                                    {months.map(m => <option key={m} value={m}>{m}</option>)}
+                                  </select>
+                                </label>
+
+                                <div className="pay-breakdown-summary">
+                                  <div className="pay-breakdown-kpi">
+                                    <span>Gross Salary</span>
+                                    <strong>{formatCurrency(totalEarnings)}</strong>
+                                  </div>
+                                  <div className="pay-breakdown-kpi">
+                                    <span>Total Deductions</span>
+                                    <strong>{formatCurrency(totalDeductions)}</strong>
+                                  </div>
+                                  <div className="pay-breakdown-kpi net">
+                                    <span>Net Salary (Take Home)</span>
+                                    <strong>{formatCurrency(netSalary)}</strong>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="pay-breakdown-main">
+                                <h3>Salary Breakdown</h3>
+                                <div className="pay-breakdown-grid">
+                                  <section className="pay-breakdown-card" aria-label="Earnings">
+                                    <h4>Earnings</h4>
+                                    {salaryEarnings.map(e => (
+                                      <div key={e.label} className="pay-breakdown-row">
+                                        <span><i className="pay-dot" style={{ background: e.color }} />{e.label}</span>
+                                        <strong>{formatCurrency(e.amount)}</strong>
+                                      </div>
+                                    ))}
+                                    <div className="pay-breakdown-total">
+                                      <span>Total Earnings</span>
+                                      <strong>{formatCurrency(totalEarnings)}</strong>
+                                    </div>
+                                  </section>
+
+                                  <section className="pay-breakdown-card" aria-label="Deductions">
+                                    <h4>Deductions</h4>
+                                    {salaryDeductions.map(d => (
+                                      <div key={d.label} className="pay-breakdown-row">
+                                        <span><i className="pay-dot" style={{ background: d.color }} />{d.label}</span>
+                                        <strong>{formatCurrency(d.amount)}</strong>
+                                      </div>
+                                    ))}
+                                    <div className="pay-breakdown-total">
+                                      <span>Total Deductions</span>
+                                      <strong>{formatCurrency(totalDeductions)}</strong>
+                                    </div>
+                                  </section>
+                                </div>
+
+                                <p className="pay-breakdown-note">* The salary breakdown is for informational purposes only.</p>
+                              </div>
+                            </div>
+                          )
+                        })()}
+
+                        {/* ── TAX DOCUMENTS TAB ── */}
+                        {activePayTab === 'Tax Documents' && (
+                          <div className="pay-taxdocs-shell">
+                            <div className="pay-taxdocs-banner">
+                              <div className="pay-taxdocs-banner-left">
+                                <span className="pay-taxdocs-icon">📋</span>
+                                <div>
+                                  <div className="pay-taxdocs-fy-label">Financial Year</div>
+                                  <div className="pay-taxdocs-fy">2024-25 (01 Apr 2024 - 31 Mar 2025)</div>
+                                </div>
+                              </div>
+                              <div className="pay-taxdocs-help">
+                                <span>ℹ️</span>
+                                <div>
+                                  <strong>Need help?</strong>
+                                  <p>For any tax related queries, contact your HR or check our Help Center.</p>
+                                </div>
+                              </div>
+                            </div>
+
+                            <section className="pay-table-card" aria-label="Tax documents">
+                              <div className="pay-table-wrap">
+                                <table className="pay-table">
+                                  <thead>
+                                    <tr>
+                                      <th>Document</th>
+                                      <th>Financial Year</th>
+                                      <th>Description</th>
+                                      <th>Actions</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {taxDocumentSeedData.map(doc => (
+                                      <tr key={doc.id}>
+                                        <td><strong>{doc.name}</strong></td>
+                                        <td>{doc.financialYear}</td>
+                                        <td>{doc.description}</td>
+                                        <td>
+                                          <button type="button" className="pay-download-btn" onClick={() => {
+                                            const csv = `Document,Financial Year,Description\n${doc.name},${doc.financialYear},${doc.description}`
+                                            const blob = new Blob([csv], { type: 'text/csv' })
+                                            const url = URL.createObjectURL(blob)
+                                            const a = document.createElement('a')
+                                            a.href = url
+                                            a.download = `${doc.name.replace(/\s+/g, '-')}-${doc.financialYear}.csv`
+                                            a.click()
+                                            URL.revokeObjectURL(url)
+                                          }}>
+                                            ⬇️ Download
+                                          </button>
+                                        </td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </section>
+
+                            <p className="pay-breakdown-note">You can download these documents for your tax filing purposes.</p>
+                          </div>
+                        )}
+
+                        {/* ── BANK DETAILS TAB ── */}
+                        {activePayTab === 'Bank Details' && (
+                          <div className="pay-bank-shell">
+                            <div className="pay-bank-grid">
+                              {/* Salary Account Card */}
+                              <section className="pay-card pay-bank-card" aria-label="Salary account">
+                                <h3>Salary Account</h3>
+                                <div className="pay-bank-inner">
+                                  <div className="pay-bank-icon-wrap">
+                                    <span className="pay-bank-icon">🏛️</span>
+                                    {bankDetailsSeed.verified && (
+                                      <span className="pay-bank-verified">✅ Verified</span>
+                                    )}
+                                  </div>
+                                  <dl className="pay-bank-dl">
+                                    <div><dt>Bank Name</dt><dd><strong>{bankDetailsSeed.bankName}</strong></dd></div>
+                                    <div><dt>Account Number</dt><dd>{maskAccountNumber(bankDetailsSeed.accountNumber)}</dd></div>
+                                    <div><dt>IFSC Code</dt><dd>{bankDetailsSeed.ifscCode}</dd></div>
+                                    <div><dt>Account Holder Name</dt><dd>{bankDetailsSeed.accountHolderName}</dd></div>
+                                  </dl>
+                                </div>
+                              </section>
+
+                              {/* Update Request Card */}
+                              <section className="pay-card pay-bank-update-card" aria-label="Bank update request">
+                                <h3>Need to update bank details?</h3>
+                                <p className="pay-bank-update-desc">You can request for bank details update. The request will be reviewed and updated by HR.</p>
+                                {bankUpdateRequestSent ? (
+                                  <div className="pay-bank-success">
+                                    ✅ Your bank update request has been submitted successfully. HR will review and update your details.
+                                  </div>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    className="btn btn-primary"
+                                    id="request-bank-update-btn"
+                                    onClick={() => { setBankUpdateModalOpen(true); setBankUpdateError(''); setBankUpdateSuccess(false) }}
+                                  >
+                                    Request Bank Update
+                                  </button>
+                                )}
+                                <button
+                                  type="button"
+                                  className="pay-view-link"
+                                  style={{ marginTop: '12px' }}
+                                  onClick={() => { }}
+                                >
+                                  View Request Status ›
+                                </button>
+                              </section>
+                            </div>
+
+                            <p className="pay-breakdown-note">* Salary is credited to your above bank account every month.</p>
+
+                            {/* Bank Update Modal */}
+                            {bankUpdateModalOpen && (
+                              <div className="pay-modal-backdrop" role="presentation" onClick={() => setBankUpdateModalOpen(false)}>
+                                <div
+                                  className="pay-modal"
+                                  role="dialog"
+                                  aria-modal="true"
+                                  aria-label="Request bank details update"
+                                  onClick={e => e.stopPropagation()}
+                                >
+                                  <div className="pay-modal-head">
+                                    <h3>Request Bank Details Update</h3>
+                                    <button type="button" className="pay-modal-close" onClick={() => setBankUpdateModalOpen(false)}>✕</button>
+                                  </div>
+                                  <p className="pay-modal-sub">Fill in the new bank details below. HR will verify and update.</p>
+
+                                  <div className="pay-bank-form-grid">
+                                    <label>
+                                      Bank Name <span className="pay-req">*</span>
+                                      <input
+                                        id="bank-name-input"
+                                        type="text"
+                                        placeholder="e.g. HDFC Bank Limited"
+                                        value={bankUpdateForm.bankName}
+                                        onChange={e => setBankUpdateForm(p => ({ ...p, bankName: e.target.value }))}
+                                      />
+                                    </label>
+                                    <label>
+                                      Account Number <span className="pay-req">*</span>
+                                      <input
+                                        id="bank-account-input"
+                                        type="text"
+                                        placeholder="Enter account number"
+                                        value={bankUpdateForm.accountNumber}
+                                        onChange={e => setBankUpdateForm(p => ({ ...p, accountNumber: e.target.value }))}
+                                      />
+                                    </label>
+                                    <label>
+                                      IFSC Code <span className="pay-req">*</span>
+                                      <input
+                                        id="bank-ifsc-input"
+                                        type="text"
+                                        placeholder="e.g. HDFC0001234"
+                                        value={bankUpdateForm.ifscCode}
+                                        onChange={e => setBankUpdateForm(p => ({ ...p, ifscCode: e.target.value.toUpperCase() }))}
+                                      />
+                                    </label>
+                                    <label>
+                                      Account Holder Name <span className="pay-req">*</span>
+                                      <input
+                                        id="bank-holder-input"
+                                        type="text"
+                                        placeholder="Name as on bank account"
+                                        value={bankUpdateForm.accountHolderName}
+                                        onChange={e => setBankUpdateForm(p => ({ ...p, accountHolderName: e.target.value }))}
+                                      />
+                                    </label>
+                                    <label className="pay-form-full">
+                                      Reason for Update <span className="pay-req">*</span>
+                                      <textarea
+                                        id="bank-reason-input"
+                                        rows={3}
+                                        placeholder="Provide reason for bank account change"
+                                        value={bankUpdateForm.reason}
+                                        onChange={e => setBankUpdateForm(p => ({ ...p, reason: e.target.value }))}
+                                      />
+                                    </label>
+                                  </div>
+
+                                  {bankUpdateError && <p className="pay-form-error">{bankUpdateError}</p>}
+                                  {bankUpdateSuccess && <p className="pay-form-success">{bankUpdateSuccess}</p>}
+
+                                  <div className="pay-modal-actions">
+                                    <button type="button" className="btn" onClick={() => setBankUpdateModalOpen(false)}>Cancel</button>
+                                    <button
+                                      type="button"
+                                      className="btn btn-primary"
+                                      id="submit-bank-update-btn"
+                                      onClick={() => {
+                                        setBankUpdateError('')
+                                        const { bankName, accountNumber, ifscCode, accountHolderName, reason } = bankUpdateForm
+                                        if (!bankName.trim()) { setBankUpdateError('Bank name is required.'); return }
+                                        if (!accountNumber.trim() || accountNumber.trim().length < 9) { setBankUpdateError('Please enter a valid account number (min 9 digits).'); return }
+                                        if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifscCode.trim())) { setBankUpdateError('IFSC Code must be in format: 4 letters, 0, 6 alphanumeric (e.g. HDFC0001234).'); return }
+                                        if (!accountHolderName.trim()) { setBankUpdateError('Account holder name is required.'); return }
+                                        if (!reason.trim() || reason.trim().length < 10) { setBankUpdateError('Please provide a reason (min 10 characters).'); return }
+                                        setBankUpdateRequestSent(true)
+                                        setBankUpdateModalOpen(false)
+                                        setBankUpdateForm({ bankName: '', accountNumber: '', ifscCode: '', accountHolderName: '', reason: '' })
+                                      }}
+                                    >
+                                      Submit Request
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* ── PAYMENT HISTORY TAB ── */}
+                        {activePayTab === 'Payment History' && (() => {
+                          const filtered = payHistoryStatusFilter === 'All'
+                            ? paymentHistorySeed
+                            : paymentHistorySeed.filter(p => p.status === payHistoryStatusFilter)
+                          return (
+                            <div className="pay-payhistory-shell">
+                              <div className="pay-history-filters">
+                                {(['All', 'Credited', 'Pending', 'Failed'] as const).map(status => (
+                                  <button
+                                    key={status}
+                                    type="button"
+                                    className={`pay-history-chip ${payHistoryStatusFilter === status ? 'active' : ''}`}
+                                    onClick={() => setPayHistoryStatusFilter(status)}
+                                  >
+                                    {status}
+                                  </button>
+                                ))}
+                              </div>
+
+                              <section className="pay-table-card" aria-label="Payment history table">
+                                <div className="pay-table-wrap">
+                                  <table className="pay-table">
+                                    <thead>
+                                      <tr>
+                                        <th>Month</th>
+                                        <th>Pay Date</th>
+                                        <th>Gross Salary</th>
+                                        <th>Net Salary</th>
+                                        <th>Payment Mode</th>
+                                        <th>Transaction ID</th>
+                                        <th>Status</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {filtered.map(ph => (
+                                        <tr key={ph.id}>
+                                          <td>{ph.month}</td>
+                                          <td>{ph.payDate}</td>
+                                          <td>{formatCurrency(ph.grossSalary)}</td>
+                                          <td>{formatCurrency(ph.netSalary)}</td>
+                                          <td>{ph.paymentMode}</td>
+                                          <td><span className="pay-txn-id">{ph.transactionId}</span></td>
+                                          <td><span className={`pay-history-status ${ph.status.toLowerCase()}`}>{ph.status}</span></td>
+                                        </tr>
+                                      ))}
+                                      {filtered.length === 0 && (
+                                        <tr><td colSpan={7} className="pay-empty-row">No payment history found.</td></tr>
+                                      )}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              </section>
+
+                              <p className="pay-breakdown-note">* Payment history shows salary credits to your registered bank account.</p>
+                            </div>
+                          )
+                        })()}
+                      </div>
+                    ) : currentModule === 'documents' ? (
+                      <div className="doc-shell">
+                        <div className="doc-top">
+                          <div className="doc-tabs">
+                            {documentTabs.map((tab) => (
+                              <button
+                                key={tab}
+                                type="button"
+                                className={`doc-tab ${activeDocTab === tab ? 'active' : ''}`}
+                                onClick={() => {
+                                  setActiveDocTab(tab)
+                                  setDocSearchQuery('')
+                                }}
+                              >
+                                {tab}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* ── MY DOCUMENTS (OVERVIEW) ── */}
+                        {activeDocTab === 'My Documents' && (
+                          <div className="doc-overview-tab">
+                            <div className="doc-metrics-grid">
+                              <div className="doc-metric-card">
+                                <div className="doc-metric-icon blue">📄</div>
+                                <div className="doc-metric-content">
+                                  <span className="doc-metric-label">Total Documents</span>
+                                  <strong className="doc-metric-value">24</strong>
+                                  <span className="doc-metric-sub">All time</span>
+                                </div>
+                              </div>
+                              <div className="doc-metric-card">
+                                <div className="doc-metric-icon green">⬇️</div>
+                                <div className="doc-metric-content">
+                                  <span className="doc-metric-label">Downloaded This Month</span>
+                                  <strong className="doc-metric-value">5</strong>
+                                  <span className="doc-metric-sub">Files</span>
+                                </div>
+                              </div>
+                              <div className="doc-metric-card">
+                                <div className="doc-metric-icon orange">⬆️</div>
+                                <div className="doc-metric-content">
+                                  <span className="doc-metric-label">Pending Uploads</span>
+                                  <strong className="doc-metric-value">2</strong>
+                                  <span className="doc-metric-sub">Files</span>
+                                </div>
+                              </div>
+                              <div className="doc-metric-card">
+                                <div className="doc-metric-icon red">📅</div>
+                                <div className="doc-metric-content">
+                                  <span className="doc-metric-label">Expiring Soon</span>
+                                  <strong className="doc-metric-value">1</strong>
+                                  <span className="doc-metric-sub">Documents</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="doc-overview-split">
+                              <section className="doc-card" aria-label="Quick Actions">
+                                <h3>Quick Actions</h3>
+                                <div className="doc-quick-actions-grid">
+                                  <button type="button" className="doc-quick-btn" onClick={() => setActiveDocTab('Uploaded Documents')}>
+                                    <div className="doc-quick-icon blue">📤</div>
+                                    <div className="doc-quick-text">
+                                      <strong>Upload Document</strong>
+                                      <span>Upload new document</span>
+                                    </div>
+                                  </button>
+                                  <button type="button" className="doc-quick-btn" onClick={() => setActiveDocTab('Employment Documents')}>
+                                    <div className="doc-quick-icon blue">📄</div>
+                                    <div className="doc-quick-text">
+                                      <strong>View Employment Contract</strong>
+                                      <span>View your contract</span>
+                                    </div>
+                                  </button>
+                                  <button type="button" className="doc-quick-btn" onClick={() => setActiveDocTab('Payroll Documents')}>
+                                    <div className="doc-quick-icon green">💵</div>
+                                    <div className="doc-quick-text">
+                                      <strong>Download Latest Payslip</strong>
+                                      <span>June 2025</span>
+                                    </div>
+                                  </button>
+                                  <button type="button" className="doc-quick-btn" onClick={() => setActiveDocTab('Tax Documents')}>
+                                    <div className="doc-quick-icon purple">🧾</div>
+                                    <div className="doc-quick-text">
+                                      <strong>View Tax Documents</strong>
+                                      <span>Download tax files</span>
+                                    </div>
+                                  </button>
+                                </div>
+                              </section>
+
+                              <section className="doc-card" aria-label="Recent Documents">
+                                <div className="doc-card-head">
+                                  <h3>Recent Documents</h3>
+                                  <button type="button" className="doc-view-all" onClick={() => setActiveDocTab('Employment Documents')}>View All</button>
+                                </div>
+                                <div className="doc-recent-list">
+                                  {[employmentDocsSeed[0], employmentDocsSeed[1], uploadedDocsSeed[0], payrollDocsSeed[0], taxDocsSeed[0]].map((doc, idx) => (
+                                    <div key={idx} className="doc-recent-row">
+                                      <span className="doc-recent-icon">📄</span>
+                                      <span className="doc-recent-name">{doc.name}</span>
+                                      <span className="doc-recent-meta">PDF • {doc.size}</span>
+                                      <span className="doc-recent-date">{doc.issuedOn || doc.monthYear || doc.uploadedOn || doc.financialYear}</span>
+                                      <button type="button" className="doc-action-btn" onClick={() => handleDownloadDoc(doc)}>⬇️</button>
+                                    </div>
+                                  ))}
+                                </div>
+                              </section>
+                            </div>
+
+                            <div className="doc-info-tip">
+                              <span>ℹ️</span> Tip: You can upload documents in PDF, JPG, PNG format. Max file size 10MB.
+                            </div>
+                          </div>
+                        )}
+
+                        {/* ── SHARED TABLE LAYOUT FOR OTHER TABS ── */}
+                        {activeDocTab !== 'My Documents' && (
+                          <div className="doc-table-shell">
+                            <div className="doc-table-header">
+                              <div className="doc-table-title">
+                                <h3>{activeDocTab}</h3>
+                                <p>
+                                  {activeDocTab === 'Employment Documents' && 'Documents issued by your employer.'}
+                                  {activeDocTab === 'Payroll Documents' && 'Payroll related documents and salary information.'}
+                                  {activeDocTab === 'Tax Documents' && 'Tax related documents and certificates.'}
+                                  {activeDocTab === 'Uploaded Documents' && 'Documents uploaded by you for verification.'}
+                                  {activeDocTab === 'Expiring Documents' && 'Documents that are expiring soon.'}
+                                </p>
+                              </div>
+
+                              <div className="doc-table-controls">
+                                {activeDocTab === 'Tax Documents' ? (
+                                  <div className="doc-filter-group">
+                                    <label>Financial Year</label>
+                                    <select value={taxYearFilter} onChange={(e) => { setTaxYearFilter(e.target.value); setDocCurrentPage(1); }}>
+                                      <option value="2024-25">2024-25 (Apr 2024 - Mar 2025)</option>
+                                      <option value="2023-24">2023-24 (Apr 2023 - Mar 2024)</option>
+                                    </select>
+                                  </div>
+                                ) : (
+                                  <div className="doc-search-box">
+                                    <input
+                                      type="text"
+                                      placeholder="Search document"
+                                      value={docSearchQuery}
+                                      onChange={(e) => { setDocSearchQuery(e.target.value); setDocCurrentPage(1); }}
+                                    />
+                                    <span className="doc-search-icon">🔍</span>
+                                  </div>
+                                )}
+
+                                {activeDocTab === 'Uploaded Documents' && (
+                                  <button type="button" className="doc-upload-btn" onClick={() => setIsDocUploadModalOpen(true)}>📤 Upload Document</button>
+                                )}
+                                <select className="doc-filter-btn" value={docStatusFilter} onChange={(e) => { setDocStatusFilter(e.target.value); setDocCurrentPage(1); }} style={{ appearance: 'auto' }}>
+                                  <option value="All">All Status</option>
+                                  <option value="Available">Available</option>
+                                  <option value="Verified">Verified</option>
+                                  <option value="Pending Verification">Pending</option>
+                                </select>
+                              </div>
+                            </div>
+
+                            <div className="doc-table-card">
+                              <div className="doc-table-wrap">
+                                <table className="doc-table">
+                                  <thead>
+                                    <tr>
+                                      <th>Document Name</th>
+                                      {activeDocTab === 'Uploaded Documents' ? (
+                                        <th>Category</th>
+                                      ) : (
+                                        <th>Description</th>
+                                      )}
+                                      {activeDocTab === 'Employment Documents' && <th>Issued On</th>}
+                                      {activeDocTab === 'Payroll Documents' && <th>Month / Year</th>}
+                                      {activeDocTab === 'Tax Documents' && <th>Financial Year</th>}
+                                      {activeDocTab === 'Uploaded Documents' && <th>Uploaded On</th>}
+                                      <th>Status</th>
+                                      {activeDocTab === 'Uploaded Documents' && <th>Verified On</th>}
+                                      <th>Actions</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {(() => {
+                                      let source: PortalDocument[] = []
+                                      if (activeDocTab === 'Employment Documents') source = employmentDocsSeed
+                                      else if (activeDocTab === 'Payroll Documents') source = payrollDocsSeed
+                                      else if (activeDocTab === 'Tax Documents') source = taxDocsSeed
+                                      else if (activeDocTab === 'Uploaded Documents') source = uploadedDocsState
+                                      else if (activeDocTab === 'Expiring Documents') source = [uploadedDocsState[1]]
+
+                                      let filtered = source.filter(d => d.name.toLowerCase().includes(docSearchQuery.toLowerCase()))
+
+                                      if (activeDocTab === 'Tax Documents') {
+                                        filtered = filtered.filter(d => d.financialYear === taxYearFilter)
+                                      }
+
+                                      if (docStatusFilter !== 'All') {
+                                        filtered = filtered.filter(d => {
+                                          if (docStatusFilter === 'Pending') return d.status === 'Pending Verification'
+                                          return d.status === docStatusFilter
+                                        })
+                                      }
+
+                                      const totalItems: number = filtered.length
+                                      if (totalItems === 0) return 'Showing 0 documents'
+                                      const startIndex = (docCurrentPage - 1) * DOCS_PER_PAGE
+                                      const paginated = filtered.slice(startIndex, startIndex + DOCS_PER_PAGE)
+
+                                      if (paginated.length === 0) {
+                                        return <tr><td colSpan={6} className="doc-empty">No documents found.</td></tr>
+                                      }
+
+                                      return paginated.map((doc) => (
+                                        <tr key={doc.id}>
+                                          <td className="doc-cell-name">{doc.name}</td>
+
+                                          {activeDocTab === 'Uploaded Documents' ? (
+                                            <td>{doc.category}</td>
+                                          ) : (
+                                            <td>{doc.description}</td>
+                                          )}
+
+                                          {activeDocTab === 'Employment Documents' && <td>{doc.issuedOn}</td>}
+                                          {activeDocTab === 'Payroll Documents' && <td>{doc.monthYear}</td>}
+                                          {activeDocTab === 'Tax Documents' && <td>{doc.financialYear}</td>}
+                                          {activeDocTab === 'Uploaded Documents' && <td>{doc.uploadedOn}</td>}
+
+                                          <td>
+                                            <span className={`doc-status ${doc.status === 'Available' || doc.status === 'Verified' ? 'success' : 'warning'}`}>
+                                              {doc.status}
+                                            </span>
+                                          </td>
+
+                                          {activeDocTab === 'Uploaded Documents' && <td>{doc.verifiedOn}</td>}
+
+                                          <td>
+                                            <div className="doc-table-actions">
+                                              <button type="button" title="View" onClick={() => setDocPreview(doc)}>👁️</button>
+                                              <button type="button" title="Download" onClick={() => handleDownloadDoc(doc)}>⬇️</button>
+                                            </div>
+                                          </td>
+                                        </tr>
+                                      ))
+                                    })()}
+                                  </tbody>
+                                </table>
+                              </div>
+                              <div className="doc-pagination" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span className="doc-pagination-info">
+                                  {(() => {
+                                    let source: PortalDocument[] = []
+                                    if (activeDocTab === 'Employment Documents') source = employmentDocsSeed
+                                    else if (activeDocTab === 'Payroll Documents') source = payrollDocsSeed
+                                    else if (activeDocTab === 'Tax Documents') source = taxDocsSeed
+                                    else if (activeDocTab === 'Uploaded Documents') source = uploadedDocsState
+                                    else if (activeDocTab === 'Expiring Documents') source = [uploadedDocsState[1]]
+
+                                    let filtered = source.filter(d => d.name.toLowerCase().includes(docSearchQuery.toLowerCase()))
+                                    if (activeDocTab === 'Tax Documents') {
+                                      filtered = filtered.filter(d => d.financialYear === taxYearFilter)
+                                    }
+                                    if (docStatusFilter !== 'All') {
+                                      filtered = filtered.filter(d => d.status === (docStatusFilter === 'Pending' ? 'Pending Verification' : docStatusFilter))
+                                    }
+
+                                    const totalItems = filtered.length
+                                    if (totalItems === 0) return 'Showing 0 documents'
+                                    const start = (docCurrentPage - 1) * DOCS_PER_PAGE + 1
+                                    const end = Math.min(docCurrentPage * DOCS_PER_PAGE, totalItems)
+                                    return `Showing ${start} to ${end} of ${totalItems} documents`
+                                  })()}
+                                </span>
+                                <div className="doc-pagination-controls" style={{ display: 'flex', gap: '8px' }}>
+                                  <button type="button" className="btn" disabled={docCurrentPage === 1} onClick={() => setDocCurrentPage(p => Math.max(1, p - 1))}>Prev</button>
+                                  <button type="button" className="btn" disabled={
+                                    (() => {
+                                      let source: PortalDocument[] = []
+                                      if (activeDocTab === 'Employment Documents') source = employmentDocsSeed
+                                      else if (activeDocTab === 'Payroll Documents') source = payrollDocsSeed
+                                      else if (activeDocTab === 'Tax Documents') source = taxDocsSeed
+                                      else if (activeDocTab === 'Uploaded Documents') source = uploadedDocsState
+                                      else if (activeDocTab === 'Expiring Documents') source = [uploadedDocsState[1]]
+
+                                      let filtered = source.filter(d => d.name.toLowerCase().includes(docSearchQuery.toLowerCase()))
+                                      if (activeDocTab === 'Tax Documents') {
+                                        filtered = filtered.filter(d => d.financialYear === taxYearFilter)
+                                      }
+                                      if (docStatusFilter !== 'All') {
+                                        filtered = filtered.filter(d => d.status === (docStatusFilter === 'Pending' ? 'Pending Verification' : docStatusFilter))
+                                      }
+                                      return docCurrentPage >= Math.ceil(filtered.length / DOCS_PER_PAGE)
+                                    })()
+                                  } onClick={() => setDocCurrentPage(p => p + 1)}>Next</button>
+                                </div>
+                              </div>
+                            </div>
+
+                            {activeDocTab === 'Uploaded Documents' && (
+                              <div className="doc-info-tip" style={{ marginTop: '14px' }}>
+                                <span>ℹ️</span> You will be notified once your documents are verified by HR.
+                              </div>
+                            )}
+
+                            {isDocUploadModalOpen && (
+                              <div className="time-modal-backdrop" role="presentation" onClick={() => setIsDocUploadModalOpen(false)}>
+                                <div className="time-modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+                                  <div className="time-modal-head">
+                                    <h3>Upload Document</h3>
+                                    <button type="button" onClick={() => setIsDocUploadModalOpen(false)}>✕</button>
+                                  </div>
+                                  <div className="time-modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px' }}>
+                                    {docUploadError && <div className="login-error">{docUploadError}</div>}
+                                    <div className="login-group">
+                                      <label>Document Name *</label>
+                                      <input type="text" value={docUploadName} onChange={e => setDocUploadName(e.target.value)} placeholder="e.g. Passport Copy" />
+                                    </div>
+                                    <div className="login-group">
+                                      <label>Category *</label>
+                                      <select value={docUploadCategory} onChange={e => setDocUploadCategory(e.target.value)}>
+                                        <option value="">Select Category</option>
+                                        <option value="Identity Proof">Identity Proof</option>
+                                        <option value="Address Proof">Address Proof</option>
+                                        <option value="Work Authorization">Work Authorization</option>
+                                        <option value="Qualification">Qualification</option>
+                                        <option value="Tax Document">Tax Document</option>
+                                        <option value="Bank Details">Bank Details</option>
+                                        <option value="Other">Other</option>
+                                      </select>
+                                    </div>
+                                    <div className="login-group">
+                                      <label>File *</label>
+                                      <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => setDocUploadFile(e.target.files?.[0] || null)} />
+                                    </div>
+                                  </div>
+                                  <div className="time-modal-foot">
+                                    <button type="button" className="btn" onClick={() => setIsDocUploadModalOpen(false)}>Cancel</button>
+                                    <button type="button" className="btn btn-primary" onClick={() => {
+                                      if (!docUploadName || !docUploadCategory || !docUploadFile) {
+                                        setDocUploadError('Please fill all required fields and select a file.')
+                                        return
+                                      }
+                                      const newDoc: PortalDocument = {
+                                        id: `ud-new-${Date.now()}`,
+                                        name: docUploadName,
+                                        category: docUploadCategory,
+                                        status: 'Pending Verification',
+                                        size: `${(docUploadFile.size / 1024).toFixed(0)} KB`,
+                                        uploadedOn: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+                                        verifiedOn: '-'
+                                      }
+                                      setUploadedDocsState([newDoc, ...uploadedDocsState])
+                                      setIsDocUploadModalOpen(false)
+                                      setDocUploadName('')
+                                      setDocUploadCategory('')
+                                      setDocUploadFile(null)
+                                      setDocUploadError('')
+                                    }}>Upload</button>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {docPreview && (
+                              <div className="time-modal-backdrop" role="presentation" onClick={() => setDocPreview(null)}>
+                                <div className="time-modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+                                  <div className="time-modal-head">
+                                    <h3>{docPreview.name}</h3>
+                                    <button type="button" onClick={() => setDocPreview(null)}>✕</button>
+                                  </div>
+                                  <div className="time-modal-body" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', padding: '32px' }}>
+                                    <span style={{ fontSize: '48px' }}>📄</span>
+                                    <p style={{ textAlign: 'center', color: '#9ea2bd', margin: 0 }}>This is a preview of the document.<br />(Preview not available in demo)</p>
+                                    <div style={{ marginTop: '16px', display: 'flex', gap: '8px', fontSize: '13px', color: '#c6c8de' }}>
+                                      <span>Size: {docPreview.size}</span>
+                                      <span>|</span>
+                                      <span>Status: {docPreview.status}</span>
+                                    </div>
+                                  </div>
+                                  <div className="time-modal-foot">
+                                    <button type="button" className="btn" onClick={() => setDocPreview(null)}>Close</button>
+                                    <button type="button" className="btn btn-primary" onClick={() => {
+                                      setDocPreview(null)
+                                      handleDownloadDoc(docPreview)
+                                    }}>Download</button>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {docNotification && (
+                              <div style={{
+                                position: 'fixed',
+                                bottom: '24px',
+                                right: '24px',
+                                background: '#2ecc71',
+                                color: '#fff',
+                                padding: '12px 24px',
+                                border: '1px solid #1a4d2e',
+                                borderRadius: '8px',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                fontWeight: '700',
+                                zIndex: 1000,
+                              }}>
+                                {docNotification}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ) : currentModule === 'leave' ? (
+                      null
+                    ) : currentModule === 'profile' ? (
+                      <div className="profile-shell">
+                        <div className="profile-top">
+                          <div className="profile-tabs" role="tablist" aria-label="Profile tabs">
+                            {profileTabs.map((tab) => (
+                              <button
+                                key={tab}
+                                type="button"
+                                className={`profile-tab ${activeProfileTab === tab ? 'active' : ''}`}
+                                onClick={() => setActiveProfileTab(tab)}
+                              >
+                                {tab}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {activeProfileTab === 'Overview' && (
+                          <div className="profile-overview-shell">
+                            <div className="profile-overview-grid">
+                              {/* Left Card: Summary Card */}
+                              <div className="profile-card profile-summary-card">
+                                <div className="profile-avatar-large">
+                                  <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&h=256&q=80" alt="John Doe" />
+                                </div>
+                                <h2 className="profile-name">{personalInfo.firstName} {personalInfo.lastName}</h2>
+                                <p className="profile-title">Software Engineer</p>
+                                <p className="profile-emp-id">EMP001245</p>
+                                <span className="profile-status-badge active">Active</span>
+                              </div>
+
+                              {/* Middle Card: Employee Snapshot */}
+                              <div className="profile-card profile-info-card">
+                                <h3>Employee Snapshot</h3>
+                                <div className="profile-details-list">
+                                  <div className="profile-detail-row">
+                                    <span className="label">Department</span>
+                                    <span className="value">Engineering</span>
+                                  </div>
+                                  <div className="profile-detail-row">
+                                    <span className="label">Manager</span>
+                                    <span className="value">Sarah Johnson</span>
+                                  </div>
+                                  <div className="profile-detail-row">
+                                    <span className="label">Location</span>
+                                    <span className="value">Bangalore, India</span>
+                                  </div>
+                                  <div className="profile-detail-row">
+                                    <span className="label">Employment Type</span>
+                                    <span className="value">Full Time</span>
+                                  </div>
+                                  <div className="profile-detail-row">
+                                    <span className="label">Joining Date</span>
+                                    <span className="value">15 Mar 2023</span>
+                                  </div>
+                                  <div className="profile-detail-row">
+                                    <span className="label">Work Email</span>
+                                    <span className="value">{contactDetails.workEmail}</span>
+                                  </div>
+                                  <div className="profile-detail-row">
+                                    <span className="label">Work Phone</span>
+                                    <span className="value">{contactDetails.mobileNumber}</span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Right Card: Employment Details */}
+                              <div className="profile-card profile-info-card">
+                                <h3>Employment Details</h3>
+                                <div className="profile-details-list">
+                                  <div className="profile-detail-row">
+                                    <span className="label">Employment Country</span>
+                                    <span className="value">🇮🇳 India</span>
+                                  </div>
+                                  <div className="profile-detail-row">
+                                    <span className="label">Employer of Record</span>
+                                    <span className="value">Pynk India Pvt Ltd</span>
+                                  </div>
+                                  <div className="profile-detail-row">
+                                    <span className="label">Client Company</span>
+                                    <span className="value">ABC Technologies</span>
+                                  </div>
+                                  <div className="profile-detail-row">
+                                    <span className="label">Payroll Entity</span>
+                                    <span className="value">Pynk India Pvt Ltd</span>
+                                  </div>
+                                  <div className="profile-detail-row">
+                                    <span className="label">Payroll Cycle</span>
+                                    <span className="value">Monthly</span>
+                                  </div>
+                                  <div className="profile-detail-row">
+                                    <span className="label">Next Payday</span>
+                                    <span className="value">31 Jul 2025</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Quick Actions Row */}
+                            <div className="quick-actions-section">
+                              <h3>Quick Actions</h3>
+                              <div className="quick-actions-grid">
+                                <button type="button" className="quick-action-tile" onClick={() => setActiveProfileTab('Contact')}>
+                                  <div className="tile-icon-wrapper">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                                    </svg>
+                                  </div>
+                                  <div className="tile-content">
+                                    <span className="tile-title">Update Contact</span>
+                                    <span className="tile-desc">Update your contact details</span>
+                                  </div>
+                                </button>
+
+                                <button type="button" className="quick-action-tile" onClick={() => setActiveProfileTab('Bank')}>
+                                  <div className="tile-icon-wrapper">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <rect x="2" y="22" width="20" height="2" />
+                                      <path d="M5 22V10M19 22V10M12 22V10M2 10l10-8 10 8" />
+                                    </svg>
+                                  </div>
+                                  <div className="tile-content">
+                                    <span className="tile-title">Request Bank Change</span>
+                                    <span className="tile-desc">Submit bank detail change</span>
+                                  </div>
+                                </button>
+
+                                <button type="button" className="quick-action-tile" onClick={() => {
+                                  setDocNotification("Downloading ID Card...");
+                                  setTimeout(() => setDocNotification(null), 3000);
+                                }}>
+                                  <div className="tile-icon-wrapper">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <rect x="3" y="4" width="18" height="16" rx="2" ry="2" />
+                                      <line x1="7" y1="8" x2="17" y2="8" />
+                                      <line x1="7" y1="12" x2="17" y2="12" />
+                                      <line x1="7" y1="16" x2="12" y2="16" />
+                                    </svg>
+                                  </div>
+                                  <div className="tile-content">
+                                    <span className="tile-title">Download ID Card</span>
+                                    <span className="tile-desc">View and download ID card</span>
+                                  </div>
+                                </button>
+
+                                <button type="button" className="quick-action-tile" onClick={() => setCurrentModule('documents')}>
+                                  <div className="tile-icon-wrapper">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                      <polyline points="14 2 14 8 20 8" />
+                                      <line x1="16" y1="13" x2="8" y2="13" />
+                                      <line x1="16" y1="17" x2="8" y2="17" />
+                                    </svg>
+                                  </div>
+                                  <div className="tile-content">
+                                    <span className="tile-title">View Documents</span>
+                                    <span className="tile-desc">Access your documents</span>
+                                  </div>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {activeProfileTab === 'Personal' && (
+                          <div className="profile-personal-shell">
+                            <div className="profile-personal-grid">
+                              {/* Personal Information */}
+                              <div className="profile-card profile-personal-info-card">
+                                <h3>Personal Information</h3>
+                                <div className="personal-form-grid">
+                                  <label>
+                                    First Name
+                                    <input type="text" value={personalInfo.firstName} disabled className="disabled-input" />
+                                  </label>
+                                  <label>
+                                    Middle Name
+                                    <input type="text" value={personalInfo.middleName} disabled className="disabled-input" />
+                                  </label>
+                                  <label>
+                                    Last Name
+                                    <input type="text" value={personalInfo.lastName} disabled className="disabled-input" />
+                                  </label>
+                                  <label>
+                                    Preferred Name
+                                    <input type="text" value={personalInfo.preferredName} disabled className="disabled-input" />
+                                  </label>
+                                  <label className="with-icon">
+                                    Date of Birth
+                                    <div className="input-with-icon-wrapper">
+                                      <input type="text" value="14 May 1992" disabled className="disabled-input" />
+                                      <span className="input-inner-icon">📅</span>
+                                    </div>
+                                  </label>
+                                  <label className="with-icon">
+                                    Gender
+                                    <div className="input-with-icon-wrapper">
+                                      <input type="text" value={personalInfo.gender} disabled className="disabled-input" />
+                                      <span className="input-inner-icon">▼</span>
+                                    </div>
+                                  </label>
+                                  <label className="with-icon">
+                                    Marital Status
+                                    <div className="input-with-icon-wrapper">
+                                      <input type="text" value={personalInfo.maritalStatus} disabled className="disabled-input" />
+                                      <span className="input-inner-icon">▼</span>
+                                    </div>
+                                  </label>
+                                  <label className="with-icon">
+                                    Nationality
+                                    <div className="input-with-icon-wrapper">
+                                      <input type="text" value={personalInfo.nationality} disabled className="disabled-input" />
+                                      <span className="input-inner-icon">▼</span>
+                                    </div>
+                                  </label>
+                                  <label>
+                                    PAN Number
+                                    <input type="text" value={personalInfo.panNumber} disabled className="disabled-input" />
+                                  </label>
+                                  <label>
+                                    Aadhaar Number
+                                    <input type="text" value={personalInfo.aadhaarNumber} disabled className="disabled-input" />
+                                  </label>
+                                </div>
+                              </div>
+
+                              <div className="profile-personal-sidebar">
+                                {/* Request Change Card */}
+                                <div className="profile-card request-change-card">
+                                  <h3>Request Change</h3>
+                                  <div className="request-change-content">
+                                    <div className="request-change-illustration">
+                                      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#aa3bff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                        <circle cx="12" cy="7" r="4" />
+                                        <path d="M12 11h.01" />
+                                      </svg>
+                                    </div>
+                                    <p>To update your personal information, please raise a request.</p>
+                                    <button type="button" className="btn btn-primary" onClick={handleOpenRequestChange}>
+                                      Request Change
+                                    </button>
+                                  </div>
+                                </div>
+
+                                {/* Recent Requests Card */}
+                                <div className="profile-card recent-requests-card">
+                                  <h3>Recent Requests</h3>
+                                  <div className="requests-list">
+                                    {profileChangeRequests.map((req) => (
+                                      <div key={req.id} className="request-item">
+                                        <div className="request-info">
+                                          <span className="request-type">{req.type}</span>
+                                          <span className="request-date">Requested on {req.requestedDate}</span>
+                                        </div>
+                                        <span className={`request-status-pill ${req.status.toLowerCase()}`}>
+                                          {req.status}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {activeProfileTab === 'Contact' && (
+                          <div className="profile-contact-shell">
+                            <p className="contact-intro">You can edit your contact information.</p>
+
+                            {contactEditSuccess && <p className="submit-success" style={{ marginBottom: '14px' }}>Contact details updated successfully!</p>}
+                            {contactEditError && <p className="submit-error" style={{ marginBottom: '14px' }}>{contactEditError}</p>}
+
+                            <div className="profile-card contact-card">
+                              <div className="contact-card-head">
+                                <h3>Contact Details</h3>
+                                {!isEditingContact ? (
+                                  <button type="button" className="btn edit-btn" onClick={handleEditContactClick}>
+                                    <span style={{ marginRight: '6px' }}>✏️</span> Edit
+                                  </button>
+                                ) : (
+                                  <div className="contact-edit-actions">
+                                    <button type="button" className="btn btn-primary" onClick={handleSaveContact}>
+                                      Save
+                                    </button>
+                                    <button type="button" className="btn" onClick={() => setIsEditingContact(false)}>
+                                      Cancel
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+
+                              {!isEditingContact ? (
+                                <div className="contact-details-grid">
+                                  <div className="contact-column">
+                                    <div className="contact-field">
+                                      <span className="label">Work Email</span>
+                                      <div className="value-with-badge">
+                                        <span className="value">{contactDetails.workEmail}</span>
+                                        <span className="verified-badge">Verified</span>
+                                      </div>
+                                    </div>
+                                    <div className="contact-field">
+                                      <span className="label">Personal Email</span>
+                                      <div className="value-with-badge">
+                                        <span className="value">{contactDetails.personalEmail}</span>
+                                        <span className="verified-badge">Verified</span>
+                                      </div>
+                                    </div>
+                                    <div className="contact-field">
+                                      <span className="label">Mobile Number</span>
+                                      <div className="value-with-badge">
+                                        <span className="value">{contactDetails.mobileNumber}</span>
+                                        <span className="verified-badge">Verified</span>
+                                      </div>
+                                    </div>
+                                    <div className="contact-field">
+                                      <span className="label">Alternate Number</span>
+                                      <span className="value">{contactDetails.alternateNumber || '-'}</span>
+                                    </div>
+                                  </div>
+
+                                  <div className="contact-column">
+                                    <div className="contact-field">
+                                      <span className="label">Address</span>
+                                      <span className="value">{contactDetails.address}</span>
+                                    </div>
+                                    <div className="contact-field">
+                                      <span className="label">City</span>
+                                      <span className="value">{contactDetails.city}</span>
+                                    </div>
+                                    <div className="contact-field">
+                                      <span className="label">State</span>
+                                      <span className="value">{contactDetails.state}</span>
+                                    </div>
+                                    <div className="contact-field">
+                                      <span className="label">Country</span>
+                                      <span className="value">{contactDetails.country}</span>
+                                    </div>
+                                    <div className="contact-field">
+                                      <span className="label">PIN Code</span>
+                                      <span className="value">{contactDetails.pinCode}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="contact-edit-grid">
+                                  <div className="contact-column">
+                                    <label>
+                                      Work Email (Read Only)
+                                      <input type="text" value={contactDetails.workEmail} disabled className="disabled-input" />
+                                    </label>
+                                    <label>
+                                      Personal Email
+                                      <input
+                                        type="email"
+                                        value={contactEditForm.personalEmail}
+                                        onChange={(e) => setContactEditForm({ ...contactEditForm, personalEmail: e.target.value })}
+                                      />
+                                    </label>
+                                    <label>
+                                      Mobile Number
+                                      <input
+                                        type="text"
+                                        value={contactEditForm.mobileNumber}
+                                        onChange={(e) => setContactEditForm({ ...contactEditForm, mobileNumber: e.target.value })}
+                                      />
+                                    </label>
+                                    <label>
+                                      Alternate Number
+                                      <input
+                                        type="text"
+                                        value={contactEditForm.alternateNumber}
+                                        onChange={(e) => setContactEditForm({ ...contactEditForm, alternateNumber: e.target.value })}
+                                      />
+                                    </label>
+                                  </div>
+                                  <div className="contact-column">
+                                    <label>
+                                      Address
+                                      <input
+                                        type="text"
+                                        value={contactEditForm.address}
+                                        onChange={(e) => setContactEditForm({ ...contactEditForm, address: e.target.value })}
+                                      />
+                                    </label>
+                                    <label>
+                                      City
+                                      <input
+                                        type="text"
+                                        value={contactEditForm.city}
+                                        onChange={(e) => setContactEditForm({ ...contactEditForm, city: e.target.value })}
+                                      />
+                                    </label>
+                                    <label>
+                                      State
+                                      <input
+                                        type="text"
+                                        value={contactEditForm.state}
+                                        onChange={(e) => setContactEditForm({ ...contactEditForm, state: e.target.value })}
+                                      />
+                                    </label>
+                                    <label>
+                                      Country
+                                      <input
+                                        type="text"
+                                        value={contactEditForm.country}
+                                        onChange={(e) => setContactEditForm({ ...contactEditForm, country: e.target.value })}
+                                      />
+                                    </label>
+                                    <label>
+                                      PIN Code
+                                      <input
+                                        type="text"
+                                        value={contactEditForm.pinCode}
+                                        onChange={(e) => setContactEditForm({ ...contactEditForm, pinCode: e.target.value })}
+                                      />
+                                    </label>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {activeProfileTab === 'Employment' && (
+                          <div className="profile-employment-shell">
+                            <div className="profile-card employment-card">
+                              <h3>Employment Information</h3>
+                              <div className="employment-details-grid">
+                                <div className="employment-column">
+                                  <div className="employment-field">
+                                    <span className="label">Employee ID</span>
+                                    <span className="value font-mono">EMP001245</span>
+                                  </div>
+                                  <div className="employment-field">
+                                    <span className="label">Job Title</span>
+                                    <span className="value">Software Engineer</span>
+                                  </div>
+                                  <div className="employment-field">
+                                    <span className="label">Department</span>
+                                    <span className="value">Engineering</span>
+                                  </div>
+                                  <div className="employment-field">
+                                    <span className="label">Sub Department</span>
+                                    <span className="value">Product Development</span>
+                                  </div>
+                                  <div className="employment-field">
+                                    <span className="label">Manager</span>
+                                    <span className="value">Sarah Johnson</span>
+                                  </div>
+                                  <div className="employment-field">
+                                    <span className="label">Work Location</span>
+                                    <span className="value">Bangalore, India</span>
+                                  </div>
+                                </div>
+
+                                <div className="employment-column">
+                                  <div className="employment-field">
+                                    <span className="label">Employment Type</span>
+                                    <span className="value">Full Time</span>
+                                  </div>
+                                  <div className="employment-field">
+                                    <span className="label">Joining Date</span>
+                                    <span className="value">15 Mar 2023</span>
+                                  </div>
+                                  <div className="employment-field">
+                                    <span className="label">Confirmation Date</span>
+                                    <span className="value">15 Sep 2023</span>
+                                  </div>
+                                  <div className="employment-field">
+                                    <span className="label">Employee Status</span>
+                                    <span className="verified-badge font-normal active" style={{ display: 'inline-flex' }}>Active</span>
+                                  </div>
+                                  <div className="employment-field">
+                                    <span className="label">Notice Period</span>
+                                    <span className="value">60 Days</span>
+                                  </div>
+                                  <div className="employment-field">
+                                    <span className="label">Payroll Entity</span>
+                                    <span className="value">Pynk India Pvt Ltd</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="employment-info-banner">
+                              <span className="banner-icon">ℹ️</span>
+                              <span className="banner-text">For any changes in employment information, please contact your HR.</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {activeProfileTab === 'Emergency' && (
+                          <div className="profile-emergency-shell">
+                            <div className="emergency-actions-row">
+                              <button type="button" className="btn btn-primary" onClick={handleOpenAddEmergency}>
+                                + Add Contact
+                              </button>
+                            </div>
+
+                            <div className="profile-card emergency-card">
+                              <table className="emergency-contacts-table">
+                                <thead>
+                                  <tr>
+                                    <th>Contact Name</th>
+                                    <th>Relationship</th>
+                                    <th>Phone Number</th>
+                                    <th>Email Address</th>
+                                    <th>Actions</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {emergencyContacts.map((contact) => (
+                                    <tr key={contact.id}>
+                                      <td>{contact.name}</td>
+                                      <td>{contact.relationship}</td>
+                                      <td>{contact.phone}</td>
+                                      <td>{contact.email}</td>
+                                      <td className="emergency-table-actions">
+                                        <button type="button" className="action-btn edit" onClick={() => handleOpenEditEmergency(contact)} title="Edit">
+                                          ✏️
+                                        </button>
+                                        <button type="button" className="action-btn delete" onClick={() => handleDeleteEmergencyContact(contact.id)} title="Delete">
+                                          🗑️
+                                        </button>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                  {emergencyContacts.length === 0 && (
+                                    <tr>
+                                      <td colSpan={5} className="empty-contacts-row">No emergency contacts listed.</td>
+                                    </tr>
+                                  )}
+                                </tbody>
+                              </table>
+                            </div>
+
+                            <div className="employment-info-banner">
+                              <span className="banner-icon">ℹ️</span>
+                              <span className="banner-text">Please ensure your emergency contacts are always up to date.</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Bank Details */}
+                        {activeProfileTab === 'Bank' && (
+                          <div className="profile-personal-shell">
+                            <div className="profile-personal-grid">
+                              {/* Salary Account */}
+                              <div className="profile-card profile-personal-info-card">
+                                <h3>Salary Account</h3>
+                                <div className="contact-details-grid" style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '20px', alignItems: 'center' }}>
+                                  <div style={{ background: 'rgba(90, 125, 255, 0.1)', padding: '16px', borderRadius: '12px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                    <span style={{ fontSize: '48px' }}>🏦</span>
+                                  </div>
+                                  <div className="contact-details-grid">
+                                    <div className="contact-column">
+                                      <div className="contact-field">
+                                        <span className="label">Bank Name</span>
+                                        <div className="value-with-badge">
+                                          <span className="value">{bankDetails.bankName}</span>
+                                          <span className="verified-badge">Verified</span>
+                                        </div>
+                                      </div>
+                                      <div className="contact-field">
+                                        <span className="label">Account Number</span>
+                                        <span className="value">{bankDetails.accountNumber}</span>
+                                      </div>
+                                    </div>
+                                    <div className="contact-column">
+                                      <div className="contact-field">
+                                        <span className="label">IFSC Code</span>
+                                        <span className="value">{bankDetails.ifscCode}</span>
+                                      </div>
+                                      <div className="contact-field">
+                                        <span className="label">Account Holder Name</span>
+                                        <span className="value">{bankDetails.accountHolderName}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="profile-personal-sidebar">
+                                {/* Need to update bank details? */}
+                                <div className="profile-card request-change-card">
+                                  <h3>Need to update bank details?</h3>
+                                  <div className="request-change-content">
+                                    <p>Submit a request to update your bank account details. The request will be reviewed and approved by HR.</p>
+                                    <button type="button" className="btn btn-primary" onClick={handleOpenBankChange}>
+                                      Request Bank Change
+                                    </button>
+                                    <button type="button" className="btn-link" style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '13px', fontWeight: '600', marginTop: '8px' }} onClick={() => setActiveProfileTab('Change Requests')}>
+                                      View Request Status &gt;
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Local Recent Requests */}
+                            <div className="profile-card" style={{ marginTop: '16px' }}>
+                              <h3>Recent Requests</h3>
+                              <div className="requests-list">
+                                {profileChangeRequests.filter(req => req.type.includes('Bank') || req.type.includes('Branch') || req.type.includes('Account')).map((req) => (
+                                  <div key={req.id} className="request-item">
+                                    <div className="request-info">
+                                      <span className="request-type">{req.type}</span>
+                                      <span className="request-date">Requested on {req.requestedDate}</span>
+                                    </div>
+                                    <span className={`request-status-pill ${req.status.toLowerCase()}`}>
+                                      {req.status}
+                                    </span>
+                                  </div>
+                                ))}
+                                {profileChangeRequests.filter(req => req.type.includes('Bank') || req.type.includes('Branch') || req.type.includes('Account')).length === 0 && (
+                                  <p style={{ fontSize: '13px', color: 'var(--muted)', margin: '10px 0 0' }}>No recent bank change requests.</p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Documents & IDs */}
+                        {activeProfileTab === 'Documents & IDs' && (
+                          <div className="profile-emergency-shell">
+                            <div className="profile-card emergency-card">
+                              <h3>Identity Documents</h3>
+                              <table className="emergency-contacts-table">
+                                <thead>
+                                  <tr>
+                                    <th>Document</th>
+                                    <th>Number</th>
+                                    <th>Issue Date</th>
+                                    <th>Expiry Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {identityDocs.map((doc) => (
+                                    <tr key={doc.id}>
+                                      <td style={{ fontWeight: '600' }}>{doc.name}</td>
+                                      <td>{doc.number}</td>
+                                      <td>{doc.issueDate}</td>
+                                      <td>{doc.expiryDate}</td>
+                                      <td>
+                                        <span className="verified-badge" style={{ display: 'inline-block' }}>{doc.status}</span>
+                                      </td>
+                                      <td>
+                                        <button type="button" className="action-btn" title="View Document" onClick={() => alert(`Previewing ${doc.name} (${doc.number})`)}>
+                                          👁️
+                                        </button>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+
+                            <div className="employment-info-banner">
+                              <span className="banner-icon">ℹ️</span>
+                              <span className="banner-text">
+                                To upload or update documents, please go to{' '}
+                                <button type="button" style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', color: 'var(--primary)', textDecoration: 'underline', cursor: 'pointer', fontWeight: '600' }} onClick={() => setCurrentModule('documents')}>
+                                  Documents section
+                                </button>.
                               </span>
                             </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeProfileTab === 'Contact' && (
-                <div className="profile-contact-shell">
-                  <p className="contact-intro">You can edit your contact information.</p>
-                  
-                  {contactEditSuccess && <p className="submit-success" style={{ marginBottom: '14px' }}>Contact details updated successfully!</p>}
-                  {contactEditError && <p className="submit-error" style={{ marginBottom: '14px' }}>{contactEditError}</p>}
-
-                  <div className="profile-card contact-card">
-                    <div className="contact-card-head">
-                      <h3>Contact Details</h3>
-                      {!isEditingContact ? (
-                        <button type="button" className="btn edit-btn" onClick={handleEditContactClick}>
-                          <span style={{ marginRight: '6px' }}>✏️</span> Edit
-                        </button>
-                      ) : (
-                        <div className="contact-edit-actions">
-                          <button type="button" className="btn btn-primary" onClick={handleSaveContact}>
-                            Save
-                          </button>
-                          <button type="button" className="btn" onClick={() => setIsEditingContact(false)}>
-                            Cancel
-                          </button>
-                        </div>
-                      )}
-                    </div>
-
-                    {!isEditingContact ? (
-                      <div className="contact-details-grid">
-                        <div className="contact-column">
-                          <div className="contact-field">
-                            <span className="label">Work Email</span>
-                            <div className="value-with-badge">
-                              <span className="value">{contactDetails.workEmail}</span>
-                              <span className="verified-badge">Verified</span>
-                            </div>
                           </div>
-                          <div className="contact-field">
-                            <span className="label">Personal Email</span>
-                            <div className="value-with-badge">
-                              <span className="value">{contactDetails.personalEmail}</span>
-                              <span className="verified-badge">Verified</span>
-                            </div>
-                          </div>
-                          <div className="contact-field">
-                            <span className="label">Mobile Number</span>
-                            <div className="value-with-badge">
-                              <span className="value">{contactDetails.mobileNumber}</span>
-                              <span className="verified-badge">Verified</span>
-                            </div>
-                          </div>
-                          <div className="contact-field">
-                            <span className="label">Alternate Number</span>
-                            <span className="value">{contactDetails.alternateNumber || '-'}</span>
-                          </div>
-                        </div>
-
-                        <div className="contact-column">
-                          <div className="contact-field">
-                            <span className="label">Address</span>
-                            <span className="value">{contactDetails.address}</span>
-                          </div>
-                          <div className="contact-field">
-                            <span className="label">City</span>
-                            <span className="value">{contactDetails.city}</span>
-                          </div>
-                          <div className="contact-field">
-                            <span className="label">State</span>
-                            <span className="value">{contactDetails.state}</span>
-                          </div>
-                          <div className="contact-field">
-                            <span className="label">Country</span>
-                            <span className="value">{contactDetails.country}</span>
-                          </div>
-                          <div className="contact-field">
-                            <span className="label">PIN Code</span>
-                            <span className="value">{contactDetails.pinCode}</span>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="contact-edit-grid">
-                        <div className="contact-column">
-                          <label>
-                            Work Email (Read Only)
-                            <input type="text" value={contactDetails.workEmail} disabled className="disabled-input" />
-                          </label>
-                          <label>
-                            Personal Email
-                            <input
-                              type="email"
-                              value={contactEditForm.personalEmail}
-                              onChange={(e) => setContactEditForm({ ...contactEditForm, personalEmail: e.target.value })}
-                            />
-                          </label>
-                          <label>
-                            Mobile Number
-                            <input
-                              type="text"
-                              value={contactEditForm.mobileNumber}
-                              onChange={(e) => setContactEditForm({ ...contactEditForm, mobileNumber: e.target.value })}
-                            />
-                          </label>
-                          <label>
-                            Alternate Number
-                            <input
-                              type="text"
-                              value={contactEditForm.alternateNumber}
-                              onChange={(e) => setContactEditForm({ ...contactEditForm, alternateNumber: e.target.value })}
-                            />
-                          </label>
-                        </div>
-                        <div className="contact-column">
-                          <label>
-                            Address
-                            <input
-                              type="text"
-                              value={contactEditForm.address}
-                              onChange={(e) => setContactEditForm({ ...contactEditForm, address: e.target.value })}
-                            />
-                          </label>
-                          <label>
-                            City
-                            <input
-                              type="text"
-                              value={contactEditForm.city}
-                              onChange={(e) => setContactEditForm({ ...contactEditForm, city: e.target.value })}
-                            />
-                          </label>
-                          <label>
-                            State
-                            <input
-                              type="text"
-                              value={contactEditForm.state}
-                              onChange={(e) => setContactEditForm({ ...contactEditForm, state: e.target.value })}
-                            />
-                          </label>
-                          <label>
-                            Country
-                            <input
-                              type="text"
-                              value={contactEditForm.country}
-                              onChange={(e) => setContactEditForm({ ...contactEditForm, country: e.target.value })}
-                            />
-                          </label>
-                          <label>
-                            PIN Code
-                            <input
-                              type="text"
-                              value={contactEditForm.pinCode}
-                              onChange={(e) => setContactEditForm({ ...contactEditForm, pinCode: e.target.value })}
-                            />
-                          </label>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {activeProfileTab === 'Employment' && (
-                <div className="profile-employment-shell">
-                  <div className="profile-card employment-card">
-                    <h3>Employment Information</h3>
-                    <div className="employment-details-grid">
-                      <div className="employment-column">
-                        <div className="employment-field">
-                          <span className="label">Employee ID</span>
-                          <span className="value font-mono">EMP001245</span>
-                        </div>
-                        <div className="employment-field">
-                          <span className="label">Job Title</span>
-                          <span className="value">Software Engineer</span>
-                        </div>
-                        <div className="employment-field">
-                          <span className="label">Department</span>
-                          <span className="value">Engineering</span>
-                        </div>
-                        <div className="employment-field">
-                          <span className="label">Sub Department</span>
-                          <span className="value">Product Development</span>
-                        </div>
-                        <div className="employment-field">
-                          <span className="label">Manager</span>
-                          <span className="value">Sarah Johnson</span>
-                        </div>
-                        <div className="employment-field">
-                          <span className="label">Work Location</span>
-                          <span className="value">Bangalore, India</span>
-                        </div>
-                      </div>
-
-                      <div className="employment-column">
-                        <div className="employment-field">
-                          <span className="label">Employment Type</span>
-                          <span className="value">Full Time</span>
-                        </div>
-                        <div className="employment-field">
-                          <span className="label">Joining Date</span>
-                          <span className="value">15 Mar 2023</span>
-                        </div>
-                        <div className="employment-field">
-                          <span className="label">Confirmation Date</span>
-                          <span className="value">15 Sep 2023</span>
-                        </div>
-                        <div className="employment-field">
-                          <span className="label">Employee Status</span>
-                          <span className="verified-badge font-normal active" style={{ display: 'inline-flex' }}>Active</span>
-                        </div>
-                        <div className="employment-field">
-                          <span className="label">Notice Period</span>
-                          <span className="value">60 Days</span>
-                        </div>
-                        <div className="employment-field">
-                          <span className="label">Payroll Entity</span>
-                          <span className="value">Pynk India Pvt Ltd</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="employment-info-banner">
-                    <span className="banner-icon">ℹ️</span>
-                    <span className="banner-text">For any changes in employment information, please contact your HR.</span>
-                  </div>
-                </div>
-              )}
-
-              {activeProfileTab === 'Emergency' && (
-                <div className="profile-emergency-shell">
-                  <div className="emergency-actions-row">
-                    <button type="button" className="btn btn-primary" onClick={handleOpenAddEmergency}>
-                      + Add Contact
-                    </button>
-                  </div>
-
-                  <div className="profile-card emergency-card">
-                    <table className="emergency-contacts-table">
-                      <thead>
-                        <tr>
-                          <th>Contact Name</th>
-                          <th>Relationship</th>
-                          <th>Phone Number</th>
-                          <th>Email Address</th>
-                          <th>Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {emergencyContacts.map((contact) => (
-                          <tr key={contact.id}>
-                            <td>{contact.name}</td>
-                            <td>{contact.relationship}</td>
-                            <td>{contact.phone}</td>
-                            <td>{contact.email}</td>
-                            <td className="emergency-table-actions">
-                              <button type="button" className="action-btn edit" onClick={() => handleOpenEditEmergency(contact)} title="Edit">
-                                ✏️
-                              </button>
-                              <button type="button" className="action-btn delete" onClick={() => handleDeleteEmergencyContact(contact.id)} title="Delete">
-                                🗑️
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                        {emergencyContacts.length === 0 && (
-                          <tr>
-                            <td colSpan={5} className="empty-contacts-row">No emergency contacts listed.</td>
-                          </tr>
                         )}
-                      </tbody>
-                    </table>
-                  </div>
 
-                  <div className="employment-info-banner">
-                    <span className="banner-icon">ℹ️</span>
-                    <span className="banner-text">Please ensure your emergency contacts are always up to date.</span>
-                  </div>
-                </div>
-              )}
-
-              {/* Bank Details */}
-              {activeProfileTab === 'Bank' && (
-                <div className="profile-personal-shell">
-                  <div className="profile-personal-grid">
-                    {/* Salary Account */}
-                    <div className="profile-card profile-personal-info-card">
-                      <h3>Salary Account</h3>
-                      <div className="contact-details-grid" style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '20px', alignItems: 'center' }}>
-                        <div style={{ background: 'rgba(90, 125, 255, 0.1)', padding: '16px', borderRadius: '12px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                          <span style={{ fontSize: '48px' }}>🏦</span>
-                        </div>
-                        <div className="contact-details-grid">
-                          <div className="contact-column">
-                            <div className="contact-field">
-                              <span className="label">Bank Name</span>
-                              <div className="value-with-badge">
-                                <span className="value">{bankDetails.bankName}</span>
-                                <span className="verified-badge">Verified</span>
+                        {/* Skills */}
+                        {activeProfileTab === 'Skills' && (
+                          <div className="profile-emergency-shell">
+                            <div className="profile-top" style={{ borderBottom: 'none', paddingBottom: 0 }}>
+                              <div className="profile-tabs" role="tablist" aria-label="Skills sub tabs" style={{ gap: '8px' }}>
+                                {(['Skills', 'Education', 'Certifications', 'Languages'] as const).map((subTab) => (
+                                  <button
+                                    key={subTab}
+                                    type="button"
+                                    className={`profile-tab ${activeSkillsSubTab === subTab ? 'active' : ''}`}
+                                    style={{ padding: '6px 12px', fontSize: '13px' }}
+                                    onClick={() => setActiveSkillsSubTab(subTab)}
+                                  >
+                                    {subTab}
+                                  </button>
+                                ))}
                               </div>
                             </div>
-                            <div className="contact-field">
-                              <span className="label">Account Number</span>
-                              <span className="value">{bankDetails.accountNumber}</span>
-                            </div>
-                          </div>
-                          <div className="contact-column">
-                            <div className="contact-field">
-                              <span className="label">IFSC Code</span>
-                              <span className="value">{bankDetails.ifscCode}</span>
-                            </div>
-                            <div className="contact-field">
-                              <span className="label">Account Holder Name</span>
-                              <span className="value">{bankDetails.accountHolderName}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
 
-                    <div className="profile-personal-sidebar">
-                      {/* Need to update bank details? */}
-                      <div className="profile-card request-change-card">
-                        <h3>Need to update bank details?</h3>
-                        <div className="request-change-content">
-                          <p>Submit a request to update your bank account details. The request will be reviewed and approved by HR.</p>
-                          <button type="button" className="btn btn-primary" onClick={handleOpenBankChange}>
-                            Request Bank Change
-                          </button>
-                          <button type="button" className="btn-link" style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '13px', fontWeight: '600', marginTop: '8px' }} onClick={() => setActiveProfileTab('Change Requests')}>
-                            View Request Status &gt;
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Local Recent Requests */}
-                  <div className="profile-card" style={{ marginTop: '16px' }}>
-                    <h3>Recent Requests</h3>
-                    <div className="requests-list">
-                      {profileChangeRequests.filter(req => req.type.includes('Bank') || req.type.includes('Branch') || req.type.includes('Account')).map((req) => (
-                        <div key={req.id} className="request-item">
-                          <div className="request-info">
-                            <span className="request-type">{req.type}</span>
-                            <span className="request-date">Requested on {req.requestedDate}</span>
-                          </div>
-                          <span className={`request-status-pill ${req.status.toLowerCase()}`}>
-                            {req.status}
-                          </span>
-                        </div>
-                      ))}
-                      {profileChangeRequests.filter(req => req.type.includes('Bank') || req.type.includes('Branch') || req.type.includes('Account')).length === 0 && (
-                        <p style={{ fontSize: '13px', color: 'var(--muted)', margin: '10px 0 0' }}>No recent bank change requests.</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Documents & IDs */}
-              {activeProfileTab === 'Documents & IDs' && (
-                <div className="profile-emergency-shell">
-                  <div className="profile-card emergency-card">
-                    <h3>Identity Documents</h3>
-                    <table className="emergency-contacts-table">
-                      <thead>
-                        <tr>
-                          <th>Document</th>
-                          <th>Number</th>
-                          <th>Issue Date</th>
-                          <th>Expiry Date</th>
-                          <th>Status</th>
-                          <th>Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {identityDocs.map((doc) => (
-                          <tr key={doc.id}>
-                            <td style={{ fontWeight: '600' }}>{doc.name}</td>
-                            <td>{doc.number}</td>
-                            <td>{doc.issueDate}</td>
-                            <td>{doc.expiryDate}</td>
-                            <td>
-                              <span className="verified-badge" style={{ display: 'inline-block' }}>{doc.status}</span>
-                            </td>
-                            <td>
-                              <button type="button" className="action-btn" title="View Document" onClick={() => alert(`Previewing ${doc.name} (${doc.number})`)}>
-                                👁️
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  <div className="employment-info-banner">
-                    <span className="banner-icon">ℹ️</span>
-                    <span className="banner-text">
-                      To upload or update documents, please go to{' '}
-                      <button type="button" style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', color: 'var(--primary)', textDecoration: 'underline', cursor: 'pointer', fontWeight: '600' }} onClick={() => setCurrentModule('documents')}>
-                        Documents section
-                      </button>.
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* Skills */}
-              {activeProfileTab === 'Skills' && (
-                <div className="profile-emergency-shell">
-                  <div className="profile-top" style={{ borderBottom: 'none', paddingBottom: 0 }}>
-                    <div className="profile-tabs" role="tablist" aria-label="Skills sub tabs" style={{ gap: '8px' }}>
-                      {(['Skills', 'Education', 'Certifications', 'Languages'] as const).map((subTab) => (
-                        <button
-                          key={subTab}
-                          type="button"
-                          className={`profile-tab ${activeSkillsSubTab === subTab ? 'active' : ''}`}
-                          style={{ padding: '6px 12px', fontSize: '13px' }}
-                          onClick={() => setActiveSkillsSubTab(subTab)}
-                        >
-                          {subTab}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {activeSkillsSubTab === 'Skills' && (
-                    <div className="profile-card emergency-card" style={{ marginTop: '10px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                        <h3 style={{ margin: 0 }}>Skills</h3>
-                        <button type="button" className="btn btn-primary" onClick={handleOpenAddSkill}>
-                          + Add Skill
-                        </button>
-                      </div>
-                      <table className="emergency-contacts-table">
-                        <thead>
-                          <tr>
-                            <th>Skill Name</th>
-                            <th>Proficiency</th>
-                            <th>Years of Experience</th>
-                            <th>Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {profileSkills.map((skill) => (
-                            <tr key={skill.id}>
-                              <td style={{ fontWeight: '600' }}>{skill.name}</td>
-                              <td>{skill.proficiency}</td>
-                              <td>{skill.experience} yrs</td>
-                              <td className="emergency-table-actions">
-                                <button type="button" className="action-btn edit" title="Edit Skill" onClick={() => handleOpenEditSkill(skill)}>
-                                  ✏️
-                                </button>
-                                <button type="button" className="action-btn delete" title="Delete Skill" onClick={() => handleDeleteSkill(skill.id)}>
-                                  🗑️
-                                </button>
-                              </td>
-                            </tr>
-                          ))}
-                          {profileSkills.length === 0 && (
-                            <tr>
-                              <td colSpan={4} className="empty-contacts-row">No skills added yet.</td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-
-                  {activeSkillsSubTab === 'Education' && (
-                    <div className="profile-card emergency-card" style={{ marginTop: '10px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                        <h3 style={{ margin: 0 }}>Education</h3>
-                        <button type="button" className="btn btn-primary" onClick={handleOpenAddEducation}>
-                          + Add Education
-                        </button>
-                      </div>
-                      <table className="emergency-contacts-table">
-                        <thead>
-                          <tr>
-                            <th>Degree</th>
-                            <th>Institution</th>
-                            <th>Field of Study</th>
-                            <th>Year of Passing</th>
-                            <th>Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {profileEducation.map((edu) => (
-                            <tr key={edu.id}>
-                              <td style={{ fontWeight: '600' }}>{edu.degree}</td>
-                              <td>{edu.institution}</td>
-                              <td>{edu.fieldOfStudy}</td>
-                              <td>{edu.yearOfPassing}</td>
-                              <td className="emergency-table-actions">
-                                <button type="button" className="action-btn edit" title="Edit Education" onClick={() => handleOpenEditEducation(edu)}>
-                                  ✏️
-                                </button>
-                                <button type="button" className="action-btn delete" title="Delete Education" onClick={() => handleDeleteEducation(edu.id)}>
-                                  🗑️
-                                </button>
-                              </td>
-                            </tr>
-                          ))}
-                          {profileEducation.length === 0 && (
-                            <tr>
-                              <td colSpan={5} className="empty-contacts-row">No education records added yet.</td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-
-                  {activeSkillsSubTab === 'Certifications' && (
-                    <div className="profile-card emergency-card" style={{ marginTop: '10px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                        <h3 style={{ margin: 0 }}>Certifications</h3>
-                        <button type="button" className="btn btn-primary" onClick={handleOpenAddCertification}>
-                          + Add Certification
-                        </button>
-                      </div>
-                      <table className="emergency-contacts-table">
-                        <thead>
-                          <tr>
-                            <th>Certificate Name</th>
-                            <th>Issuing Organization</th>
-                            <th>Issue Date</th>
-                            <th>Expiry Date</th>
-                            <th>Credential ID</th>
-                            <th>Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {profileCertifications.map((cert) => (
-                            <tr key={cert.id}>
-                              <td style={{ fontWeight: '600' }}>{cert.name}</td>
-                              <td>{cert.issuingOrg}</td>
-                              <td>{cert.issueDate}</td>
-                              <td>{cert.expiryDate}</td>
-                              <td className="font-mono">{cert.credentialId}</td>
-                              <td className="emergency-table-actions">
-                                <button type="button" className="action-btn edit" title="Edit Certification" onClick={() => handleOpenEditCertification(cert)}>
-                                  ✏️
-                                </button>
-                                <button type="button" className="action-btn delete" title="Delete Certification" onClick={() => handleDeleteCertification(cert.id)}>
-                                  🗑️
-                                </button>
-                              </td>
-                            </tr>
-                          ))}
-                          {profileCertifications.length === 0 && (
-                            <tr>
-                              <td colSpan={6} className="empty-contacts-row">No certifications added yet.</td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-
-                  {activeSkillsSubTab === 'Languages' && (
-                    <div className="profile-card emergency-card" style={{ marginTop: '10px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                        <h3 style={{ margin: 0 }}>Languages</h3>
-                        <button type="button" className="btn btn-primary" onClick={handleOpenAddLanguage}>
-                          + Add Language
-                        </button>
-                      </div>
-                      <table className="emergency-contacts-table">
-                        <thead>
-                          <tr>
-                            <th>Language</th>
-                            <th>Proficiency</th>
-                            <th>Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {profileLanguages.map((lang) => (
-                            <tr key={lang.id}>
-                              <td style={{ fontWeight: '600' }}>{lang.name}</td>
-                              <td>{lang.proficiency}</td>
-                              <td className="emergency-table-actions">
-                                <button type="button" className="action-btn edit" title="Edit Language" onClick={() => handleOpenEditLanguage(lang)}>
-                                  ✏️
-                                </button>
-                                <button type="button" className="action-btn delete" title="Delete Language" onClick={() => handleDeleteLanguage(lang.id)}>
-                                  🗑️
-                                </button>
-                              </td>
-                            </tr>
-                          ))}
-                          {profileLanguages.length === 0 && (
-                            <tr>
-                              <td colSpan={3} className="empty-contacts-row">No languages added yet.</td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-
-                  <div className="employment-info-banner">
-                    <span className="banner-icon">ℹ️</span>
-                    <span className="banner-text">Keep your profile details updated to help us find better internal roles and opportunities.</span>
-                  </div>
-                </div>
-              )}
-
-              {/* Preferences */}
-              {activeProfileTab === 'Preferences' && (
-                <div className="profile-personal-shell">
-                  {preferencesSaveSuccess && (
-                    <p className="submit-success" style={{ marginBottom: '14px' }}>
-                      Preferences saved successfully!
-                    </p>
-                  )}
-                  <div className="profile-personal-grid">
-                    <div className="profile-card profile-personal-info-card">
-                      <h3>System Preferences</h3>
-                      <div className="personal-form-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                        <label>
-                          Preferred Language
-                          <select
-                            value={profilePreferences.preferredLanguage}
-                            onChange={(e) => setProfilePreferences({ ...profilePreferences, preferredLanguage: e.target.value })}
-                            style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px', fontSize: '13px' }}
-                          >
-                            <option value="English">English</option>
-                            <option value="Spanish">Spanish</option>
-                            <option value="French">French</option>
-                            <option value="German">German</option>
-                          </select>
-                        </label>
-
-                        <label>
-                          Time Zone
-                          <select
-                            value={profilePreferences.timeZone}
-                            onChange={(e) => setProfilePreferences({ ...profilePreferences, timeZone: e.target.value })}
-                            style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px', fontSize: '13px' }}
-                          >
-                            <option value="(GMT+05:30) Asia/Kolkata">(GMT+05:30) Asia/Kolkata</option>
-                            <option value="(GMT-05:00) EST">(GMT-05:00) EST</option>
-                            <option value="(GMT+00:00) UTC">(GMT+00:00) UTC</option>
-                          </select>
-                        </label>
-
-                        <label>
-                          Date Format
-                          <select
-                            value={profilePreferences.dateFormat}
-                            onChange={(e) => setProfilePreferences({ ...profilePreferences, dateFormat: e.target.value })}
-                            style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px', fontSize: '13px' }}
-                          >
-                            <option value="DD MMM YYYY">DD MMM YYYY</option>
-                            <option value="YYYY-MM-DD">YYYY-MM-DD</option>
-                            <option value="MM/DD/YYYY">MM/DD/YYYY</option>
-                          </select>
-                        </label>
-
-                        <label>
-                          Time Format
-                          <select
-                            value={profilePreferences.timeFormat}
-                            onChange={(e) => setProfilePreferences({ ...profilePreferences, timeFormat: e.target.value })}
-                            style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px', fontSize: '13px' }}
-                          >
-                            <option value="12 Hour">12 Hour</option>
-                            <option value="24 Hour">24 Hour</option>
-                          </select>
-                        </label>
-                      </div>
-                    </div>
-
-                    <div className="profile-personal-sidebar">
-                      <div className="profile-card">
-                        <h3>Email Notifications</h3>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'left', marginTop: '10px' }}>
-                          <label style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '10px', fontSize: '13px', cursor: 'pointer' }}>
-                            <input
-                              type="checkbox"
-                              checked={profilePreferences.emailNotifications.leaveAttendance}
-                              onChange={(e) => setProfilePreferences({
-                                ...profilePreferences,
-                                emailNotifications: { ...profilePreferences.emailNotifications, leaveAttendance: e.target.checked }
-                              })}
-                            />
-                            Leave & Attendance Updates
-                          </label>
-
-                          <label style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '10px', fontSize: '13px', cursor: 'pointer' }}>
-                            <input
-                              type="checkbox"
-                              checked={profilePreferences.emailNotifications.payslipPayroll}
-                              onChange={(e) => setProfilePreferences({
-                                ...profilePreferences,
-                                emailNotifications: { ...profilePreferences.emailNotifications, payslipPayroll: e.target.checked }
-                              })}
-                            />
-                            Payslip & Payroll Updates
-                          </label>
-
-                          <label style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '10px', fontSize: '13px', cursor: 'pointer' }}>
-                            <input
-                              type="checkbox"
-                              checked={profilePreferences.emailNotifications.companyAnnouncements}
-                              onChange={(e) => setProfilePreferences({
-                                ...profilePreferences,
-                                emailNotifications: { ...profilePreferences.emailNotifications, companyAnnouncements: e.target.checked }
-                              })}
-                            />
-                            Company Announcements
-                          </label>
-
-                          <label style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '10px', fontSize: '13px', cursor: 'pointer' }}>
-                            <input
-                              type="checkbox"
-                              checked={profilePreferences.emailNotifications.policyUpdates}
-                              onChange={(e) => setProfilePreferences({
-                                ...profilePreferences,
-                                emailNotifications: { ...profilePreferences.emailNotifications, policyUpdates: e.target.checked }
-                              })}
-                            />
-                            Policy Updates
-                          </label>
-                        </div>
-                      </div>
-
-                      <div className="profile-card" style={{ marginTop: '12px' }}>
-                        <h3>Theme</h3>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'left', marginTop: '10px' }}>
-                          {(['Light', 'Dark', 'System Default'] as const).map((t) => (
-                            <label key={t} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '10px', fontSize: '13px', cursor: 'pointer' }}>
-                              <input
-                                type="radio"
-                                name="theme"
-                                checked={profilePreferences.theme === t}
-                                onChange={() => setProfilePreferences({ ...profilePreferences, theme: t })}
-                              />
-                              {t}
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
-                    <button type="button" className="btn btn-primary" onClick={handleSavePreferences}>
-                      💾 Save Preferences
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Change Requests */}
-              {activeProfileTab === 'Change Requests' && (
-                <div className="profile-personal-shell">
-                  <div className="profile-top" style={{ borderBottom: 'none', paddingBottom: 0 }}>
-                    <div className="profile-tabs" role="tablist" aria-label="Request filters" style={{ gap: '8px' }}>
-                      {(['All Requests', 'Pending', 'Approved', 'Rejected'] as const).map((filter) => (
-                        <button
-                          key={filter}
-                          type="button"
-                          className={`profile-tab ${activeChangeRequestsSubTab === filter ? 'active' : ''}`}
-                          style={{ padding: '6px 12px', fontSize: '13px' }}
-                          onClick={() => setActiveChangeRequestsSubTab(filter)}
-                        >
-                          {filter}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="profile-personal-grid" style={{ marginTop: '10px' }}>
-                    <div className="profile-card emergency-card" style={{ padding: '16px' }}>
-                      <h3>Request Audit Table</h3>
-                      <table className="emergency-contacts-table">
-                        <thead>
-                          <tr>
-                            <th>Request Type</th>
-                            <th>Description</th>
-                            <th>Requested On</th>
-                            <th>Status</th>
-                            <th>Comments</th>
-                            <th>Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {profileChangeRequests
-                            .filter((req) => {
-                              if (activeChangeRequestsSubTab === 'All Requests') return true
-                              return req.status === activeChangeRequestsSubTab
-                            })
-                            .map((req) => (
-                              <tr key={req.id}>
-                                <td style={{ fontWeight: '600' }}>{req.type}</td>
-                                <td>{req.description}</td>
-                                <td>{req.requestedDate}</td>
-                                <td>
-                                  <span className={`request-status-pill ${req.status.toLowerCase()}`}>
-                                    {req.status}
-                                  </span>
-                                </td>
-                                <td style={{ color: 'var(--muted)', fontSize: '12px' }}>{req.comments}</td>
-                                <td>
-                                  <button type="button" className="btn btn-link" style={{ padding: '4px 8px', fontSize: '12px', color: 'var(--primary)' }} onClick={() => alert(`Request ID: ${req.id}\nDetails: ${req.description}\nStatus: ${req.status}\nComments: ${req.comments}`)}>
-                                    View
+                            {activeSkillsSubTab === 'Skills' && (
+                              <div className="profile-card emergency-card" style={{ marginTop: '10px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                                  <h3 style={{ margin: 0 }}>Skills</h3>
+                                  <button type="button" className="btn btn-primary" onClick={handleOpenAddSkill}>
+                                    + Add Skill
                                   </button>
-                                </td>
-                              </tr>
-                            ))}
-                          {profileChangeRequests.filter((req) => {
-                            if (activeChangeRequestsSubTab === 'All Requests') return true
-                            return req.status === activeChangeRequestsSubTab
-                          }).length === 0 && (
-                            <tr>
-                              <td colSpan={6} className="empty-contacts-row">No change requests found.</td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
+                                </div>
+                                <table className="emergency-contacts-table">
+                                  <thead>
+                                    <tr>
+                                      <th>Skill Name</th>
+                                      <th>Proficiency</th>
+                                      <th>Years of Experience</th>
+                                      <th>Actions</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {profileSkills.map((skill) => (
+                                      <tr key={skill.id}>
+                                        <td style={{ fontWeight: '600' }}>{skill.name}</td>
+                                        <td>{skill.proficiency}</td>
+                                        <td>{skill.experience} yrs</td>
+                                        <td className="emergency-table-actions">
+                                          <button type="button" className="action-btn edit" title="Edit Skill" onClick={() => handleOpenEditSkill(skill)}>
+                                            ✏️
+                                          </button>
+                                          <button type="button" className="action-btn delete" title="Delete Skill" onClick={() => handleDeleteSkill(skill.id)}>
+                                            🗑️
+                                          </button>
+                                        </td>
+                                      </tr>
+                                    ))}
+                                    {profileSkills.length === 0 && (
+                                      <tr>
+                                        <td colSpan={4} className="empty-contacts-row">No skills added yet.</td>
+                                      </tr>
+                                    )}
+                                  </tbody>
+                                </table>
+                              </div>
+                            )}
 
-                    <div className="profile-personal-sidebar">
-                      <div className="profile-card">
-                        <h3>How it works?</h3>
-                        <ol style={{ textAlign: 'left', paddingLeft: '16px', fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '12px', color: 'var(--muted)' }}>
-                          <li>
-                            <strong style={{ color: 'var(--ink)' }}>Submit Request</strong>
-                            <p style={{ margin: '2px 0 0' }}>Raise a ticket for any personal or banking details change.</p>
-                          </li>
-                          <li>
-                            <strong style={{ color: 'var(--ink)' }}>HR Review</strong>
-                            <p style={{ margin: '2px 0 0' }}>The human resource managers will audit the details.</p>
-                          </li>
-                          <li>
-                            <strong style={{ color: 'var(--ink)' }}>Instant Status Update</strong>
-                            <p style={{ margin: '2px 0 0' }}>Receive alerts once the request status transitions.</p>
-                          </li>
-                        </ol>
-                        <div style={{ marginTop: '20px' }}>
-                          <button type="button" className="btn btn-primary" style={{ width: '100%' }} onClick={handleOpenRequestChange}>
-                            📝 Raise New Request
-                          </button>
+                            {activeSkillsSubTab === 'Education' && (
+                              <div className="profile-card emergency-card" style={{ marginTop: '10px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                                  <h3 style={{ margin: 0 }}>Education</h3>
+                                  <button type="button" className="btn btn-primary" onClick={handleOpenAddEducation}>
+                                    + Add Education
+                                  </button>
+                                </div>
+                                <table className="emergency-contacts-table">
+                                  <thead>
+                                    <tr>
+                                      <th>Degree</th>
+                                      <th>Institution</th>
+                                      <th>Field of Study</th>
+                                      <th>Year of Passing</th>
+                                      <th>Actions</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {profileEducation.map((edu) => (
+                                      <tr key={edu.id}>
+                                        <td style={{ fontWeight: '600' }}>{edu.degree}</td>
+                                        <td>{edu.institution}</td>
+                                        <td>{edu.fieldOfStudy}</td>
+                                        <td>{edu.yearOfPassing}</td>
+                                        <td className="emergency-table-actions">
+                                          <button type="button" className="action-btn edit" title="Edit Education" onClick={() => handleOpenEditEducation(edu)}>
+                                            ✏️
+                                          </button>
+                                          <button type="button" className="action-btn delete" title="Delete Education" onClick={() => handleDeleteEducation(edu.id)}>
+                                            🗑️
+                                          </button>
+                                        </td>
+                                      </tr>
+                                    ))}
+                                    {profileEducation.length === 0 && (
+                                      <tr>
+                                        <td colSpan={5} className="empty-contacts-row">No education records added yet.</td>
+                                      </tr>
+                                    )}
+                                  </tbody>
+                                </table>
+                              </div>
+                            )}
+
+                            {activeSkillsSubTab === 'Certifications' && (
+                              <div className="profile-card emergency-card" style={{ marginTop: '10px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                                  <h3 style={{ margin: 0 }}>Certifications</h3>
+                                  <button type="button" className="btn btn-primary" onClick={handleOpenAddCertification}>
+                                    + Add Certification
+                                  </button>
+                                </div>
+                                <table className="emergency-contacts-table">
+                                  <thead>
+                                    <tr>
+                                      <th>Certificate Name</th>
+                                      <th>Issuing Organization</th>
+                                      <th>Issue Date</th>
+                                      <th>Expiry Date</th>
+                                      <th>Credential ID</th>
+                                      <th>Actions</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {profileCertifications.map((cert) => (
+                                      <tr key={cert.id}>
+                                        <td style={{ fontWeight: '600' }}>{cert.name}</td>
+                                        <td>{cert.issuingOrg}</td>
+                                        <td>{cert.issueDate}</td>
+                                        <td>{cert.expiryDate}</td>
+                                        <td className="font-mono">{cert.credentialId}</td>
+                                        <td className="emergency-table-actions">
+                                          <button type="button" className="action-btn edit" title="Edit Certification" onClick={() => handleOpenEditCertification(cert)}>
+                                            ✏️
+                                          </button>
+                                          <button type="button" className="action-btn delete" title="Delete Certification" onClick={() => handleDeleteCertification(cert.id)}>
+                                            🗑️
+                                          </button>
+                                        </td>
+                                      </tr>
+                                    ))}
+                                    {profileCertifications.length === 0 && (
+                                      <tr>
+                                        <td colSpan={6} className="empty-contacts-row">No certifications added yet.</td>
+                                      </tr>
+                                    )}
+                                  </tbody>
+                                </table>
+                              </div>
+                            )}
+
+                            {activeSkillsSubTab === 'Languages' && (
+                              <div className="profile-card emergency-card" style={{ marginTop: '10px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                                  <h3 style={{ margin: 0 }}>Languages</h3>
+                                  <button type="button" className="btn btn-primary" onClick={handleOpenAddLanguage}>
+                                    + Add Language
+                                  </button>
+                                </div>
+                                <table className="emergency-contacts-table">
+                                  <thead>
+                                    <tr>
+                                      <th>Language</th>
+                                      <th>Proficiency</th>
+                                      <th>Actions</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {profileLanguages.map((lang) => (
+                                      <tr key={lang.id}>
+                                        <td style={{ fontWeight: '600' }}>{lang.name}</td>
+                                        <td>{lang.proficiency}</td>
+                                        <td className="emergency-table-actions">
+                                          <button type="button" className="action-btn edit" title="Edit Language" onClick={() => handleOpenEditLanguage(lang)}>
+                                            ✏️
+                                          </button>
+                                          <button type="button" className="action-btn delete" title="Delete Language" onClick={() => handleDeleteLanguage(lang.id)}>
+                                            🗑️
+                                          </button>
+                                        </td>
+                                      </tr>
+                                    ))}
+                                    {profileLanguages.length === 0 && (
+                                      <tr>
+                                        <td colSpan={3} className="empty-contacts-row">No languages added yet.</td>
+                                      </tr>
+                                    )}
+                                  </tbody>
+                                </table>
+                              </div>
+                            )}
+
+                            <div className="employment-info-banner">
+                              <span className="banner-icon">ℹ️</span>
+                              <span className="banner-text">Keep your profile details updated to help us find better internal roles and opportunities.</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Preferences */}
+                        {activeProfileTab === 'Preferences' && (
+                          <div className="profile-personal-shell">
+                            {preferencesSaveSuccess && (
+                              <p className="submit-success" style={{ marginBottom: '14px' }}>
+                                Preferences saved successfully!
+                              </p>
+                            )}
+                            <div className="profile-personal-grid">
+                              <div className="profile-card profile-personal-info-card">
+                                <h3>System Preferences</h3>
+                                <div className="personal-form-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                                  <label>
+                                    Preferred Language
+                                    <select
+                                      value={profilePreferences.preferredLanguage}
+                                      onChange={(e) => setProfilePreferences({ ...profilePreferences, preferredLanguage: e.target.value })}
+                                      style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px', fontSize: '13px' }}
+                                    >
+                                      <option value="English">English</option>
+                                      <option value="Spanish">Spanish</option>
+                                      <option value="French">French</option>
+                                      <option value="German">German</option>
+                                    </select>
+                                  </label>
+
+                                  <label>
+                                    Time Zone
+                                    <select
+                                      value={profilePreferences.timeZone}
+                                      onChange={(e) => setProfilePreferences({ ...profilePreferences, timeZone: e.target.value })}
+                                      style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px', fontSize: '13px' }}
+                                    >
+                                      <option value="(GMT+05:30) Asia/Kolkata">(GMT+05:30) Asia/Kolkata</option>
+                                      <option value="(GMT-05:00) EST">(GMT-05:00) EST</option>
+                                      <option value="(GMT+00:00) UTC">(GMT+00:00) UTC</option>
+                                    </select>
+                                  </label>
+
+                                  <label>
+                                    Date Format
+                                    <select
+                                      value={profilePreferences.dateFormat}
+                                      onChange={(e) => setProfilePreferences({ ...profilePreferences, dateFormat: e.target.value })}
+                                      style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px', fontSize: '13px' }}
+                                    >
+                                      <option value="DD MMM YYYY">DD MMM YYYY</option>
+                                      <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                                      <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                                    </select>
+                                  </label>
+
+                                  <label>
+                                    Time Format
+                                    <select
+                                      value={profilePreferences.timeFormat}
+                                      onChange={(e) => setProfilePreferences({ ...profilePreferences, timeFormat: e.target.value })}
+                                      style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px', fontSize: '13px' }}
+                                    >
+                                      <option value="12 Hour">12 Hour</option>
+                                      <option value="24 Hour">24 Hour</option>
+                                    </select>
+                                  </label>
+                                </div>
+                              </div>
+
+                              <div className="profile-personal-sidebar">
+                                <div className="profile-card">
+                                  <h3>Email Notifications</h3>
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'left', marginTop: '10px' }}>
+                                    <label style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '10px', fontSize: '13px', cursor: 'pointer' }}>
+                                      <input
+                                        type="checkbox"
+                                        checked={profilePreferences.emailNotifications.leaveAttendance}
+                                        onChange={(e) => setProfilePreferences({
+                                          ...profilePreferences,
+                                          emailNotifications: { ...profilePreferences.emailNotifications, leaveAttendance: e.target.checked }
+                                        })}
+                                      />
+                                      Leave & Attendance Updates
+                                    </label>
+
+                                    <label style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '10px', fontSize: '13px', cursor: 'pointer' }}>
+                                      <input
+                                        type="checkbox"
+                                        checked={profilePreferences.emailNotifications.payslipPayroll}
+                                        onChange={(e) => setProfilePreferences({
+                                          ...profilePreferences,
+                                          emailNotifications: { ...profilePreferences.emailNotifications, payslipPayroll: e.target.checked }
+                                        })}
+                                      />
+                                      Payslip & Payroll Updates
+                                    </label>
+
+                                    <label style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '10px', fontSize: '13px', cursor: 'pointer' }}>
+                                      <input
+                                        type="checkbox"
+                                        checked={profilePreferences.emailNotifications.companyAnnouncements}
+                                        onChange={(e) => setProfilePreferences({
+                                          ...profilePreferences,
+                                          emailNotifications: { ...profilePreferences.emailNotifications, companyAnnouncements: e.target.checked }
+                                        })}
+                                      />
+                                      Company Announcements
+                                    </label>
+
+                                    <label style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '10px', fontSize: '13px', cursor: 'pointer' }}>
+                                      <input
+                                        type="checkbox"
+                                        checked={profilePreferences.emailNotifications.policyUpdates}
+                                        onChange={(e) => setProfilePreferences({
+                                          ...profilePreferences,
+                                          emailNotifications: { ...profilePreferences.emailNotifications, policyUpdates: e.target.checked }
+                                        })}
+                                      />
+                                      Policy Updates
+                                    </label>
+                                  </div>
+                                </div>
+
+                                <div className="profile-card" style={{ marginTop: '12px' }}>
+                                  <h3>Theme</h3>
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'left', marginTop: '10px' }}>
+                                    {(['Light', 'Dark', 'System Default'] as const).map((t) => (
+                                      <label key={t} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '10px', fontSize: '13px', cursor: 'pointer' }}>
+                                        <input
+                                          type="radio"
+                                          name="theme"
+                                          checked={profilePreferences.theme === t}
+                                          onChange={() => setProfilePreferences({ ...profilePreferences, theme: t })}
+                                        />
+                                        {t}
+                                      </label>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
+                              <button type="button" className="btn btn-primary" onClick={handleSavePreferences}>
+                                💾 Save Preferences
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Change Requests */}
+                        {activeProfileTab === 'Change Requests' && (
+                          <div className="profile-personal-shell">
+                            <div className="profile-top" style={{ borderBottom: 'none', paddingBottom: 0 }}>
+                              <div className="profile-tabs" role="tablist" aria-label="Request filters" style={{ gap: '8px' }}>
+                                {(['All Requests', 'Pending', 'Approved', 'Rejected'] as const).map((filter) => (
+                                  <button
+                                    key={filter}
+                                    type="button"
+                                    className={`profile-tab ${activeChangeRequestsSubTab === filter ? 'active' : ''}`}
+                                    style={{ padding: '6px 12px', fontSize: '13px' }}
+                                    onClick={() => setActiveChangeRequestsSubTab(filter)}
+                                  >
+                                    {filter}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="profile-personal-grid" style={{ marginTop: '10px' }}>
+                              <div className="profile-card emergency-card" style={{ padding: '16px' }}>
+                                <h3>Request Audit Table</h3>
+                                <table className="emergency-contacts-table">
+                                  <thead>
+                                    <tr>
+                                      <th>Request Type</th>
+                                      <th>Description</th>
+                                      <th>Requested On</th>
+                                      <th>Status</th>
+                                      <th>Comments</th>
+                                      <th>Actions</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {profileChangeRequests
+                                      .filter((req) => {
+                                        if (activeChangeRequestsSubTab === 'All Requests') return true
+                                        return req.status === activeChangeRequestsSubTab
+                                      })
+                                      .map((req) => (
+                                        <tr key={req.id}>
+                                          <td style={{ fontWeight: '600' }}>{req.type}</td>
+                                          <td>{req.description}</td>
+                                          <td>{req.requestedDate}</td>
+                                          <td>
+                                            <span className={`request-status-pill ${req.status.toLowerCase()}`}>
+                                              {req.status}
+                                            </span>
+                                          </td>
+                                          <td style={{ color: 'var(--muted)', fontSize: '12px' }}>{req.comments}</td>
+                                          <td>
+                                            <button type="button" className="btn btn-link" style={{ padding: '4px 8px', fontSize: '12px', color: 'var(--primary)' }} onClick={() => alert(`Request ID: ${req.id}\nDetails: ${req.description}\nStatus: ${req.status}\nComments: ${req.comments}`)}>
+                                              View
+                                            </button>
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    {profileChangeRequests.filter((req) => {
+                                      if (activeChangeRequestsSubTab === 'All Requests') return true
+                                      return req.status === activeChangeRequestsSubTab
+                                    }).length === 0 && (
+                                        <tr>
+                                          <td colSpan={6} className="empty-contacts-row">No change requests found.</td>
+                                        </tr>
+                                      )}
+                                  </tbody>
+                                </table>
+                              </div>
+
+                              <div className="profile-personal-sidebar">
+                                <div className="profile-card">
+                                  <h3>How it works?</h3>
+                                  <ol style={{ textAlign: 'left', paddingLeft: '16px', fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '12px', color: 'var(--muted)' }}>
+                                    <li>
+                                      <strong style={{ color: 'var(--ink)' }}>Submit Request</strong>
+                                      <p style={{ margin: '2px 0 0' }}>Raise a ticket for any personal or banking details change.</p>
+                                    </li>
+                                    <li>
+                                      <strong style={{ color: 'var(--ink)' }}>HR Review</strong>
+                                      <p style={{ margin: '2px 0 0' }}>The human resource managers will audit the details.</p>
+                                    </li>
+                                    <li>
+                                      <strong style={{ color: 'var(--ink)' }}>Instant Status Update</strong>
+                                      <p style={{ margin: '2px 0 0' }}>Receive alerts once the request status transitions.</p>
+                                    </li>
+                                  </ol>
+                                  <div style={{ marginTop: '20px' }}>
+                                    <button type="button" className="btn btn-primary" style={{ width: '100%' }} onClick={handleOpenRequestChange}>
+                                      📝 Raise New Request
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+
+                        {/* Modals */}
+                        {isEmergencyModalOpen && (
+                          <div className="time-modal-backdrop" role="presentation" onClick={() => setIsEmergencyModalOpen(false)}>
+                            <div
+                              className="time-modal"
+                              role="dialog"
+                              aria-modal="true"
+                              aria-label={`${emergencyModalMode === 'add' ? 'Add' : 'Edit'} Emergency Contact`}
+                              onClick={(event) => event.stopPropagation()}
+                            >
+                              <h3>{emergencyModalMode === 'add' ? 'Add Emergency Contact' : 'Edit Emergency Contact'}</h3>
+                              {emergencyError && <p className="submit-error" style={{ marginBottom: '10px' }}>{emergencyError}</p>}
+                              <div className="leave-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px', marginTop: '16px' }}>
+                                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
+                                  Contact Name
+                                  <input
+                                    type="text"
+                                    value={emergencyForm.name}
+                                    onChange={(e) => setEmergencyForm({ ...emergencyForm, name: e.target.value })}
+                                    placeholder="e.g. Jane Doe"
+                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                  />
+                                </label>
+                                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
+                                  Relationship
+                                  <input
+                                    type="text"
+                                    value={emergencyForm.relationship}
+                                    onChange={(e) => setEmergencyForm({ ...emergencyForm, relationship: e.target.value })}
+                                    placeholder="e.g. Sister, Father"
+                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                  />
+                                </label>
+                                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
+                                  Phone Number
+                                  <input
+                                    type="text"
+                                    value={emergencyForm.phone}
+                                    onChange={(e) => setEmergencyForm({ ...emergencyForm, phone: e.target.value })}
+                                    placeholder="e.g. +91 98765 11111"
+                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                  />
+                                </label>
+                                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
+                                  Email Address
+                                  <input
+                                    type="email"
+                                    value={emergencyForm.email}
+                                    onChange={(e) => setEmergencyForm({ ...emergencyForm, email: e.target.value })}
+                                    placeholder="e.g. jane.doe@gmail.com"
+                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                  />
+                                </label>
+                              </div>
+                              <div className="time-modal-actions" style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
+                                <button type="button" className="btn" onClick={() => setIsEmergencyModalOpen(false)}>Cancel</button>
+                                <button type="button" className="btn btn-primary" onClick={handleSaveEmergencyContact}>Save</button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {isRequestChangeModalOpen && (
+                          <div className="time-modal-backdrop" role="presentation" onClick={() => setIsRequestChangeModalOpen(false)}>
+                            <div
+                              className="time-modal"
+                              role="dialog"
+                              aria-modal="true"
+                              aria-label="Request Profile Change"
+                              onClick={(event) => event.stopPropagation()}
+                            >
+                              <h3>Raise Change Request</h3>
+                              <p style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '4px' }}>Submit a request to update your personal details.</p>
+                              {requestChangeError && <p className="submit-error" style={{ margin: '10px 0' }}>{requestChangeError}</p>}
+                              <div className="leave-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px', marginTop: '16px' }}>
+                                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
+                                  Field to Update
+                                  <select
+                                    value={requestChangeField}
+                                    onChange={(e) => setRequestChangeField(e.target.value)}
+                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                  >
+                                    <option value="First Name">First Name</option>
+                                    <option value="Middle Name">Middle Name</option>
+                                    <option value="Last Name">Last Name</option>
+                                    <option value="Preferred Name">Preferred Name</option>
+                                    <option value="Date of Birth">Date of Birth</option>
+                                    <option value="Gender">Gender</option>
+                                    <option value="Marital Status">Marital Status</option>
+                                    <option value="Nationality">Nationality</option>
+                                    <option value="PAN Number">PAN Number</option>
+                                    <option value="Aadhaar Number">Aadhaar Number</option>
+                                  </select>
+                                </label>
+                                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
+                                  New Value
+                                  <input
+                                    type="text"
+                                    value={requestChangeNewValue}
+                                    onChange={(e) => setRequestChangeNewValue(e.target.value)}
+                                    placeholder="Enter new details"
+                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                  />
+                                </label>
+                                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
+                                  Reason for Change
+                                  <textarea
+                                    rows={3}
+                                    value={requestChangeReason}
+                                    onChange={(e) => setRequestChangeReason(e.target.value)}
+                                    placeholder="Why are you making this change request?"
+                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px', resize: 'none' }}
+                                  />
+                                </label>
+                              </div>
+                              {requestChangeSuccess && (
+                                <p style={{ color: '#4ade80', background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: '6px', padding: '8px 12px', marginTop: '12px', fontSize: '13px' }}>
+                                  ✓ {requestChangeSuccess}
+                                </p>
+                              )}
+                              <div className="time-modal-actions" style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
+                                <button type="button" className="btn" onClick={() => setIsRequestChangeModalOpen(false)}>Cancel</button>
+                                <button type="button" className="btn btn-primary" onClick={handleSubmitChangeRequest}>Submit Request</button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {isBankChangeModalOpen && (
+                          <div className="time-modal-backdrop" role="presentation" onClick={() => setIsBankChangeModalOpen(false)}>
+                            <div
+                              className="time-modal"
+                              role="dialog"
+                              aria-modal="true"
+                              aria-label="Request Bank Account Change"
+                              onClick={(event) => event.stopPropagation()}
+                            >
+                              <h3>Request Bank Account Change</h3>
+                              <p style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '4px' }}>Provide updated bank account credentials.</p>
+                              {bankChangeError && <p className="submit-error" style={{ margin: '10px 0' }}>{bankChangeError}</p>}
+                              <div className="leave-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px', marginTop: '16px' }}>
+                                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
+                                  Bank Name
+                                  <input
+                                    type="text"
+                                    value={bankChangeForm.bankName}
+                                    onChange={(e) => setBankChangeForm({ ...bankChangeForm, bankName: e.target.value })}
+                                    placeholder="e.g. HDFC Bank"
+                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                  />
+                                </label>
+                                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
+                                  Account Number
+                                  <input
+                                    type="text"
+                                    value={bankChangeForm.accountNumber}
+                                    onChange={(e) => setBankChangeForm({ ...bankChangeForm, accountNumber: e.target.value })}
+                                    placeholder="Enter account number"
+                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                  />
+                                </label>
+                                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
+                                  IFSC Code
+                                  <input
+                                    type="text"
+                                    value={bankChangeForm.ifscCode}
+                                    onChange={(e) => setBankChangeForm({ ...bankChangeForm, ifscCode: e.target.value })}
+                                    placeholder="Enter IFSC code"
+                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                  />
+                                </label>
+                                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
+                                  Account Holder Name
+                                  <input
+                                    type="text"
+                                    value={bankChangeForm.accountHolderName}
+                                    onChange={(e) => setBankChangeForm({ ...bankChangeForm, accountHolderName: e.target.value })}
+                                    placeholder="John Doe"
+                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                  />
+                                </label>
+                                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
+                                  Reason for Update
+                                  <textarea
+                                    rows={3}
+                                    value={bankChangeForm.reason}
+                                    onChange={(e) => setBankChangeForm({ ...bankChangeForm, reason: e.target.value })}
+                                    placeholder="Why are you updating your bank details?"
+                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px', resize: 'none' }}
+                                  />
+                                </label>
+                              </div>
+                              {bankChangeSuccess && (
+                                <p style={{ color: '#4ade80', background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: '6px', padding: '8px 12px', marginTop: '12px', fontSize: '13px' }}>
+                                  ✓ Bank change request submitted! Closing…
+                                </p>
+                              )}
+                              <div className="time-modal-actions" style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
+                                <button type="button" className="btn" onClick={() => setIsBankChangeModalOpen(false)}>Cancel</button>
+                                <button type="button" className="btn btn-primary" onClick={handleSaveBankChange}>Submit</button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {isSkillModalOpen && (
+                          <div className="time-modal-backdrop" role="presentation" onClick={() => setIsSkillModalOpen(false)}>
+                            <div
+                              className="time-modal"
+                              role="dialog"
+                              aria-modal="true"
+                              aria-label={`${skillModalMode === 'add' ? 'Add' : 'Edit'} Skill`}
+                              onClick={(event) => event.stopPropagation()}
+                            >
+                              <h3>{skillModalMode === 'add' ? 'Add Skill' : 'Edit Skill'}</h3>
+                              {skillError && <p className="submit-error" style={{ margin: '10px 0' }}>{skillError}</p>}
+                              <div className="leave-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px', marginTop: '16px' }}>
+                                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
+                                  Skill Name
+                                  <input
+                                    type="text"
+                                    value={skillForm.name}
+                                    onChange={(e) => setSkillForm({ ...skillForm, name: e.target.value })}
+                                    placeholder="e.g. JavaScript"
+                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                  />
+                                </label>
+                                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
+                                  Proficiency
+                                  <select
+                                    value={skillForm.proficiency}
+                                    onChange={(e) => setSkillForm({ ...skillForm, proficiency: e.target.value as any })}
+                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                  >
+                                    <option value="Beginner">Beginner</option>
+                                    <option value="Intermediate">Intermediate</option>
+                                    <option value="Advanced">Advanced</option>
+                                    <option value="Expert">Expert</option>
+                                  </select>
+                                </label>
+                                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
+                                  Years of Experience
+                                  <input
+                                    type="number"
+                                    value={skillForm.experience}
+                                    onChange={(e) => setSkillForm({ ...skillForm, experience: Number(e.target.value) })}
+                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                  />
+                                </label>
+                              </div>
+                              <div className="time-modal-actions" style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
+                                <button type="button" className="btn" onClick={() => setIsSkillModalOpen(false)}>Cancel</button>
+                                <button type="button" className="btn btn-primary" onClick={handleSaveSkill}>Save</button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {isEducationModalOpen && (
+                          <div className="time-modal-backdrop" role="presentation" onClick={() => setIsEducationModalOpen(false)}>
+                            <div
+                              className="time-modal"
+                              role="dialog"
+                              aria-modal="true"
+                              aria-label={`${educationModalMode === 'add' ? 'Add' : 'Edit'} Education`}
+                              onClick={(event) => event.stopPropagation()}
+                            >
+                              <h3>{educationModalMode === 'add' ? 'Add Education' : 'Edit Education'}</h3>
+                              {educationError && <p className="submit-error" style={{ margin: '10px 0' }}>{educationError}</p>}
+                              <div className="leave-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px', marginTop: '16px' }}>
+                                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
+                                  Degree
+                                  <input
+                                    type="text"
+                                    value={educationForm.degree}
+                                    onChange={(e) => setEducationForm({ ...educationForm, degree: e.target.value })}
+                                    placeholder="e.g. Bachelor of Engineering"
+                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                  />
+                                </label>
+                                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
+                                  Institution
+                                  <input
+                                    type="text"
+                                    value={educationForm.institution}
+                                    onChange={(e) => setEducationForm({ ...educationForm, institution: e.target.value })}
+                                    placeholder="e.g. VTU"
+                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                  />
+                                </label>
+                                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
+                                  Field of Study
+                                  <input
+                                    type="text"
+                                    value={educationForm.fieldOfStudy}
+                                    onChange={(e) => setEducationForm({ ...educationForm, fieldOfStudy: e.target.value })}
+                                    placeholder="e.g. Computer Science"
+                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                  />
+                                </label>
+                                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
+                                  Year of Passing
+                                  <input
+                                    type="text"
+                                    value={educationForm.yearOfPassing}
+                                    onChange={(e) => setEducationForm({ ...educationForm, yearOfPassing: e.target.value })}
+                                    placeholder="e.g. 2014"
+                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                  />
+                                </label>
+                              </div>
+                              <div className="time-modal-actions" style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
+                                <button type="button" className="btn" onClick={() => setIsEducationModalOpen(false)}>Cancel</button>
+                                <button type="button" className="btn btn-primary" onClick={handleSaveEducation}>Save</button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {isCertificationModalOpen && (
+                          <div className="time-modal-backdrop" role="presentation" onClick={() => setIsCertificationModalOpen(false)}>
+                            <div
+                              className="time-modal"
+                              role="dialog"
+                              aria-modal="true"
+                              aria-label={`${certificationModalMode === 'add' ? 'Add' : 'Edit'} Certification`}
+                              onClick={(event) => event.stopPropagation()}
+                            >
+                              <h3>{certificationModalMode === 'add' ? 'Add Certification' : 'Edit Certification'}</h3>
+                              {certificationError && <p className="submit-error" style={{ margin: '10px 0' }}>{certificationError}</p>}
+                              <div className="leave-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px', marginTop: '16px' }}>
+                                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
+                                  Certification Name
+                                  <input
+                                    type="text"
+                                    value={certificationForm.name}
+                                    onChange={(e) => setCertificationForm({ ...certificationForm, name: e.target.value })}
+                                    placeholder="e.g. AWS Solutions Architect"
+                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                  />
+                                </label>
+                                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
+                                  Issuing Organization
+                                  <input
+                                    type="text"
+                                    value={certificationForm.issuingOrg}
+                                    onChange={(e) => setCertificationForm({ ...certificationForm, issuingOrg: e.target.value })}
+                                    placeholder="e.g. Amazon Web Services"
+                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                  />
+                                </label>
+                                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
+                                  Issue Date
+                                  <input
+                                    type="text"
+                                    value={certificationForm.issueDate}
+                                    onChange={(e) => setCertificationForm({ ...certificationForm, issueDate: e.target.value })}
+                                    placeholder="e.g. 12 Dec 2024"
+                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                  />
+                                </label>
+                                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
+                                  Expiry Date
+                                  <input
+                                    type="text"
+                                    value={certificationForm.expiryDate}
+                                    onChange={(e) => setCertificationForm({ ...certificationForm, expiryDate: e.target.value })}
+                                    placeholder="e.g. 12 Dec 2027 or -"
+                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                  />
+                                </label>
+                                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
+                                  Credential ID
+                                  <input
+                                    type="text"
+                                    value={certificationForm.credentialId}
+                                    onChange={(e) => setCertificationForm({ ...certificationForm, credentialId: e.target.value })}
+                                    placeholder="e.g. AWS-12345 or -"
+                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                  />
+                                </label>
+                              </div>
+                              <div className="time-modal-actions" style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
+                                <button type="button" className="btn" onClick={() => setIsCertificationModalOpen(false)}>Cancel</button>
+                                <button type="button" className="btn btn-primary" onClick={handleSaveCertification}>Save</button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {isLanguageModalOpen && (
+                          <div className="time-modal-backdrop" role="presentation" onClick={() => setIsLanguageModalOpen(false)}>
+                            <div
+                              className="time-modal"
+                              role="dialog"
+                              aria-modal="true"
+                              aria-label={`${languageModalMode === 'add' ? 'Add' : 'Edit'} Language`}
+                              onClick={(event) => event.stopPropagation()}
+                            >
+                              <h3>{languageModalMode === 'add' ? 'Add Language' : 'Edit Language'}</h3>
+                              {languageError && <p className="submit-error" style={{ margin: '10px 0' }}>{languageError}</p>}
+                              <div className="leave-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px', marginTop: '16px' }}>
+                                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
+                                  Language Name
+                                  <input
+                                    type="text"
+                                    value={languageForm.name}
+                                    onChange={(e) => setLanguageForm({ ...languageForm, name: e.target.value })}
+                                    placeholder="e.g. English"
+                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                  />
+                                </label>
+                                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
+                                  Proficiency
+                                  <select
+                                    value={languageForm.proficiency}
+                                    onChange={(e) => setLanguageForm({ ...languageForm, proficiency: e.target.value as any })}
+                                    style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                                  >
+                                    <option value="Beginner">Beginner</option>
+                                    <option value="Conversational">Conversational</option>
+                                    <option value="Professional">Professional</option>
+                                    <option value="Fluent">Fluent</option>
+                                    <option value="Native / Bilingual">Native / Bilingual</option>
+                                  </select>
+                                </label>
+                              </div>
+                              <div className="time-modal-actions" style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
+                                <button type="button" className="btn" onClick={() => setIsLanguageModalOpen(false)}>Cancel</button>
+                                <button type="button" className="btn btn-primary" onClick={handleSaveLanguage}>Save</button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="layout">
+                        {(
+                          <aside className="rail" aria-label="Steps">
+                            <h2>{modules.find((m) => m.id === currentModule)?.label} · {steps.length} steps</h2>
+                            <ol>
+                              {steps.map((stepItem, idx) => (
+                                <li key={idx}>
+                                  <button
+                                    className={`rstep ${idx < stepIndex ? 'is-done' : idx === stepIndex ? 'is-current' : ''}`}
+                                    onClick={() => setStepIndex(idx)}
+                                  >
+                                    <span className="rnum">{idx < stepIndex ? '✓' : idx + 1}</span>
+                                    <span className="rlabel">
+                                      {stepItem.title}
+                                      <span className="rmini">{stepItem.tag}</span>
+                                    </span>
+                                  </button>
+                                </li>
+                              ))}
+                            </ol>
+                          </aside>
+                        )}
+
+                        <div className="stage">
+                          <div className="screen">
+                            <div className="screen-head">
+                              <h1>{currentStep.title}</h1>
+                              <span className="tag">{currentStep.tag}</span>
+                            </div>
+                            <div className="screen-body">
+                              <p className="screen-intro">{currentStep.content}</p>
+                              <div style={{ marginTop: '24px', padding: '20px', background: 'var(--info-soft)', borderRadius: '8px' }}>
+                                <p>This is step {stepIndex + 1} of {steps.length}</p>
+                                <p style={{ color: 'var(--muted)', fontSize: '13px', marginTop: '8px' }}>
+                                  Data is stored locally in your browser
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="foot">
+                            <button
+                              className="btn"
+                              onClick={() => setStepIndex(Math.max(stepIndex - 1, 0))}
+                              disabled={stepIndex === 0}
+                            >
+                              ← Back
+                            </button>
+                            <div className="progress">
+                              <div className="pmeta">
+                                <span>Step {stepIndex + 1} of {steps.length}</span>
+                                <span>{Math.round(((stepIndex + 1) / steps.length) * 100)}% complete</span>
+                              </div>
+                              <div className="pbar">
+                                <div className="fill" style={{ width: `${Math.round(((stepIndex + 1) / steps.length) * 100)}%` }} />
+                              </div>
+                            </div>
+                            <button
+                              className="btn btn-primary"
+                              onClick={() => setStepIndex(Math.min(stepIndex + 1, steps.length - 1))}
+                              disabled={isLast}
+                            >
+                              Next →
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-
-              {/* Modals */}
-              {isEmergencyModalOpen && (
-                <div className="time-modal-backdrop" role="presentation" onClick={() => setIsEmergencyModalOpen(false)}>
-                  <div
-                    className="time-modal"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-label={`${emergencyModalMode === 'add' ? 'Add' : 'Edit'} Emergency Contact`}
-                    onClick={(event) => event.stopPropagation()}
-                  >
-                    <h3>{emergencyModalMode === 'add' ? 'Add Emergency Contact' : 'Edit Emergency Contact'}</h3>
-                    {emergencyError && <p className="submit-error" style={{ marginBottom: '10px' }}>{emergencyError}</p>}
-                    <div className="leave-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px', marginTop: '16px' }}>
-                      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                        Contact Name
-                        <input
-                          type="text"
-                          value={emergencyForm.name}
-                          onChange={(e) => setEmergencyForm({ ...emergencyForm, name: e.target.value })}
-                          placeholder="e.g. Jane Doe"
-                          style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
-                        />
-                      </label>
-                      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                        Relationship
-                        <input
-                          type="text"
-                          value={emergencyForm.relationship}
-                          onChange={(e) => setEmergencyForm({ ...emergencyForm, relationship: e.target.value })}
-                          placeholder="e.g. Sister, Father"
-                          style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
-                        />
-                      </label>
-                      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                        Phone Number
-                        <input
-                          type="text"
-                          value={emergencyForm.phone}
-                          onChange={(e) => setEmergencyForm({ ...emergencyForm, phone: e.target.value })}
-                          placeholder="e.g. +91 98765 11111"
-                          style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
-                        />
-                      </label>
-                      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                        Email Address
-                        <input
-                          type="email"
-                          value={emergencyForm.email}
-                          onChange={(e) => setEmergencyForm({ ...emergencyForm, email: e.target.value })}
-                          placeholder="e.g. jane.doe@gmail.com"
-                          style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
-                        />
-                      </label>
-                    </div>
-                    <div className="time-modal-actions" style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
-                      <button type="button" className="btn" onClick={() => setIsEmergencyModalOpen(false)}>Cancel</button>
-                      <button type="button" className="btn btn-primary" onClick={handleSaveEmergencyContact}>Save</button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {isRequestChangeModalOpen && (
-                <div className="time-modal-backdrop" role="presentation" onClick={() => setIsRequestChangeModalOpen(false)}>
-                  <div
-                    className="time-modal"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-label="Request Profile Change"
-                    onClick={(event) => event.stopPropagation()}
-                  >
-                    <h3>Raise Change Request</h3>
-                    <p style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '4px' }}>Submit a request to update your personal details.</p>
-                    {requestChangeError && <p className="submit-error" style={{ margin: '10px 0' }}>{requestChangeError}</p>}
-                    <div className="leave-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px', marginTop: '16px' }}>
-                      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                        Field to Update
-                        <select
-                          value={requestChangeField}
-                          onChange={(e) => setRequestChangeField(e.target.value)}
-                          style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
-                        >
-                          <option value="First Name">First Name</option>
-                          <option value="Middle Name">Middle Name</option>
-                          <option value="Last Name">Last Name</option>
-                          <option value="Preferred Name">Preferred Name</option>
-                          <option value="Date of Birth">Date of Birth</option>
-                          <option value="Gender">Gender</option>
-                          <option value="Marital Status">Marital Status</option>
-                          <option value="Nationality">Nationality</option>
-                          <option value="PAN Number">PAN Number</option>
-                          <option value="Aadhaar Number">Aadhaar Number</option>
-                        </select>
-                      </label>
-                      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                        New Value
-                        <input
-                          type="text"
-                          value={requestChangeNewValue}
-                          onChange={(e) => setRequestChangeNewValue(e.target.value)}
-                          placeholder="Enter new details"
-                          style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
-                        />
-                      </label>
-                      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                        Reason for Change
-                        <textarea
-                          rows={3}
-                          value={requestChangeReason}
-                          onChange={(e) => setRequestChangeReason(e.target.value)}
-                          placeholder="Why are you making this change request?"
-                          style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px', resize: 'none' }}
-                        />
-                      </label>
-                    </div>
-                    {requestChangeSuccess && (
-                      <p style={{ color: '#4ade80', background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: '6px', padding: '8px 12px', marginTop: '12px', fontSize: '13px' }}>
-                        ✓ {requestChangeSuccess}
-                      </p>
                     )}
-                    <div className="time-modal-actions" style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
-                      <button type="button" className="btn" onClick={() => setIsRequestChangeModalOpen(false)}>Cancel</button>
-                      <button type="button" className="btn btn-primary" onClick={handleSubmitChangeRequest}>Submit Request</button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {isBankChangeModalOpen && (
-                <div className="time-modal-backdrop" role="presentation" onClick={() => setIsBankChangeModalOpen(false)}>
-                  <div
-                    className="time-modal"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-label="Request Bank Account Change"
-                    onClick={(event) => event.stopPropagation()}
-                  >
-                    <h3>Request Bank Account Change</h3>
-                    <p style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '4px' }}>Provide updated bank account credentials.</p>
-                    {bankChangeError && <p className="submit-error" style={{ margin: '10px 0' }}>{bankChangeError}</p>}
-                    <div className="leave-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px', marginTop: '16px' }}>
-                      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                        Bank Name
-                        <input
-                          type="text"
-                          value={bankChangeForm.bankName}
-                          onChange={(e) => setBankChangeForm({ ...bankChangeForm, bankName: e.target.value })}
-                          placeholder="e.g. HDFC Bank"
-                          style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
-                        />
-                      </label>
-                      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                        Account Number
-                        <input
-                          type="text"
-                          value={bankChangeForm.accountNumber}
-                          onChange={(e) => setBankChangeForm({ ...bankChangeForm, accountNumber: e.target.value })}
-                          placeholder="Enter account number"
-                          style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
-                        />
-                      </label>
-                      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                        IFSC Code
-                        <input
-                          type="text"
-                          value={bankChangeForm.ifscCode}
-                          onChange={(e) => setBankChangeForm({ ...bankChangeForm, ifscCode: e.target.value })}
-                          placeholder="Enter IFSC code"
-                          style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
-                        />
-                      </label>
-                      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                        Account Holder Name
-                        <input
-                          type="text"
-                          value={bankChangeForm.accountHolderName}
-                          onChange={(e) => setBankChangeForm({ ...bankChangeForm, accountHolderName: e.target.value })}
-                          placeholder="John Doe"
-                          style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
-                        />
-                      </label>
-                      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                        Reason for Update
-                        <textarea
-                          rows={3}
-                          value={bankChangeForm.reason}
-                          onChange={(e) => setBankChangeForm({ ...bankChangeForm, reason: e.target.value })}
-                          placeholder="Why are you updating your bank details?"
-                          style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px', resize: 'none' }}
-                        />
-                      </label>
-                    </div>
-                    {bankChangeSuccess && (
-                      <p style={{ color: '#4ade80', background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: '6px', padding: '8px 12px', marginTop: '12px', fontSize: '13px' }}>
-                        ✓ Bank change request submitted! Closing…
-                      </p>
-                    )}
-                    <div className="time-modal-actions" style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
-                      <button type="button" className="btn" onClick={() => setIsBankChangeModalOpen(false)}>Cancel</button>
-                      <button type="button" className="btn btn-primary" onClick={handleSaveBankChange}>Submit</button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {isSkillModalOpen && (
-                <div className="time-modal-backdrop" role="presentation" onClick={() => setIsSkillModalOpen(false)}>
-                  <div
-                    className="time-modal"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-label={`${skillModalMode === 'add' ? 'Add' : 'Edit'} Skill`}
-                    onClick={(event) => event.stopPropagation()}
-                  >
-                    <h3>{skillModalMode === 'add' ? 'Add Skill' : 'Edit Skill'}</h3>
-                    {skillError && <p className="submit-error" style={{ margin: '10px 0' }}>{skillError}</p>}
-                    <div className="leave-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px', marginTop: '16px' }}>
-                      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                        Skill Name
-                        <input
-                          type="text"
-                          value={skillForm.name}
-                          onChange={(e) => setSkillForm({ ...skillForm, name: e.target.value })}
-                          placeholder="e.g. JavaScript"
-                          style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
-                        />
-                      </label>
-                      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                        Proficiency
-                        <select
-                          value={skillForm.proficiency}
-                          onChange={(e) => setSkillForm({ ...skillForm, proficiency: e.target.value as any })}
-                          style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
-                        >
-                          <option value="Beginner">Beginner</option>
-                          <option value="Intermediate">Intermediate</option>
-                          <option value="Advanced">Advanced</option>
-                          <option value="Expert">Expert</option>
-                        </select>
-                      </label>
-                      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                        Years of Experience
-                        <input
-                          type="number"
-                          value={skillForm.experience}
-                          onChange={(e) => setSkillForm({ ...skillForm, experience: Number(e.target.value) })}
-                          style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
-                        />
-                      </label>
-                    </div>
-                    <div className="time-modal-actions" style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
-                      <button type="button" className="btn" onClick={() => setIsSkillModalOpen(false)}>Cancel</button>
-                      <button type="button" className="btn btn-primary" onClick={handleSaveSkill}>Save</button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {isEducationModalOpen && (
-                <div className="time-modal-backdrop" role="presentation" onClick={() => setIsEducationModalOpen(false)}>
-                  <div
-                    className="time-modal"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-label={`${educationModalMode === 'add' ? 'Add' : 'Edit'} Education`}
-                    onClick={(event) => event.stopPropagation()}
-                  >
-                    <h3>{educationModalMode === 'add' ? 'Add Education' : 'Edit Education'}</h3>
-                    {educationError && <p className="submit-error" style={{ margin: '10px 0' }}>{educationError}</p>}
-                    <div className="leave-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px', marginTop: '16px' }}>
-                      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                        Degree
-                        <input
-                          type="text"
-                          value={educationForm.degree}
-                          onChange={(e) => setEducationForm({ ...educationForm, degree: e.target.value })}
-                          placeholder="e.g. Bachelor of Engineering"
-                          style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
-                        />
-                      </label>
-                      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                        Institution
-                        <input
-                          type="text"
-                          value={educationForm.institution}
-                          onChange={(e) => setEducationForm({ ...educationForm, institution: e.target.value })}
-                          placeholder="e.g. VTU"
-                          style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
-                        />
-                      </label>
-                      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                        Field of Study
-                        <input
-                          type="text"
-                          value={educationForm.fieldOfStudy}
-                          onChange={(e) => setEducationForm({ ...educationForm, fieldOfStudy: e.target.value })}
-                          placeholder="e.g. Computer Science"
-                          style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
-                        />
-                      </label>
-                      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                        Year of Passing
-                        <input
-                          type="text"
-                          value={educationForm.yearOfPassing}
-                          onChange={(e) => setEducationForm({ ...educationForm, yearOfPassing: e.target.value })}
-                          placeholder="e.g. 2014"
-                          style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
-                        />
-                      </label>
-                    </div>
-                    <div className="time-modal-actions" style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
-                      <button type="button" className="btn" onClick={() => setIsEducationModalOpen(false)}>Cancel</button>
-                      <button type="button" className="btn btn-primary" onClick={handleSaveEducation}>Save</button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {isCertificationModalOpen && (
-                <div className="time-modal-backdrop" role="presentation" onClick={() => setIsCertificationModalOpen(false)}>
-                  <div
-                    className="time-modal"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-label={`${certificationModalMode === 'add' ? 'Add' : 'Edit'} Certification`}
-                    onClick={(event) => event.stopPropagation()}
-                  >
-                    <h3>{certificationModalMode === 'add' ? 'Add Certification' : 'Edit Certification'}</h3>
-                    {certificationError && <p className="submit-error" style={{ margin: '10px 0' }}>{certificationError}</p>}
-                    <div className="leave-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px', marginTop: '16px' }}>
-                      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                        Certification Name
-                        <input
-                          type="text"
-                          value={certificationForm.name}
-                          onChange={(e) => setCertificationForm({ ...certificationForm, name: e.target.value })}
-                          placeholder="e.g. AWS Solutions Architect"
-                          style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
-                        />
-                      </label>
-                      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                        Issuing Organization
-                        <input
-                          type="text"
-                          value={certificationForm.issuingOrg}
-                          onChange={(e) => setCertificationForm({ ...certificationForm, issuingOrg: e.target.value })}
-                          placeholder="e.g. Amazon Web Services"
-                          style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
-                        />
-                      </label>
-                      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                        Issue Date
-                        <input
-                          type="text"
-                          value={certificationForm.issueDate}
-                          onChange={(e) => setCertificationForm({ ...certificationForm, issueDate: e.target.value })}
-                          placeholder="e.g. 12 Dec 2024"
-                          style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
-                        />
-                      </label>
-                      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                        Expiry Date
-                        <input
-                          type="text"
-                          value={certificationForm.expiryDate}
-                          onChange={(e) => setCertificationForm({ ...certificationForm, expiryDate: e.target.value })}
-                          placeholder="e.g. 12 Dec 2027 or -"
-                          style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
-                        />
-                      </label>
-                      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                        Credential ID
-                        <input
-                          type="text"
-                          value={certificationForm.credentialId}
-                          onChange={(e) => setCertificationForm({ ...certificationForm, credentialId: e.target.value })}
-                          placeholder="e.g. AWS-12345 or -"
-                          style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
-                        />
-                      </label>
-                    </div>
-                    <div className="time-modal-actions" style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
-                      <button type="button" className="btn" onClick={() => setIsCertificationModalOpen(false)}>Cancel</button>
-                      <button type="button" className="btn btn-primary" onClick={handleSaveCertification}>Save</button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {isLanguageModalOpen && (
-                <div className="time-modal-backdrop" role="presentation" onClick={() => setIsLanguageModalOpen(false)}>
-                  <div
-                    className="time-modal"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-label={`${languageModalMode === 'add' ? 'Add' : 'Edit'} Language`}
-                    onClick={(event) => event.stopPropagation()}
-                  >
-                    <h3>{languageModalMode === 'add' ? 'Add Language' : 'Edit Language'}</h3>
-                    {languageError && <p className="submit-error" style={{ margin: '10px 0' }}>{languageError}</p>}
-                    <div className="leave-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px', marginTop: '16px' }}>
-                      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                        Language Name
-                        <input
-                          type="text"
-                          value={languageForm.name}
-                          onChange={(e) => setLanguageForm({ ...languageForm, name: e.target.value })}
-                          placeholder="e.g. English"
-                          style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
-                        />
-                      </label>
-                      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                        Proficiency
-                        <select
-                          value={languageForm.proficiency}
-                          onChange={(e) => setLanguageForm({ ...languageForm, proficiency: e.target.value as any })}
-                          style={{ background: '#303057', border: '1px solid #3f3f66', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
-                        >
-                          <option value="Beginner">Beginner</option>
-                          <option value="Conversational">Conversational</option>
-                          <option value="Professional">Professional</option>
-                          <option value="Fluent">Fluent</option>
-                          <option value="Native / Bilingual">Native / Bilingual</option>
-                        </select>
-                      </label>
-                    </div>
-                    <div className="time-modal-actions" style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
-                      <button type="button" className="btn" onClick={() => setIsLanguageModalOpen(false)}>Cancel</button>
-                      <button type="button" className="btn btn-primary" onClick={handleSaveLanguage}>Save</button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="layout">
-              {(
-                <aside className="rail" aria-label="Steps">
-                  <h2>{modules.find((m) => m.id === currentModule)?.label} · {steps.length} steps</h2>
-                  <ol>
-                    {steps.map((stepItem, idx) => (
-                      <li key={idx}>
-                        <button
-                          className={`rstep ${idx < stepIndex ? 'is-done' : idx === stepIndex ? 'is-current' : ''}`}
-                          onClick={() => setStepIndex(idx)}
-                        >
-                          <span className="rnum">{idx < stepIndex ? '✓' : idx + 1}</span>
-                          <span className="rlabel">
-                            {stepItem.title}
-                            <span className="rmini">{stepItem.tag}</span>
-                          </span>
-                        </button>
-                      </li>
-                    ))}
-                  </ol>
-                </aside>
-              )}
-
-              <div className="stage">
-                <div className="screen">
-                  <div className="screen-head">
-                    <h1>{currentStep.title}</h1>
-                    <span className="tag">{currentStep.tag}</span>
-                  </div>
-                  <div className="screen-body">
-                    <p className="screen-intro">{currentStep.content}</p>
-                    <div style={{ marginTop: '24px', padding: '20px', background: 'var(--info-soft)', borderRadius: '8px' }}>
-                      <p>This is step {stepIndex + 1} of {steps.length}</p>
-                      <p style={{ color: 'var(--muted)', fontSize: '13px', marginTop: '8px' }}>
-                        Data is stored locally in your browser
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="foot">
-                  <button
-                    className="btn"
-                    onClick={() => setStepIndex(Math.max(stepIndex - 1, 0))}
-                    disabled={stepIndex === 0}
-                  >
-                    ← Back
-                  </button>
-                  <div className="progress">
-                    <div className="pmeta">
-                      <span>Step {stepIndex + 1} of {steps.length}</span>
-                      <span>{Math.round(((stepIndex + 1) / steps.length) * 100)}% complete</span>
-                    </div>
-                    <div className="pbar">
-                      <div className="fill" style={{ width: `${Math.round(((stepIndex + 1) / steps.length) * 100)}%` }} />
-                    </div>
-                  </div>
-                  <button
-                    className="btn btn-primary"
-                    onClick={() => setStepIndex(Math.min(stepIndex + 1, steps.length - 1))}
-                    disabled={isLast}
-                  >
-                    Next →
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
         </section>
       </div>
 
