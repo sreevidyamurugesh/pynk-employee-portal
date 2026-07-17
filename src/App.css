@@ -11565,3 +11565,24 @@ select {
     transform: rotate(360deg);
   }
 }
+
+/* Custom SVG Calendar Icon indicator for date inputs */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  display: block !important;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="%236b7280" viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/></svg>') no-repeat center !important;
+  width: 16px !important;
+  height: 16px !important;
+  cursor: pointer !important;
+  opacity: 0.8 !important;
+}
+
+/* Light mode override to keep normal grey color */
+.light-mode input[type="date"]::-webkit-calendar-picker-indicator,
+html.light-mode input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: none !important;
+}
+
+/* Dark mode override to invert it to white/light grey */
+html:not(.light-mode) input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(1.5) !important;
+}

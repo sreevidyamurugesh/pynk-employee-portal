@@ -387,20 +387,21 @@ interface AdminEmployee {
   hasEmployeeView: boolean
   hasAdminView: boolean
   hasClientView: boolean
+  hasPayrollControlAccess?: boolean
   isBlocked?: boolean
 }
 
 const adminEmployeesSeed: AdminEmployee[] = [
-  { id: 'EMP-001', name: 'John Doe', clientName: 'Acme Corp', role: 'Senior Developer', paygroup: 'Engineering', paymentMode: 'Direct Deposit', prevGross: 98500, currGross: 98500, hasEmployeeView: true, hasAdminView: false, hasClientView: false },
-  { id: 'EMP-002', name: 'Jane Smith', clientName: 'Acme Corp', role: 'UI/UX Designer', paygroup: 'Design', paymentMode: 'Direct Deposit', prevGross: 78000, currGross: 82000, hasEmployeeView: true, hasAdminView: false, hasClientView: false },
-  { id: 'EMP-003', name: 'Robert Brown', clientName: 'Stark Industries', role: 'Security Architect', paygroup: 'Engineering', paymentMode: 'Direct Deposit', prevGross: 120000, currGross: 125000, hasEmployeeView: true, hasAdminView: false, hasClientView: false },
-  { id: 'EMP-004', name: 'Emily Johnson', clientName: 'Stark Industries', role: 'QA Lead', paygroup: 'QA', paymentMode: 'Direct Deposit', prevGross: 85000, currGross: 85000, hasEmployeeView: true, hasAdminView: false, hasClientView: false },
-  { id: 'EMP-005', name: 'Bruce Wayne', clientName: 'Wayne Enterprises', role: 'Director', paygroup: 'Management', paymentMode: 'Wire Transfer', prevGross: 250000, currGross: 250000, hasEmployeeView: true, hasAdminView: true, hasClientView: true },
-  { id: 'EMP-006', name: 'Clark Kent', clientName: 'Globex Corp', role: 'Reporter', paygroup: 'Editorial', paymentMode: 'Check', prevGross: 55000, currGross: 55000, hasEmployeeView: true, hasAdminView: false, hasClientView: false },
-  { id: 'EMP-007', name: 'Diana Prince', clientName: 'Globex Corp', role: 'Research Analyst', paygroup: 'Operations', paymentMode: 'Direct Deposit', prevGross: 95000, currGross: 97000, hasEmployeeView: true, hasAdminView: false, hasClientView: true },
-  { id: 'EMP-008', name: 'Peter Parker', clientName: 'Acme Corp', role: 'Photographer', paygroup: 'Editorial', paymentMode: 'Check', prevGross: 45000, currGross: 46000, hasEmployeeView: true, hasAdminView: false, hasClientView: false },
-  { id: 'EMP-009', name: 'Tony Stark', clientName: 'Stark Industries', role: 'Chief Engineer', paygroup: 'Management', paymentMode: 'Wire Transfer', prevGross: 300000, currGross: 300000, hasEmployeeView: true, hasAdminView: true, hasClientView: true },
-  { id: 'EMP-010', name: 'Steve Rogers', clientName: 'Wayne Enterprises', role: 'Operations Manager', paygroup: 'Operations', paymentMode: 'Direct Deposit', prevGross: 110000, currGross: 110000, hasEmployeeView: true, hasAdminView: false, hasClientView: false }
+  { id: 'EMP-001', name: 'John Doe', clientName: 'Acme Corp', role: 'Senior Developer', paygroup: 'Engineering', paymentMode: 'Direct Deposit', prevGross: 98500, currGross: 98500, hasEmployeeView: true, hasAdminView: false, hasClientView: false, hasPayrollControlAccess: false },
+  { id: 'EMP-002', name: 'Jane Smith', clientName: 'Acme Corp', role: 'UI/UX Designer', paygroup: 'Design', paymentMode: 'Direct Deposit', prevGross: 78000, currGross: 82000, hasEmployeeView: true, hasAdminView: false, hasClientView: false, hasPayrollControlAccess: false },
+  { id: 'EMP-003', name: 'Robert Brown', clientName: 'Stark Industries', role: 'Security Architect', paygroup: 'Engineering', paymentMode: 'Direct Deposit', prevGross: 120000, currGross: 125000, hasEmployeeView: true, hasAdminView: false, hasClientView: false, hasPayrollControlAccess: false },
+  { id: 'EMP-004', name: 'Emily Johnson', clientName: 'Stark Industries', role: 'QA Lead', paygroup: 'QA', paymentMode: 'Direct Deposit', prevGross: 85000, currGross: 85000, hasEmployeeView: true, hasAdminView: false, hasClientView: false, hasPayrollControlAccess: false },
+  { id: 'EMP-005', name: 'Bruce Wayne', clientName: 'Wayne Enterprises', role: 'Director', paygroup: 'Management', paymentMode: 'Wire Transfer', prevGross: 250000, currGross: 250000, hasEmployeeView: true, hasAdminView: true, hasClientView: true, hasPayrollControlAccess: true },
+  { id: 'EMP-006', name: 'Clark Kent', clientName: 'Globex Corp', role: 'Reporter', paygroup: 'Editorial', paymentMode: 'Check', prevGross: 55000, currGross: 55000, hasEmployeeView: true, hasAdminView: false, hasClientView: false, hasPayrollControlAccess: false },
+  { id: 'EMP-007', name: 'Diana Prince', clientName: 'Globex Corp', role: 'Research Analyst', paygroup: 'Operations', paymentMode: 'Direct Deposit', prevGross: 95000, currGross: 97000, hasEmployeeView: true, hasAdminView: false, hasClientView: true, hasPayrollControlAccess: true },
+  { id: 'EMP-008', name: 'Peter Parker', clientName: 'Acme Corp', role: 'Photographer', paygroup: 'Editorial', paymentMode: 'Check', prevGross: 45000, currGross: 46000, hasEmployeeView: true, hasAdminView: false, hasClientView: false, hasPayrollControlAccess: false },
+  { id: 'EMP-009', name: 'Tony Stark', clientName: 'Stark Industries', role: 'Chief Engineer', paygroup: 'Management', paymentMode: 'Wire Transfer', prevGross: 300000, currGross: 300000, hasEmployeeView: true, hasAdminView: true, hasClientView: true, hasPayrollControlAccess: true },
+  { id: 'EMP-010', name: 'Steve Rogers', clientName: 'Wayne Enterprises', role: 'Operations Manager', paygroup: 'Operations', paymentMode: 'Direct Deposit', prevGross: 110000, currGross: 110000, hasEmployeeView: true, hasAdminView: false, hasClientView: false, hasPayrollControlAccess: false }
 ]
 
 export interface PayrollConfigRow {
@@ -1510,6 +1511,22 @@ export function EmployeePortalFlow({
   const [simulatedEmployeeId, setSimulatedEmployeeId] = useState<string>('EMP-001')
   const [simulatedClientName, setSimulatedClientName] = useState<string>('Acme Corp')
 
+  const currentYear = new Date().getFullYear()
+  const [clientPeriodStartDate, setClientPeriodStartDate] = useState(`${currentYear}-07-01`)
+  const [clientPeriodEndDate, setClientPeriodEndDate] = useState(`${currentYear}-07-15`)
+
+  const formatPeriodRange = (startStr: string, endStr: string) => {
+    try {
+      const start = new Date(startStr)
+      const end = new Date(endStr)
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) return ''
+      const pad = (num: number) => num.toString().padStart(2, '0')
+      return `${pad(start.getMonth() + 1)}/${pad(start.getDate())}/${start.getFullYear()} - ${pad(end.getMonth() + 1)}/${pad(end.getDate())}/${end.getFullYear()}`
+    } catch {
+      return ''
+    }
+  }
+
   const activeUserType = previewRoleMode || userType
 
   const [currentModule, setCurrentModule] = useState<Module>(() => {
@@ -2306,14 +2323,26 @@ export function EmployeePortalFlow({
       ]
     }
     if (activeUserType === 'client') {
-      return [
+      const matchingClient = adminEmployees.find(
+        (e) => e.hasClientView && e.clientName === simulatedClientName
+      )
+      const showPayrollControl = !matchingClient || matchingClient.hasPayrollControlAccess !== false
+
+      const clientMenu = [
         { id: 'client-dashboard' as Module, label: 'Client Dashboard', icon: '📊' },
-        { id: 'client-payroll-control' as Module, label: 'Payroll Control', icon: '⚙️' },
+      ]
+
+      if (showPayrollControl) {
+        clientMenu.push({ id: 'client-payroll-control' as Module, label: 'Payroll Control', icon: '⚙️' })
+      }
+
+      clientMenu.push(
         { id: 'client-offcycles' as Module, label: 'Offcycles / Bonus', icon: '💸' },
         { id: 'client-payroll-period' as Module, label: 'Payroll Period', icon: '📅' },
         { id: 'client-lock' as Module, label: 'Approval & Lock', icon: '🔒' },
         { id: 'client-reports' as Module, label: 'Reports', icon: '📈' },
-      ]
+      )
+      return clientMenu
     }
     return [
       { id: 'dashboard' as Module, label: 'Dashboard', icon: '📊' },
@@ -2322,7 +2351,19 @@ export function EmployeePortalFlow({
       { id: 'documents' as Module, label: 'Documents', icon: '📄' },
       // { id: 'profile' as Module, label: 'Profile', icon: '👤' },
     ]
-  }, [activeUserType])
+  }, [activeUserType, adminEmployees, simulatedClientName])
+
+  useEffect(() => {
+    if (activeUserType === 'client') {
+      const matchingClient = adminEmployees.find(
+        (e) => e.hasClientView && e.clientName === simulatedClientName
+      )
+      const showPayrollControl = !matchingClient || matchingClient.hasPayrollControlAccess !== false
+      if (!showPayrollControl && currentModule === 'client-payroll-control') {
+        setCurrentModule('client-dashboard')
+      }
+    }
+  }, [activeUserType, adminEmployees, simulatedClientName, currentModule])
 
   const steps = moduleSteps[currentModule] || []
   const currentStep = steps[stepIndex] || { title: '', tag: '', content: '' }
@@ -3960,14 +4001,22 @@ export function EmployeePortalFlow({
     showToast(`Reconciliation ${reconciliationDimension}-wise CSV file downloaded!`)
   }
 
-  const handleToggleAccess = (empId: string, view: 'employee' | 'admin' | 'client') => {
+  const handleToggleAccess = (empId: string, view: 'employee' | 'admin' | 'client' | 'payroll-control') => {
     setAdminEmployees((prev) =>
       prev.map((emp) => {
         if (emp.id === empId) {
           if (emp.isBlocked) return emp // Cannot edit access of a blocked user
           if (view === 'employee') return { ...emp, hasEmployeeView: !emp.hasEmployeeView }
           if (view === 'admin') return { ...emp, hasAdminView: !emp.hasAdminView }
-          if (view === 'client') return { ...emp, hasClientView: !emp.hasClientView }
+          if (view === 'client') {
+            const nextClient = !emp.hasClientView
+            return {
+              ...emp,
+              hasClientView: nextClient,
+              hasPayrollControlAccess: nextClient ? emp.hasPayrollControlAccess : false
+            }
+          }
+          if (view === 'payroll-control') return { ...emp, hasPayrollControlAccess: !emp.hasPayrollControlAccess }
         }
         return emp
       })
@@ -3987,6 +4036,7 @@ export function EmployeePortalFlow({
             hasEmployeeView: nextBlocked ? false : emp.hasEmployeeView,
             hasAdminView: nextBlocked ? false : emp.hasAdminView,
             hasClientView: nextBlocked ? false : emp.hasClientView,
+            hasPayrollControlAccess: nextBlocked ? false : emp.hasPayrollControlAccess,
           }
         }
         return emp
@@ -4357,7 +4407,7 @@ export function EmployeePortalFlow({
           row.fullSalary.toString(),
           "USD",
           "Unreconciled",
-          `06/01/${currentYear} - 06/15/${currentYear}`,
+          formatPeriodRange(clientPeriodStartDate, clientPeriodEndDate) || `06/01/${currentYear} - 06/15/${currentYear}`,
           "US Biweekly",
           ""
         ];
@@ -4503,7 +4553,7 @@ export function EmployeePortalFlow({
                 </div>
               </div>
               <div className="modal-caution-content">
-                You are about to modify the salary records for this pay period. 
+                You are about to modify the salary records for this pay period.
                 Please note that <strong style={{ color: '#f39c12' }}>only twice</strong> can edits be performed per pay period.
               </div>
               <p className="modal-caution-footer">Are you sure you want to save/modify salary records?</p>
@@ -4785,26 +4835,136 @@ export function EmployeePortalFlow({
         )}
 
 
-        <div className="dash-welcome-row">
-          <div>
-            <h1 className="dash-welcome-title">Payroll Area & Time Approval Checklist 📅</h1>
-            <p className="dash-welcome-sub">Manage processing periods, approve employee logs, and run validation audits.</p>
+        <div className="dash-welcome-row" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', flexWrap: 'nowrap', gap: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'nowrap', flexShrink: 0 }}>
+              <h1 className="dash-welcome-title" style={{ margin: 0, whiteSpace: 'nowrap' }}>Payroll Area & Time Approval Checklist 📅</h1>
+
+              {/* Date selection inline next to the title */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'nowrap', flexShrink: 0, background: 'var(--surface)', padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--line)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <label htmlFor="period-start-date-input" style={{ fontSize: '11px', fontWeight: '600', whiteSpace: 'nowrap', color: 'var(--muted)' }}>Start:</label>
+                  <input
+                    id="period-start-date-input"
+                    type="date"
+                    className="modal-field"
+                    style={{ width: '120px', padding: '4px 6px', fontSize: '11px', background: 'transparent', color: 'var(--text-h)', border: 'none' }}
+                    value={clientPeriodStartDate}
+                    onChange={(e) => setClientPeriodStartDate(e.target.value)}
+                  />
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <label htmlFor="period-end-date-input" style={{ fontSize: '11px', fontWeight: '600', whiteSpace: 'nowrap', color: 'var(--muted)' }}>End:</label>
+                  <input
+                    id="period-end-date-input"
+                    type="date"
+                    className="modal-field"
+                    style={{ width: '120px', padding: '4px 6px', fontSize: '11px', background: 'transparent', color: 'var(--text-h)', border: 'none' }}
+                    value={clientPeriodEndDate}
+                    onChange={(e) => setClientPeriodEndDate(e.target.value)}
+                  />
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() => {
+                    if (!clientPeriodStartDate) {
+                      setAlertModal({
+                        type: 'error',
+                        title: 'Validation Error',
+                        message: 'Please select a valid Period Start Date.'
+                      })
+                      return
+                    }
+                    if (!clientPeriodEndDate) {
+                      setAlertModal({
+                        type: 'error',
+                        title: 'Validation Error',
+                        message: 'Please select a valid Period End Date.'
+                      })
+                      return
+                    }
+
+                    const start = new Date(clientPeriodStartDate)
+                    const end = new Date(clientPeriodEndDate)
+
+                    if (end < start) {
+                      setAlertModal({
+                        type: 'error',
+                        title: 'Validation Error',
+                        message: 'Period End Date cannot be before Period Start Date.'
+                      })
+                      return
+                    }
+
+                    // Calculate date difference in days
+                    const diffTime = Math.abs(end.getTime() - start.getTime())
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1 // inclusive of start & end
+
+                    if (clientPayGroupFilter === 'Monthly') {
+                      if (diffDays < 28 || diffDays > 31) {
+                        setAlertModal({
+                          type: 'error',
+                          title: 'Monthly Period Validation Error',
+                          message: `A Monthly pay period must be between 28 and 31 days. Your selected range is ${diffDays} days.`
+                        })
+                        return
+                      }
+                    } else if (clientPayGroupFilter === 'Weekly') {
+                      if (diffDays !== 7) {
+                        setAlertModal({
+                          type: 'error',
+                          title: 'Weekly Period Validation Error',
+                          message: `A Weekly pay period must be exactly 7 days. Your selected range is ${diffDays} days.`
+                        })
+                        return
+                      }
+                    } else if (clientPayGroupFilter === 'Bi-Weekly') {
+                      if (diffDays !== 14) {
+                        setAlertModal({
+                          type: 'error',
+                          title: 'Bi-Weekly Period Validation Error',
+                          message: `A Bi-Weekly pay period must be exactly 14 days. Your selected range is ${diffDays} days.`
+                        })
+                        return
+                      }
+                    } else if (clientPayGroupFilter === 'Semi-Monthly') {
+                      if (diffDays < 13 || diffDays > 16) {
+                        setAlertModal({
+                          type: 'error',
+                          title: 'Semi-Monthly Period Validation Error',
+                          message: `A Semi-Monthly pay period must be between 13 and 16 days. Your selected range is ${diffDays} days.`
+                        })
+                        return
+                      }
+                    }
+
+                    showToast('Active pay period dates configured successfully!')
+                  }}
+                  style={{ padding: '4px 10px', fontSize: '11px', height: 'auto', minHeight: 'unset', fontWeight: 600 }}
+                >
+                  Save Dates
+                </button>
+              </div>
+            </div>
+
+            <div className="filter-input-group" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+              <select value={clientPayGroupFilter} onChange={e => setClientPayGroupFilter(e.target.value as any)} className="btn" style={{ background: 'var(--surface)', color: 'var(--ink)', padding: '6px 12px', fontSize: '13px' }}>
+                <option value="Monthly">Monthly Pay Period</option>
+                <option value="Weekly">Weekly Pay Period</option>
+                <option value="Bi-Weekly">Bi-Weekly Pay Period</option>
+                <option value="Semi-Monthly">Semi-Monthly Pay Period</option>
+              </select>
+              {!allApproved && selectedCount > 0 && (
+                <button type="button" className="btn btn-primary"
+                  onClick={() => setShowApproveConfirmModal(true)}
+                  style={{ width: 'fit-content', background: 'linear-gradient(135deg,#f39c12,#e67e22)', border: 'none', padding: '6px 12px', fontSize: '13px' }}>
+                  ✓ Approve Selected ({selectedCount})
+                </button>
+              )}
+            </div>
           </div>
-          <div className="filter-input-group" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-            <select value={clientPayGroupFilter} onChange={e => setClientPayGroupFilter(e.target.value as any)} className="btn" style={{ background: 'var(--surface)', color: 'var(--ink)' }}>
-              <option value="Monthly">Monthly Pay Period</option>
-              <option value="Weekly">Weekly Pay Period</option>
-              <option value="Bi-Weekly">Bi-Weekly Pay Period</option>
-              <option value="Semi-Monthly">Semi-Monthly Pay Period</option>
-            </select>
-            {!allApproved && selectedCount > 0 && (
-              <button type="button" className="btn btn-primary"
-                onClick={() => setShowApproveConfirmModal(true)}
-                style={{ width: 'fit-content', background: 'linear-gradient(135deg,#f39c12,#e67e22)', border: 'none' }}>
-                ✓ Approve Selected ({selectedCount}) Employee Time {selectedCount > 1 ? 'Entries' : 'Entry'}
-              </button>
-            )}
-          </div>
+          <p className="dash-welcome-sub" style={{ margin: 0 }}>Manage processing periods, approve employee logs, and run validation audits.</p>
         </div>
 
         {/* Modal Alert Banner */}
@@ -5208,10 +5368,118 @@ export function EmployeePortalFlow({
           </div>
         )}
 
-        <div className="dash-welcome-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+        <div className="dash-welcome-row" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', flexWrap: 'wrap', gap: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
               <h1 className="dash-welcome-title" style={{ margin: 0 }}>Final Approval & Locking Workflows 🔒</h1>
+              
+              {/* Date selection inline next to the title (synced layout) */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', background: 'var(--surface)', padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--line)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <label htmlFor="lock-start-date-input" style={{ fontSize: '11px', fontWeight: '600', whiteSpace: 'nowrap', color: 'var(--muted)' }}>Start:</label>
+                  <input
+                    id="lock-start-date-input"
+                    type="date"
+                    className="modal-field"
+                    style={{ width: '140px', padding: '4px 6px', fontSize: '11px', background: 'transparent', color: 'var(--text-h)', border: 'none' }}
+                    value={clientPeriodStartDate}
+                    onChange={(e) => setClientPeriodStartDate(e.target.value)}
+                  />
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <label htmlFor="lock-end-date-input" style={{ fontSize: '11px', fontWeight: '600', whiteSpace: 'nowrap', color: 'var(--muted)' }}>End:</label>
+                  <input
+                    id="lock-end-date-input"
+                    type="date"
+                    className="modal-field"
+                    style={{ width: '140px', padding: '4px 6px', fontSize: '11px', background: 'transparent', color: 'var(--text-h)', border: 'none' }}
+                    value={clientPeriodEndDate}
+                    onChange={(e) => setClientPeriodEndDate(e.target.value)}
+                  />
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() => {
+                    if (!clientPeriodStartDate) {
+                      setAlertModal({
+                        type: 'error',
+                        title: 'Validation Error',
+                        message: 'Please select a valid Period Start Date.'
+                      })
+                      return
+                    }
+                    if (!clientPeriodEndDate) {
+                      setAlertModal({
+                        type: 'error',
+                        title: 'Validation Error',
+                        message: 'Please select a valid Period End Date.'
+                      })
+                      return
+                    }
+                    
+                    const start = new Date(clientPeriodStartDate)
+                    const end = new Date(clientPeriodEndDate)
+                    
+                    if (end < start) {
+                      setAlertModal({
+                        type: 'error',
+                        title: 'Validation Error',
+                        message: 'Period End Date cannot be before Period Start Date.'
+                      })
+                      return
+                    }
+
+                    // Calculate date difference in days
+                    const diffTime = Math.abs(end.getTime() - start.getTime())
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1 // inclusive of start & end
+                    
+                    if (clientPayGroupFilter === 'Monthly') {
+                      if (diffDays < 28 || diffDays > 31) {
+                        setAlertModal({
+                          type: 'error',
+                          title: 'Monthly Period Validation Error',
+                          message: `A Monthly pay period must be between 28 and 31 days. Your selected range is ${diffDays} days.`
+                        })
+                        return
+                      }
+                    } else if (clientPayGroupFilter === 'Weekly') {
+                      if (diffDays !== 7) {
+                        setAlertModal({
+                          type: 'error',
+                          title: 'Weekly Period Validation Error',
+                          message: `A Weekly pay period must be exactly 7 days. Your selected range is ${diffDays} days.`
+                        })
+                        return
+                      }
+                    } else if (clientPayGroupFilter === 'Bi-Weekly') {
+                      if (diffDays !== 14) {
+                        setAlertModal({
+                          type: 'error',
+                          title: 'Bi-Weekly Period Validation Error',
+                          message: `A Bi-Weekly pay period must be exactly 14 days. Your selected range is ${diffDays} days.`
+                        })
+                        return
+                      }
+                    } else if (clientPayGroupFilter === 'Semi-Monthly') {
+                      if (diffDays < 13 || diffDays > 16) {
+                        setAlertModal({
+                          type: 'error',
+                          title: 'Semi-Monthly Period Validation Error',
+                          message: `A Semi-Monthly pay period must be between 13 and 16 days. Your selected range is ${diffDays} days.`
+                        })
+                        return
+                      }
+                    }
+                    
+                    showToast('Active pay period dates configured successfully!')
+                  }}
+                  style={{ padding: '4px 10px', fontSize: '11px', height: 'auto', minHeight: 'unset', fontWeight: 600 }}
+                >
+                  Save Dates
+                </button>
+              </div>
+
               <button
                 type="button"
                 className="btn btn-secondary"
@@ -5240,21 +5508,30 @@ export function EmployeePortalFlow({
                 {isRefreshingLock ? 'Recalculating...' : 'Refresh Amounts'}
               </button>
             </div>
-            <p className="dash-welcome-sub">Validate periods variance differences, lock time entries, and submit payroll logs.</p>
+            
+            <div className="filter-input-group" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <select value={clientPayGroupFilter} onChange={e => setClientPayGroupFilter(e.target.value as any)} className="btn" style={{ background: 'var(--surface)', color: 'var(--ink)', padding: '6px 12px', fontSize: '13px' }}>
+                <option value="Monthly">Monthly Pay Period</option>
+                <option value="Weekly">Weekly Pay Period</option>
+                <option value="Bi-Weekly">Bi-Weekly Pay Period</option>
+                <option value="Semi-Monthly">Semi-Monthly Pay Period</option>
+              </select>
+              {!isPeriodLocked && (
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  disabled={selectedLockCount === 0}
+                  onClick={() => {
+                    setShowLockConfirmModal(true)
+                  }}
+                  style={{ whiteSpace: 'nowrap', padding: '6px 12px', fontSize: '13px' }}
+                >
+                  🔒 Lock Selected ({selectedLockCount}) & Submit
+                </button>
+              )}
+            </div>
           </div>
-          {!isPeriodLocked && (
-            <button
-              type="button"
-              className="btn btn-primary"
-              disabled={selectedLockCount === 0}
-              onClick={() => {
-                setShowLockConfirmModal(true)
-              }}
-              style={{ whiteSpace: 'nowrap', alignSelf: 'flex-start' }}
-            >
-              🔒 Lock Selected ({selectedLockCount}) & Submit
-            </button>
-          )}
+          <p className="dash-welcome-sub" style={{ margin: 0 }}>Validate periods variance differences, lock time entries, and submit payroll logs.</p>
         </div>
 
         {isPeriodLocked ? (
@@ -6467,6 +6744,7 @@ export function EmployeePortalFlow({
                                     <th className="text-center" style={{ textAlign: 'center' }}>Employee View</th>
                                     <th className="text-center" style={{ textAlign: 'center' }}>Admin View</th>
                                     <th className="text-center" style={{ textAlign: 'center' }}>Client View</th>
+                                    <th className="text-center" style={{ textAlign: 'center' }}>Payroll Control Tab</th>
                                     <th className="text-center" style={{ textAlign: 'center', width: '130px' }}>Account Status</th>
                                     <th className="num" style={{ width: '130px' }}>Action</th>
                                   </tr>
@@ -6502,6 +6780,15 @@ export function EmployeePortalFlow({
                                           checked={emp.hasClientView}
                                           disabled={emp.isBlocked}
                                           onChange={() => handleToggleAccess(emp.id, 'client')}
+                                        />
+                                      </td>
+                                      <td className="text-center" style={{ textAlign: 'center' }}>
+                                        <input
+                                          type="checkbox"
+                                          style={{ width: '16px', height: '16px', cursor: (emp.isBlocked || !emp.hasClientView) ? 'not-allowed' : 'pointer' }}
+                                          checked={emp.hasPayrollControlAccess}
+                                          disabled={emp.isBlocked || !emp.hasClientView}
+                                          onChange={() => handleToggleAccess(emp.id, 'payroll-control')}
                                         />
                                       </td>
                                       <td className="text-center" style={{ textAlign: 'center' }}>
