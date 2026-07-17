@@ -1,5 +1,16 @@
-﻿import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { additionalNotificationsSeed } from '../data/notifications'
+import { BankDetailsFormFields } from './BankDetailsFormFields'
+import {
+  bankFormFromDetails,
+  countryNameToCode,
+  EMPTY_BANK_FORM,
+  validateBankForm,
+  getBankDisplayFields,
+  getCountryLabel,
+  type BankCountryCode,
+  type BankFormValues,
+} from '../utils/bankValidation'
 
 type UserType = 'employee' | 'admin' | 'client'
 type Module = 'dashboard' | 'time-entry' | 'leave' | 'my-pay' | 'documents' | 'profile' | 'notifications' | 'admin-dashboard' | 'admin-reconciliation' | 'admin-payslips' | 'admin-access' | 'admin-reports' | 'client-dashboard' | 'client-payroll-control' | 'client-payroll-period' | 'client-offcycles' | 'client-lock' | 'client-reports'
@@ -340,19 +351,18 @@ interface TaxDocument {
 
 interface BankDetails {
   bankName: string
+  branch: string
   accountNumber: string
   ifscCode: string
+  routingNumber: string
+  sortCode: string
+  swiftCode: string
+  iban: string
   accountHolderName: string
   verified: boolean
 }
 
-interface BankUpdateForm {
-  bankName: string
-  accountNumber: string
-  ifscCode: string
-  accountHolderName: string
-  reason: string
-}
+type BankUpdateForm = BankFormValues
 
 interface PaymentHistoryItem {
   id: string
@@ -416,6 +426,53 @@ const clientOffcyclesSeed: ClientOffcyclePayment[] = [
   { id: 'off-002', employeeId: 'EMP-002', employeeName: 'Jane Smith', clientName: 'Acme Corp', code: 'Referral Bonus', amount: 5000, date: '08 July 2025', remarks: 'Referred developer candidate' },
   { id: 'off-003', employeeId: 'EMP-003', employeeName: 'Robert Brown', clientName: 'Stark Industries', code: 'Shift Bonus', amount: 3500, date: '11 July 2025', remarks: 'Weekend overnight shifts' }
 ]
+
+type ClientEmployeeStatus = 'Active' | 'Terminated' | 'Onboarding in Progress'
+
+interface ClientPersonnel {
+  id: string
+  name: string
+  role: string
+  paygroup: string
+  paymentMethod: string
+  clientName: string
+  status: ClientEmployeeStatus
+}
+
+const clientPersonnelSeed: ClientPersonnel[] = [
+  { id: 'EMP-001', name: 'John Doe', role: 'Senior Developer', paygroup: 'Engineering', paymentMethod: 'Direct Deposit', clientName: 'Acme Corp', status: 'Active' },
+  { id: 'EMP-002', name: 'Jane Smith', role: 'UI/UX Designer', paygroup: 'Design', paymentMethod: 'Direct Deposit', clientName: 'Acme Corp', status: 'Active' },
+  { id: 'EMP-003', name: 'Robert Brown', role: 'Security Architect', paygroup: 'Engineering', paymentMethod: 'Direct Deposit', clientName: 'Stark Industries', status: 'Onboarding in Progress' },
+  { id: 'EMP-004', name: 'Emily Johnson', role: 'QA Lead', paygroup: 'QA', paymentMethod: 'Direct Deposit', clientName: 'Stark Industries', status: 'Active' },
+  { id: 'EMP-008', name: 'Peter Parker', role: 'Photographer', paygroup: 'Editorial', paymentMethod: 'Check', clientName: 'Acme Corp', status: 'Terminated' },
+]
+
+const clientStatusPillClass: Record<ClientEmployeeStatus, string> = {
+  Active: 'active',
+  Terminated: 'terminated',
+  'Onboarding in Progress': 'onboarding',
+}
+
+const clientDashboardPayPeriods = [
+  { value: '2025-07', label: 'July 2025' },
+  { value: '2025-06', label: 'June 2025' },
+  { value: '2025-05', label: 'May 2025' },
+  { value: '2025-04', label: 'April 2025' },
+] as const
+
+type ClientDashboardPayPeriod = (typeof clientDashboardPayPeriods)[number]['value']
+
+function getClientEmployeeGrossUsd(employeeId: string, payPeriod: ClientDashboardPayPeriod): number {
+  const emp = adminEmployeesSeed.find((e) => e.id === employeeId)
+  if (!emp) return 0
+  if (payPeriod === '2025-07') return emp.currGross
+  if (payPeriod === '2025-06') return emp.prevGross
+  if (payPeriod === '2025-05') return Math.round(emp.prevGross * 0.98)
+  return Math.round(emp.prevGross * 0.96)
+}
+
+const formatUsdCurrency = (amount: number) =>
+  `$ ${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
 interface PortalAccessLog {
   id: string
@@ -483,8 +540,13 @@ const taxDocumentSeedData: TaxDocument[] = [
 
 const bankDetailsSeed: BankDetails = {
   bankName: 'HDFC Bank Limited',
+  branch: 'Koramangala 4th Block',
   accountNumber: 'XXXX XXXX 4589',
   ifscCode: 'HDFC0001234',
+  routingNumber: '',
+  sortCode: '',
+  swiftCode: '',
+  iban: '',
   accountHolderName: 'John Doe',
   verified: true,
 }
@@ -506,9 +568,6 @@ const paymentHistorySeed: PaymentHistoryItem[] = [
 // ]
 
 const payrollDocsSeed: PortalDocument[] = [
-  { id: 'pd-001', name: 'Payslip - June 2025', description: 'Monthly salary payslip', monthYear: 'June 2025', status: 'Available', size: '230 KB' },
-  { id: 'pd-002', name: 'Payslip - May 2025', description: 'Monthly salary payslip', monthYear: 'May 2025', status: 'Available', size: '230 KB' },
-  { id: 'pd-003', name: 'Payslip - April 2025', description: 'Monthly salary payslip', monthYear: 'April 2025', status: 'Available', size: '230 KB' },
   { id: 'pd-004', name: 'Salary Certificate', description: 'Certificate for loan / visa purposes', monthYear: 'FY 2024-25', status: 'Available', size: '400 KB' },
   { id: 'pd-005', name: 'Payroll Summary', description: 'Annual payroll summary', monthYear: 'FY 2024-25', status: 'Available', size: '800 KB' },
   { id: 'pd-006', name: 'Bonus Letter', description: 'Annual performance bonus letter', monthYear: 'FY 2024-25', status: 'Available', size: '180 KB' },
@@ -1533,6 +1592,7 @@ export function EmployeePortalFlow({
   // Client Portal States
 
   const [clientPayGroupFilter, setClientPayGroupFilter] = useState<'Monthly' | 'Weekly' | 'Bi-Weekly' | 'Semi-Monthly'>('Monthly')
+  const [clientDashboardPayPeriod, setClientDashboardPayPeriod] = useState<ClientDashboardPayPeriod>('2025-07')
   const [offcyclePaymentsList, setOffcyclePaymentsList] = useState<ClientOffcyclePayment[]>(clientOffcyclesSeed)
   const [portalAccessLogs] = useState<PortalAccessLog[]>(portalAccessLogsSeed)
   const [isPeriodLocked, setIsPeriodLocked] = useState(false)
@@ -1617,11 +1677,20 @@ export function EmployeePortalFlow({
   // Remaining Profile Tabs States
   const [bankDetails] = useState<BankDetails>({
     bankName: 'HDFC Bank Limited',
+    branch: 'Koramangala 4th Block',
     accountNumber: 'XXXX XXXX 4589',
     ifscCode: 'HDFC0001234',
+    routingNumber: '',
+    sortCode: '',
+    swiftCode: '',
+    iban: '',
     accountHolderName: 'John Doe',
     verified: true,
   })
+  const employmentCountryCode = useMemo<BankCountryCode>(
+    () => countryNameToCode(contactDetails.country),
+    [contactDetails.country],
+  )
   const [identityDocs] = useState<IdentityDocument[]>(identityDocumentsSeed)
   const [profileSkills, setProfileSkills] = useState<ProfileSkill[]>(profileSkillsSeed)
   const [profileEducation, setProfileEducation] = useState<ProfileEducation[]>(profileEducationSeed)
@@ -1635,13 +1704,7 @@ export function EmployeePortalFlow({
 
   // Bank Change Modal
   const [isBankChangeModalOpen, setIsBankChangeModalOpen] = useState(false)
-  const [bankChangeForm, setBankChangeForm] = useState<BankUpdateForm>({
-    bankName: '',
-    accountNumber: '',
-    ifscCode: '',
-    accountHolderName: '',
-    reason: '',
-  })
+  const [bankChangeForm, setBankChangeForm] = useState<BankUpdateForm>(EMPTY_BANK_FORM)
   const [bankChangeError, setBankChangeError] = useState('')
   const [bankChangeSuccess, setBankChangeSuccess] = useState(false)
 
@@ -1874,21 +1937,16 @@ export function EmployeePortalFlow({
 
   // Remaining Profile Action Handlers
   const handleOpenBankChange = () => {
-    setBankChangeForm({
-      bankName: bankDetails.bankName,
-      accountNumber: bankDetails.accountNumber,
-      ifscCode: bankDetails.ifscCode,
-      accountHolderName: bankDetails.accountHolderName,
-      reason: '',
-    })
+    setBankChangeForm(bankFormFromDetails(bankDetails))
     setBankChangeError('')
     setBankChangeSuccess(false)
     setIsBankChangeModalOpen(true)
   }
 
   const handleSaveBankChange = () => {
-    if (!bankChangeForm.bankName || !bankChangeForm.accountNumber || !bankChangeForm.ifscCode || !bankChangeForm.accountHolderName || !bankChangeForm.reason) {
-      setBankChangeError('All fields are required.')
+    const validationError = validateBankForm(bankChangeForm, employmentCountryCode)
+    if (validationError) {
+      setBankChangeError(validationError)
       return
     }
     const newRequest: ProfileChangeRequest = {
@@ -2161,13 +2219,7 @@ export function EmployeePortalFlow({
   const [selectedPayslipForView, setSelectedPayslipForView] = useState<Payslip | null>(null)
   const [salaryBreakdownMonth, setSalaryBreakdownMonth] = useState('June 2025')
   const [bankUpdateModalOpen, setBankUpdateModalOpen] = useState(false)
-  const [bankUpdateForm, setBankUpdateForm] = useState<BankUpdateForm>({
-    bankName: '',
-    accountNumber: '',
-    ifscCode: '',
-    accountHolderName: '',
-    reason: '',
-  })
+  const [bankUpdateForm, setBankUpdateForm] = useState<BankUpdateForm>(EMPTY_BANK_FORM)
   const [bankUpdateError, setBankUpdateError] = useState('')
   const [bankUpdateSuccess, setBankUpdateSuccess] = useState(false)
   const [bankUpdateRequestSent, setBankUpdateRequestSent] = useState(false)
@@ -2965,7 +3017,7 @@ export function EmployeePortalFlow({
 
   const handleDownloadPayslipPDF = (ps: { month: string; payDate: string; grossSalary: number; netSalary: number; status: string }, targetEmployeeName?: string) => {
     const empName = targetEmployeeName || getPortalUserName()
-    
+
     // Earnings Breakdown
     const basic = Math.round(ps.grossSalary * 0.50)
     const hra = Math.round(ps.grossSalary * 0.30)
@@ -6257,12 +6309,36 @@ export function EmployeePortalFlow({
                         </div>
                       )
                     })() : currentModule === 'client-dashboard' ? (() => {
+                      const clientPersonnel = previewRoleMode === 'client'
+                        ? clientPersonnelSeed.filter((emp) => emp.clientName === simulatedClientName)
+                        : clientPersonnelSeed.filter((emp) => emp.clientName === 'Acme Corp' || emp.clientName === 'Stark Industries')
+
+                      const totalGrossUsd = clientPersonnel.reduce((sum, cp) => {
+                        return sum + getClientEmployeeGrossUsd(cp.id, clientDashboardPayPeriod)
+                      }, 0)
+
                       return (
                         <div className="dash-shell">
-                          <div className="dash-welcome-row">
+                          <div className="dash-welcome-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div>
                               <h1 className="dash-welcome-title">{previewRoleMode === 'client' ? simulatedClientName : 'Acme & Stark Industries'} - Corporate Client Dashboard 🏢</h1>
                               <p className="dash-welcome-sub">View overall staff lists, aggregate gross pay volume, and timesheet processing status.</p>
+                            </div>
+                            <div className="pay-period-select-wrap" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <label htmlFor="client-dashboard-period-select" style={{ fontSize: '14px', fontWeight: '500', color: 'var(--muted)' }}>Pay Period:</label>
+                              <select
+                                id="client-dashboard-period-select"
+                                className="modal-field"
+                                style={{ width: '150px', padding: '6px 12px', fontSize: '14px' }}
+                                value={clientDashboardPayPeriod}
+                                onChange={(e) => setClientDashboardPayPeriod(e.target.value as ClientDashboardPayPeriod)}
+                              >
+                                {clientDashboardPayPeriods.map((p) => (
+                                  <option key={p.value} value={p.value}>
+                                    {p.label}
+                                  </option>
+                                ))}
+                              </select>
                             </div>
                           </div>
 
@@ -6271,7 +6347,7 @@ export function EmployeePortalFlow({
                               <div className="dash-stat-icon dash-stat-icon--blue">👥</div>
                               <div className="dash-stat-body">
                                 <p className="dash-stat-label">Total Employee Count</p>
-                                <p className="dash-stat-value">5</p>
+                                <p className="dash-stat-value">{clientPersonnel.length}</p>
                                 <p className="dash-stat-sub">Managed under entity</p>
                               </div>
                             </div>
@@ -6288,8 +6364,8 @@ export function EmployeePortalFlow({
                             <div className="dash-stat-card">
                               <div className="dash-stat-icon dash-stat-icon--purple">💰</div>
                               <div className="dash-stat-body">
-                                <p className="dash-stat-label">Total Entity Payroll</p>
-                                <p className="dash-stat-value" style={{ fontSize: '20px' }}>₹ 3,78,000.00</p>
+                                <p className="dash-stat-label">Total Entity Payroll ({clientDashboardPayPeriods.find(p => p.value === clientDashboardPayPeriod)?.label})</p>
+                                <p className="dash-stat-value" style={{ fontSize: '20px' }}>{formatUsdCurrency(totalGrossUsd)}</p>
                                 <p className="dash-stat-sub">Pending final partner wire</p>
                               </div>
                             </div>
@@ -6306,44 +6382,31 @@ export function EmployeePortalFlow({
                                     <th>Role</th>
                                     <th>Pay Group</th>
                                     <th>Payment Method</th>
+                                    <th>Status</th>
                                   </tr>
                                 </thead>
                                 <tbody>
-                                  <tr>
-                                    <td><code>EMP-001</code></td>
-                                    <td>John Doe</td>
-                                    <td>Senior Developer</td>
-                                    <td>Engineering</td>
-                                    <td>Direct Deposit</td>
-                                  </tr>
-                                  <tr>
-                                    <td><code>EMP-002</code></td>
-                                    <td>Jane Smith</td>
-                                    <td>UI/UX Designer</td>
-                                    <td>Design</td>
-                                    <td>Direct Deposit</td>
-                                  </tr>
-                                  <tr>
-                                    <td><code>EMP-003</code></td>
-                                    <td>Robert Brown</td>
-                                    <td>Security Architect</td>
-                                    <td>Engineering</td>
-                                    <td>Direct Deposit</td>
-                                  </tr>
-                                  <tr>
-                                    <td><code>EMP-004</code></td>
-                                    <td>Emily Johnson</td>
-                                    <td>QA Lead</td>
-                                    <td>QA</td>
-                                    <td>Direct Deposit</td>
-                                  </tr>
-                                  <tr>
-                                    <td><code>EMP-008</code></td>
-                                    <td>Peter Parker</td>
-                                    <td>Photographer</td>
-                                    <td>Editorial</td>
-                                    <td>Check</td>
-                                  </tr>
+                                  {clientPersonnel.map((emp) => (
+                                    <tr key={emp.id}>
+                                      <td><code>{emp.id}</code></td>
+                                      <td>{emp.name}</td>
+                                      <td>{emp.role}</td>
+                                      <td>{emp.paygroup}</td>
+                                      <td>{emp.paymentMethod}</td>
+                                      <td>
+                                        <span className={`emp-status-pill ${clientStatusPillClass[emp.status]}`}>
+                                          {emp.status}
+                                        </span>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                  {clientPersonnel.length === 0 && (
+                                    <tr>
+                                      <td colSpan={6} className="text-center" style={{ padding: '24px', color: 'var(--muted)', textAlign: 'center' }}>
+                                        No personnel records found for this client.
+                                      </td>
+                                    </tr>
+                                  )}
                                 </tbody>
                               </table>
                             </div>
@@ -7945,7 +8008,7 @@ export function EmployeePortalFlow({
                             <div className="pay-bank-grid">
                               {/* Salary Account Card */}
                               <section className="pay-card pay-bank-card" aria-label="Salary account">
-                                <h3>Salary Account</h3>
+                                <h3>Salary Account ({getCountryLabel(employmentCountryCode)})</h3>
                                 <div className="pay-bank-inner">
                                   <div className="pay-bank-icon-wrap">
                                     <span className="pay-bank-icon">🏛️</span>
@@ -7954,10 +8017,14 @@ export function EmployeePortalFlow({
                                     )}
                                   </div>
                                   <dl className="pay-bank-dl">
-                                    <div><dt>Bank Name</dt><dd><strong>{bankDetailsSeed.bankName}</strong></dd></div>
-                                    <div><dt>Account Number</dt><dd>{maskAccountNumber(bankDetailsSeed.accountNumber)}</dd></div>
-                                    <div><dt>IFSC Code</dt><dd>{bankDetailsSeed.ifscCode}</dd></div>
-                                    <div><dt>Account Holder Name</dt><dd>{bankDetailsSeed.accountHolderName}</dd></div>
+                                    {getBankDisplayFields(employmentCountryCode, bankDetailsSeed).map((row) => (
+                                      <div key={row.label}>
+                                        <dt>{row.label}</dt>
+                                        <dd>
+                                          {row.label === 'Bank Name' ? <strong>{row.value}</strong> : row.label === 'Account Number' ? maskAccountNumber(row.value) : row.value}
+                                        </dd>
+                                      </div>
+                                    ))}
                                   </dl>
                                 </div>
                               </section>
@@ -8007,60 +8074,16 @@ export function EmployeePortalFlow({
                                     <h3>Request Bank Details Update</h3>
                                     <button type="button" className="pay-modal-close" onClick={() => setBankUpdateModalOpen(false)}>✕</button>
                                   </div>
-                                  <p className="pay-modal-sub">Fill in the new bank details below. HR will verify and update.</p>
+                                  <p className="pay-modal-sub">
+                                    Fill in the new bank details below for {getCountryLabel(employmentCountryCode)}. HR will verify and update.
+                                  </p>
 
-                                  <div className="pay-bank-form-grid">
-                                    <label>
-                                      Bank Name <span className="pay-req">*</span>
-                                      <input
-                                        id="bank-name-input"
-                                        type="text"
-                                        placeholder="e.g. HDFC Bank Limited"
-                                        value={bankUpdateForm.bankName}
-                                        onChange={e => setBankUpdateForm(p => ({ ...p, bankName: e.target.value }))}
-                                      />
-                                    </label>
-                                    <label>
-                                      Account Number <span className="pay-req">*</span>
-                                      <input
-                                        id="bank-account-input"
-                                        type="text"
-                                        placeholder="Enter account number"
-                                        value={bankUpdateForm.accountNumber}
-                                        onChange={e => setBankUpdateForm(p => ({ ...p, accountNumber: e.target.value }))}
-                                      />
-                                    </label>
-                                    <label>
-                                      IFSC Code <span className="pay-req">*</span>
-                                      <input
-                                        id="bank-ifsc-input"
-                                        type="text"
-                                        placeholder="e.g. HDFC0001234"
-                                        value={bankUpdateForm.ifscCode}
-                                        onChange={e => setBankUpdateForm(p => ({ ...p, ifscCode: e.target.value.toUpperCase() }))}
-                                      />
-                                    </label>
-                                    <label>
-                                      Account Holder Name <span className="pay-req">*</span>
-                                      <input
-                                        id="bank-holder-input"
-                                        type="text"
-                                        placeholder="Name as on bank account"
-                                        value={bankUpdateForm.accountHolderName}
-                                        onChange={e => setBankUpdateForm(p => ({ ...p, accountHolderName: e.target.value }))}
-                                      />
-                                    </label>
-                                    <label className="pay-form-full">
-                                      Reason for Update <span className="pay-req">*</span>
-                                      <textarea
-                                        id="bank-reason-input"
-                                        rows={3}
-                                        placeholder="Provide reason for bank account change"
-                                        value={bankUpdateForm.reason}
-                                        onChange={e => setBankUpdateForm(p => ({ ...p, reason: e.target.value }))}
-                                      />
-                                    </label>
-                                  </div>
+                                  <BankDetailsFormFields
+                                    countryCode={employmentCountryCode}
+                                    form={bankUpdateForm}
+                                    onChange={(updates) => setBankUpdateForm((prev) => ({ ...prev, ...updates }))}
+                                    variant="pay"
+                                  />
 
                                   {bankUpdateError && <p className="pay-form-error">{bankUpdateError}</p>}
                                   {bankUpdateSuccess && <p className="pay-form-success">{bankUpdateSuccess}</p>}
@@ -8073,15 +8096,14 @@ export function EmployeePortalFlow({
                                       id="submit-bank-update-btn"
                                       onClick={() => {
                                         setBankUpdateError('')
-                                        const { bankName, accountNumber, ifscCode, accountHolderName, reason } = bankUpdateForm
-                                        if (!bankName.trim()) { setBankUpdateError('Bank name is required.'); return }
-                                        if (!accountNumber.trim() || accountNumber.trim().length < 9) { setBankUpdateError('Please enter a valid account number (min 9 digits).'); return }
-                                        if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifscCode.trim())) { setBankUpdateError('IFSC Code must be in format: 4 letters, 0, 6 alphanumeric (e.g. HDFC0001234).'); return }
-                                        if (!accountHolderName.trim()) { setBankUpdateError('Account holder name is required.'); return }
-                                        if (!reason.trim() || reason.trim().length < 10) { setBankUpdateError('Please provide a reason (min 10 characters).'); return }
+                                        const validationError = validateBankForm(bankUpdateForm, employmentCountryCode)
+                                        if (validationError) {
+                                          setBankUpdateError(validationError)
+                                          return
+                                        }
                                         setBankUpdateRequestSent(true)
                                         setBankUpdateModalOpen(false)
-                                        setBankUpdateForm({ bankName: '', accountNumber: '', ifscCode: '', accountHolderName: '', reason: '' })
+                                        setBankUpdateForm(EMPTY_BANK_FORM)
                                       }}
                                     >
                                       Submit Request
@@ -8225,8 +8247,8 @@ export function EmployeePortalFlow({
                                   <button type="button" className="doc-quick-btn" onClick={() => setActiveDocTab('Payroll Documents')}>
                                     <div className="doc-quick-icon green">💵</div>
                                     <div className="doc-quick-text">
-                                      <strong>Download Latest Payslip</strong>
-                                      <span>June 2025</span>
+                                      <strong>View Payroll Documents</strong>
+                                      <span>Salary certificates & more</span>
                                     </div>
                                   </button>
                                   {/* <button type="button" className="doc-quick-btn" onClick={() => setActiveDocTab('Tax Documents')}>
@@ -9113,35 +9135,25 @@ export function EmployeePortalFlow({
                             <div className="profile-personal-grid">
                               {/* Salary Account */}
                               <div className="profile-card profile-personal-info-card">
-                                <h3>Salary Account</h3>
+                                <h3>Salary Account ({getCountryLabel(employmentCountryCode)})</h3>
                                 <div className="contact-details-grid" style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '20px', alignItems: 'center' }}>
                                   <div style={{ background: 'rgba(90, 125, 255, 0.1)', padding: '16px', borderRadius: '12px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                                     <span style={{ fontSize: '48px' }}>🏦</span>
                                   </div>
                                   <div className="contact-details-grid">
-                                    <div className="contact-column">
-                                      <div className="contact-field">
-                                        <span className="label">Bank Name</span>
-                                        <div className="value-with-badge">
-                                          <span className="value">{bankDetails.bankName}</span>
-                                          <span className="verified-badge">Verified</span>
-                                        </div>
+                                    {getBankDisplayFields(employmentCountryCode, bankDetails).map((row) => (
+                                      <div key={row.label} className="contact-field">
+                                        <span className="label">{row.label}</span>
+                                        {row.label === 'Bank Name' ? (
+                                          <div className="value-with-badge">
+                                            <span className="value">{row.value}</span>
+                                            <span className="verified-badge">Verified</span>
+                                          </div>
+                                        ) : (
+                                          <span className="value">{row.value}</span>
+                                        )}
                                       </div>
-                                      <div className="contact-field">
-                                        <span className="label">Account Number</span>
-                                        <span className="value">{bankDetails.accountNumber}</span>
-                                      </div>
-                                    </div>
-                                    <div className="contact-column">
-                                      <div className="contact-field">
-                                        <span className="label">IFSC Code</span>
-                                        <span className="value">{bankDetails.ifscCode}</span>
-                                      </div>
-                                      <div className="contact-field">
-                                        <span className="label">Account Holder Name</span>
-                                        <span className="value">{bankDetails.accountHolderName}</span>
-                                      </div>
-                                    </div>
+                                    ))}
                                   </div>
                                 </div>
                               </div>
@@ -9822,58 +9834,12 @@ export function EmployeePortalFlow({
                               <h3>Request Bank Account Change</h3>
                               <p style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '4px' }}>Provide updated bank account credentials.</p>
                               {bankChangeError && <p className="submit-error" style={{ margin: '10px 0' }}>{bankChangeError}</p>}
-                              <div className="leave-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px', marginTop: '16px' }}>
-                                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                                  Bank Name
-                                  <input
-                                    type="text"
-                                    value={bankChangeForm.bankName}
-                                    onChange={(e) => setBankChangeForm({ ...bankChangeForm, bankName: e.target.value })}
-                                    placeholder="e.g. HDFC Bank"
-                                    className="modal-field"
-                                  />
-                                </label>
-                                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                                  Account Number
-                                  <input
-                                    type="text"
-                                    value={bankChangeForm.accountNumber}
-                                    onChange={(e) => setBankChangeForm({ ...bankChangeForm, accountNumber: e.target.value })}
-                                    placeholder="Enter account number"
-                                    className="modal-field"
-                                  />
-                                </label>
-                                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                                  IFSC Code
-                                  <input
-                                    type="text"
-                                    value={bankChangeForm.ifscCode}
-                                    onChange={(e) => setBankChangeForm({ ...bankChangeForm, ifscCode: e.target.value })}
-                                    placeholder="Enter IFSC code"
-                                    className="modal-field"
-                                  />
-                                </label>
-                                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                                  Account Holder Name
-                                  <input
-                                    type="text"
-                                    value={bankChangeForm.accountHolderName}
-                                    onChange={(e) => setBankChangeForm({ ...bankChangeForm, accountHolderName: e.target.value })}
-                                    placeholder="John Doe"
-                                    className="modal-field"
-                                  />
-                                </label>
-                                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                                  Reason for Update
-                                  <textarea
-                                    rows={3}
-                                    value={bankChangeForm.reason}
-                                    onChange={(e) => setBankChangeForm({ ...bankChangeForm, reason: e.target.value })}
-                                    placeholder="Why are you updating your bank details?"
-                                    className="modal-field" style={{ resize: 'none' }}
-                                  />
-                                </label>
-                              </div>
+                              <BankDetailsFormFields
+                                countryCode={employmentCountryCode}
+                                form={bankChangeForm}
+                                onChange={(updates) => setBankChangeForm((prev) => ({ ...prev, ...updates }))}
+                                variant="profile"
+                              />
                               {bankChangeSuccess && (
                                 <p style={{ color: '#4ade80', background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: '6px', padding: '8px 12px', marginTop: '12px', fontSize: '13px' }}>
                                   ✓ Bank change request submitted! Closing…

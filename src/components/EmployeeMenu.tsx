@@ -40,7 +40,7 @@ export function EmployeeMenu({
       onLoginStateChange?.(true)
       onUserTypeChange?.(savedUserType)
     }
-  }, [])
+  }, [onLoginStateChange, onUserTypeChange])
 
   const handleLogin = (type: UserType) => {
     setUserType(type)
