@@ -453,21 +453,24 @@ const clientStatusPillClass: Record<ClientEmployeeStatus, string> = {
   'Onboarding in Progress': 'onboarding',
 }
 
-const clientDashboardPayPeriods = [
-  { value: '2025-07', label: 'July 2025' },
-  { value: '2025-06', label: 'June 2025' },
-  { value: '2025-05', label: 'May 2025' },
-  { value: '2025-04', label: 'April 2025' },
-] as const
+const currentYear = new Date().getFullYear()
 
-type ClientDashboardPayPeriod = (typeof clientDashboardPayPeriods)[number]['value']
+const clientDashboardPayPeriods = [
+  { value: `${currentYear}-07`, label: `July ${currentYear}` },
+  { value: `${currentYear}-06`, label: `June ${currentYear}` },
+  { value: `${currentYear}-05`, label: `May ${currentYear}` },
+  { value: `${currentYear}-04`, label: `April ${currentYear}` },
+]
+
+type ClientDashboardPayPeriod = string
 
 function getClientEmployeeGrossUsd(employeeId: string, payPeriod: ClientDashboardPayPeriod): number {
   const emp = adminEmployeesSeed.find((e) => e.id === employeeId)
   if (!emp) return 0
-  if (payPeriod === '2025-07') return emp.currGross
-  if (payPeriod === '2025-06') return emp.prevGross
-  if (payPeriod === '2025-05') return Math.round(emp.prevGross * 0.98)
+  const cYear = new Date().getFullYear()
+  if (payPeriod === `${cYear}-07`) return emp.currGross
+  if (payPeriod === `${cYear}-06`) return emp.prevGross
+  if (payPeriod === `${cYear}-05`) return Math.round(emp.prevGross * 0.98)
   return Math.round(emp.prevGross * 0.96)
 }
 
@@ -674,7 +677,7 @@ const profilePreferencesSeed: ProfilePreferences = {
 
 
 const formatCurrency = (amount: number) =>
-  `₹ ${amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`
+  `$ ${amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`
 
 const maskAccountNumber = (num: string) => num
 
@@ -1592,7 +1595,7 @@ export function EmployeePortalFlow({
   // Client Portal States
 
   const [clientPayGroupFilter, setClientPayGroupFilter] = useState<'Monthly' | 'Weekly' | 'Bi-Weekly' | 'Semi-Monthly'>('Monthly')
-  const [clientDashboardPayPeriod, setClientDashboardPayPeriod] = useState<ClientDashboardPayPeriod>('2025-07')
+  const [clientDashboardPayPeriod, setClientDashboardPayPeriod] = useState<ClientDashboardPayPeriod>(`${new Date().getFullYear()}-07`)
   const [offcyclePaymentsList, setOffcyclePaymentsList] = useState<ClientOffcyclePayment[]>(clientOffcyclesSeed)
   const [portalAccessLogs] = useState<PortalAccessLog[]>(portalAccessLogsSeed)
   const [isPeriodLocked, setIsPeriodLocked] = useState(false)
@@ -1600,6 +1603,8 @@ export function EmployeePortalFlow({
   const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<Set<string>>(new Set())
   const [showApproveConfirmModal, setShowApproveConfirmModal] = useState(false)
   const [isBulkUploading, setIsBulkUploading] = useState(false)
+  const [payrollEditCounts, setPayrollEditCounts] = useState<Record<string, number>>({})
+  const [showSavePayrollConfirmModal, setShowSavePayrollConfirmModal] = useState(false)
 
   // Alert Modal Dismissal States
   const [dismissedAllApproved, setDismissedAllApproved] = useState(false)
@@ -3215,7 +3220,7 @@ export function EmployeePortalFlow({
             </div>
             <div class="meta-item">
               <span class="meta-label">Currency:</span>
-              <span class="meta-value">INR (₹)</span>
+              <span class="meta-value">USD ($)</span>
             </div>
           </div>
         </div>
@@ -3232,19 +3237,19 @@ export function EmployeePortalFlow({
               <tbody>
                 <tr>
                   <td>Basic Salary</td>
-                  <td class="amount-col">₹ ${basic.toLocaleString('en-IN')}</td>
+                  <td class="amount-col">$ ${basic.toLocaleString('en-US')}</td>
                 </tr>
                 <tr>
                   <td>House Rent Allowance (HRA)</td>
-                  <td class="amount-col">₹ ${hra.toLocaleString('en-IN')}</td>
+                  <td class="amount-col">$ ${hra.toLocaleString('en-US')}</td>
                 </tr>
                 <tr>
                   <td>Special Allowance</td>
-                  <td class="amount-col">₹ ${splAllowance.toLocaleString('en-IN')}</td>
+                  <td class="amount-col">$ ${splAllowance.toLocaleString('en-US')}</td>
                 </tr>
                 <tr class="total-row">
                   <td>Total Gross Earnings</td>
-                  <td class="amount-col">₹ ${ps.grossSalary.toLocaleString('en-IN')}</td>
+                  <td class="amount-col">$ ${ps.grossSalary.toLocaleString('en-US')}</td>
                 </tr>
               </tbody>
             </table>
@@ -3260,19 +3265,19 @@ export function EmployeePortalFlow({
               <tbody>
                 <tr>
                   <td>Provident Fund (PF)</td>
-                  <td class="amount-col">₹ ${pf.toLocaleString('en-IN')}</td>
+                  <td class="amount-col">$ ${pf.toLocaleString('en-US')}</td>
                 </tr>
                 <tr>
                   <td>Professional Tax (PT)</td>
-                  <td class="amount-col">₹ ${pt.toLocaleString('en-IN')}</td>
+                  <td class="amount-col">$ ${pt.toLocaleString('en-US')}</td>
                 </tr>
                 <tr>
                   <td>Income Tax (TDS)</td>
-                  <td class="amount-col">₹ ${tds.toLocaleString('en-IN')}</td>
+                  <td class="amount-col">$ ${tds.toLocaleString('en-US')}</td>
                 </tr>
                 <tr class="total-row">
                   <td>Total Deductions</td>
-                  <td class="amount-col">₹ ${finalTotalDeductions.toLocaleString('en-IN')}</td>
+                  <td class="amount-col">$ ${finalTotalDeductions.toLocaleString('en-US')}</td>
                 </tr>
               </tbody>
             </table>
@@ -3281,7 +3286,7 @@ export function EmployeePortalFlow({
 
         <div class="net-pay-section">
           <span class="net-pay-title">Net Salary Paid (Take Home)</span>
-          <span class="net-pay-amount">₹ ${ps.netSalary.toLocaleString('en-IN')}</span>
+          <span class="net-pay-amount">$ ${ps.netSalary.toLocaleString('en-US')}</span>
         </div>
 
         <div class="footer-note">
@@ -3938,7 +3943,7 @@ export function EmployeePortalFlow({
   }, [adminEmployees, reconcileClientFilter])
 
   const handleExportCSV = () => {
-    let csv = 'Dimension / Name,Previous Gross (INR),Current Gross (INR),Difference (INR),Variance (%)\n'
+    let csv = 'Dimension / Name,Previous Gross (USD),Current Gross (USD),Difference (USD),Variance (%)\n'
     reconciliationData.forEach((row) => {
       const diff = row.curr - row.prev
       const pct = row.prev > 0 ? ((diff / row.prev) * 100).toFixed(2) : '0.00'
@@ -4160,9 +4165,9 @@ export function EmployeePortalFlow({
                           <td><strong>{e.name}</strong></td>
                           <td>{e.clientName}</td>
                           <td>{e.paymentMode}</td>
-                          <td className="num">₹ {e.currGross.toLocaleString('en-IN')}</td>
-                          <td className="num">₹ {bonus.toLocaleString('en-IN')}</td>
-                          <td className="num"><strong>₹ {(e.currGross + bonus).toLocaleString('en-IN')}</strong></td>
+                          <td className="num">$ {e.currGross.toLocaleString('en-US')}</td>
+                          <td className="num">$ {bonus.toLocaleString('en-US')}</td>
+                          <td className="num"><strong>$ {(e.currGross + bonus).toLocaleString('en-US')}</strong></td>
                         </tr>
                       )
                     })}
@@ -4189,9 +4194,9 @@ export function EmployeePortalFlow({
                       return (
                         <tr key={idx}>
                           <td><strong>{r.name}</strong></td>
-                          <td className="num">₹ {r.prev.toLocaleString('en-IN')}</td>
-                          <td className="num">₹ {r.curr.toLocaleString('en-IN')}</td>
-                          <td className={`num ${rowClass}`}>{diff > 0 ? '+' : ''}₹ {diff.toLocaleString('en-IN')}</td>
+                          <td className="num">$ {r.prev.toLocaleString('en-US')}</td>
+                          <td className="num">$ {r.curr.toLocaleString('en-US')}</td>
+                          <td className={`num ${rowClass}`}>{diff > 0 ? '+' : ''}$ {diff.toLocaleString('en-US')}</td>
                           <td className={`num ${rowClass}`}>{pct.toFixed(2)}%</td>
                         </tr>
                       )
@@ -4245,6 +4250,51 @@ export function EmployeePortalFlow({
     }
 
     const handleSavePayrollConfig = () => {
+      for (const row of payrollConfigRows) {
+        if (row.hours < 0) {
+          setAlertModal({
+            type: 'error',
+            title: 'Validation Error',
+            message: `Hours for ${row.employeeName} cannot be negative.`
+          })
+          return
+        }
+        if (row.fullSalary < 0) {
+          setAlertModal({
+            type: 'error',
+            title: 'Validation Error',
+            message: `Full Salary for ${row.employeeName} cannot be negative.`
+          })
+          return
+        }
+      }
+
+      const currentPeriod = clientDashboardPayPeriod
+      const currentCount = payrollEditCounts[currentPeriod] || 0
+
+      if (currentCount >= 2) {
+        setAlertModal({
+          type: 'error',
+          title: 'Limit Reached',
+          message: `You have already reached the limit of 2 modifications for the pay period ${currentPeriod}.`
+        })
+        return
+      }
+
+      setShowSavePayrollConfirmModal(true)
+    }
+
+    const handleConfirmSavePayrollConfig = () => {
+      setShowSavePayrollConfirmModal(false)
+
+      const currentPeriod = clientDashboardPayPeriod
+      const currentCount = payrollEditCounts[currentPeriod] || 0
+
+      setPayrollEditCounts(prev => ({
+        ...prev,
+        [currentPeriod]: currentCount + 1
+      }))
+
       // Sync with adminEmployees state for matching REG salaries
       setAdminEmployees((prevEmps) =>
         prevEmps.map((emp) => {
@@ -4259,40 +4309,76 @@ export function EmployeePortalFlow({
     }
 
     const handleDownloadTimesheetTemplate = () => {
+      const metaRows = [
+        ["Payment Amount Less", "0", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+        ["Expense Payee Type", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+        ["Is Intercompany", "No", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+        ["Is Direct Intercompany", "No", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+        ["Companies Receiving Payment", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+        ["Periods", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+        ["Pay Run Groups and/or Pay Group Details", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+        ["Reconciliation Status", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]
+      ];
+
       const headers = [
-        "Employee ID",
-        "Employee Name",
-        "Rate Code",
-        "Hours",
-        "Full Salary"
+        "Payment",
+        "Payment Category",
+        "Company",
+        "Status",
+        "Payee / Payor",
+        "Transaction Date",
+        "Bank Account",
+        "Payment Type",
+        "Payment Group",
+        "Transaction Reference",
+        "Payment Amount",
+        "Currency",
+        "Reconciliation Status",
+        "Period",
+        "Pay Group",
+        "Cancel Payment Date"
       ];
 
-      const sample = [
-        "EMP001",
-        "John Doe",
-        "REG",
-        "160",
-        "50000"
-      ];
+      const currentDate = new Date().toLocaleDateString('en-US');
+      const currentYear = new Date().getFullYear();
 
-      const csv = [headers, sample]
-        .map(r => r.join(","))
+      const dataRows = payrollConfigRows.map((row) => {
+        return [
+          `Payroll Payment: ${row.employeeName} - ${currentYear}-07-02`,
+          "Payroll On-Cycle Payment",
+          "Stark Industries Inc",
+          "Complete",
+          row.employeeName,
+          currentDate,
+          "Stark Pay Bank Account",
+          "Direct Deposit",
+          `Payroll On-Cycle Payment (Direct Deposit) for Stark Pay Bank Account`,
+          row.employeeId,
+          row.fullSalary.toString(),
+          "USD",
+          "Unreconciled",
+          `06/01/${currentYear} - 06/15/${currentYear}`,
+          "US Biweekly",
+          ""
+        ];
+      });
+
+      const csvContent = [
+        ...metaRows,
+        headers,
+        ...dataRows
+      ]
+        .map(row => row.map(val => `"${val.replace(/"/g, '""')}"`).join(","))
         .join("\n");
 
-      const blob = new Blob([csv], { type: "text/csv" });
-
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
-
-      console.log(url); // <-- Tell me what this prints
-
       const a = document.createElement("a");
       a.href = url;
-      a.download = "test.csv";
-
+      a.download = "payroll_eib_template.csv";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-
       URL.revokeObjectURL(url);
     };
 
@@ -4316,22 +4402,79 @@ export function EmployeePortalFlow({
           setTimeout(() => {
             setIsBulkUploading(false)
             const lines = text.split('\n').map(line => line.trim()).filter(Boolean)
-            if (lines.length <= 1) {
-              showToast('CSV file is empty or has no data rows.')
+            if (lines.length === 0) {
+              showToast('CSV file is empty.')
               return
             }
 
             const newRows: PayrollConfigRow[] = []
-            for (let i = 1; i < lines.length; i++) {
-              const parts = lines[i].split(',').map(part => part.replace(/^"|"$/g, '').trim())
-              if (parts.length >= 5) {
-                newRows.push({
-                  employeeId: parts[0],
-                  employeeName: parts[1],
-                  rateCode: parts[2],
-                  hours: parseFloat(parts[3]) || 0,
-                  fullSalary: parseFloat(parts[4]) || 0
-                })
+
+            // Check if it's the Workday EIB sheet format
+            const isEibFormat = lines[0].includes('Payment Amount Less') || lines.some(l => l.includes('Reconciliation Status') && l.includes('Payee / Payor'))
+
+            if (isEibFormat) {
+              let headerIndex = -1
+              for (let i = 0; i < lines.length; i++) {
+                if (lines[i].includes('Payee / Payor') && lines[i].includes('Payment Amount')) {
+                  headerIndex = i
+                  break
+                }
+              }
+
+              if (headerIndex === -1) {
+                showToast('Failed to find header row in EIB template.')
+                return
+              }
+
+              for (let i = headerIndex + 1; i < lines.length; i++) {
+                const parts: string[] = []
+                let currentPart = ''
+                let inQuotes = false
+                const line = lines[i]
+                for (let j = 0; j < line.length; j++) {
+                  const char = line[j]
+                  if (char === '"') {
+                    inQuotes = !inQuotes
+                  } else if (char === ',' && !inQuotes) {
+                    parts.push(currentPart.trim())
+                    currentPart = ''
+                  } else {
+                    currentPart += char
+                  }
+                }
+                parts.push(currentPart.trim())
+
+                const cleanParts = parts.map(p => p.replace(/^"|"$/g, '').trim())
+
+                if (cleanParts.length >= 15) {
+                  const employeeId = cleanParts[9]
+                  const employeeName = cleanParts[4]
+                  const fullSalary = parseFloat(cleanParts[10]) || 0
+                  const payGroup = cleanParts[14]
+
+                  if (employeeId && employeeName) {
+                    newRows.push({
+                      employeeId,
+                      employeeName,
+                      rateCode: payGroup === 'US Biweekly' ? 'REG' : 'REG',
+                      hours: 160,
+                      fullSalary
+                    })
+                  }
+                }
+              }
+            } else {
+              for (let i = 1; i < lines.length; i++) {
+                const parts = lines[i].split(',').map(part => part.replace(/^"|"$/g, '').trim())
+                if (parts.length >= 5) {
+                  newRows.push({
+                    employeeId: parts[0],
+                    employeeName: parts[1],
+                    rateCode: parts[2],
+                    hours: parseFloat(parts[3]) || 0,
+                    fullSalary: parseFloat(parts[4]) || 0
+                  })
+                }
               }
             }
 
@@ -4339,7 +4482,7 @@ export function EmployeePortalFlow({
               setPayrollConfigRows(newRows)
               showToast(`Successfully parsed and loaded ${newRows.length} configurations in the table!`)
             } else {
-              showToast('Failed to parse columns. Make sure CSV matches template format.')
+              showToast('Failed to parse columns. Make sure CSV matches the template format.')
             }
           }, 1000)
         }
@@ -4349,12 +4492,55 @@ export function EmployeePortalFlow({
 
     return (
       <div className="dash-shell">
-        <div className="dash-welcome-row">
+        {showSavePayrollConfirmModal && (
+          <div className="time-modal-backdrop" role="presentation" onClick={() => setShowSavePayrollConfirmModal(false)}>
+            <div className="modal-caution-box" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <span style={{ fontSize: '2.2rem', lineHeight: 1 }}>⚠️</span>
+                <div>
+                  <h2>Confirm Salary Modification</h2>
+                  <p className="modal-caution-sub">This action has a limited frequency</p>
+                </div>
+              </div>
+              <div className="modal-caution-content">
+                You are about to modify the salary records for this pay period. 
+                Please note that <strong style={{ color: '#f39c12' }}>only twice</strong> can edits be performed per pay period.
+              </div>
+              <p className="modal-caution-footer">Are you sure you want to save/modify salary records?</p>
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                <button type="button" className="btn" onClick={() => setShowSavePayrollConfirmModal(false)}>
+                  Cancel
+                </button>
+                <button type="button" className="btn btn-primary" onClick={handleConfirmSavePayrollConfig}
+                  style={{ background: 'linear-gradient(135deg,#f39c12,#e67e22)', border: 'none', fontWeight: 700 }}>
+                  ✓ Yes, Save
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        <div className="dash-welcome-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <h1 className="dash-welcome-title">Payroll Control Center Configurator ⚙️</h1>
             <p className="dash-welcome-sub">Configure hourly rates, adjust employee salaries, or run timesheet uploads.</p>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div className="pay-period-select-wrap" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <label htmlFor="payroll-control-period-select" style={{ fontSize: '12px', fontWeight: '500', color: 'var(--muted)' }}>Pay Period:</label>
+              <select
+                id="payroll-control-period-select"
+                className="modal-field"
+                style={{ width: '130px', padding: '6px 10px', fontSize: '12px' }}
+                value={clientDashboardPayPeriod}
+                onChange={(e) => setClientDashboardPayPeriod(e.target.value as ClientDashboardPayPeriod)}
+              >
+                {clientDashboardPayPeriods.map((p) => (
+                  <option key={p.value} value={p.value}>
+                    {p.label}
+                  </option>
+                ))}
+              </select>
+            </div>
             {isBulkUploading ? (
               <span style={{ fontSize: '12px', color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span className="preview-pulse-dot" style={{ width: '6px', height: '6px', margin: 0 }}></span> Parsing sheet...
@@ -4367,7 +4553,7 @@ export function EmployeePortalFlow({
                   onClick={handleDownloadTimesheetTemplate}
                   style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', padding: '8px 12px' }}
                 >
-                  📥 Download CSV Template
+                  📥 Download EIB Format
                 </button>
                 <div style={{ position: 'relative', overflow: 'hidden', display: 'inline-block' }}>
                   <button
@@ -4375,7 +4561,7 @@ export function EmployeePortalFlow({
                     className="btn btn-secondary btn-sm"
                     style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', padding: '8px 12px' }}
                   >
-                    📤 Upload CSV Timesheet
+                    📤 Upload Time Entry for Employees
                   </button>
                   <input
                     type="file"
@@ -4393,10 +4579,56 @@ export function EmployeePortalFlow({
 
           {/* Unified Payroll Area Configurator Table Card */}
           <div className="configurator-table-card">
-            <h3 className="dash-card-title">Salary & Hourly Code Configurator</h3>
-            <p style={{ fontSize: '12px', color: 'var(--muted)', margin: '4px 0 15px' }}>
-              Set hours, salary, and calculate hourly rates per employee and code.
-            </p>
+            {(() => {
+              const handleExportConfiguratorExcel = () => {
+                const headers = ['Employee ID', 'Employee Name', 'Rate Code', 'Hours', 'Full Salary (USD)', 'Salary Per Hour (USD)']
+                const rows = payrollConfigRows.map((row) => {
+                  const salaryPerHour = row.hours > 0 ? (row.fullSalary / row.hours) : 0
+                  return [
+                    row.employeeId,
+                    row.employeeName,
+                    row.rateCode,
+                    row.hours.toString(),
+                    row.fullSalary.toString(),
+                    salaryPerHour.toFixed(2)
+                  ]
+                })
+
+                const csvContent = [
+                  headers.join(','),
+                  ...rows.map(row => row.map(val => `"${val.replace(/"/g, '""')}"`).join(','))
+                ].join('\n')
+
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+                const url = URL.createObjectURL(blob)
+                const link = document.createElement('a')
+                link.setAttribute('href', url)
+                link.setAttribute('download', 'payroll_code_configurator.csv')
+                link.style.visibility = 'hidden'
+                document.body.appendChild(link)
+                link.click()
+                document.body.removeChild(link)
+              }
+
+              return (
+                <div className="dash-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <h3 className="dash-card-title" style={{ margin: 0 }}>Salary & Hourly Code Configurator</h3>
+                    <p style={{ fontSize: '12px', color: 'var(--muted)', margin: '4px 0 0' }}>
+                      Set hours, salary, and calculate hourly rates per employee and code.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={handleExportConfiguratorExcel}
+                    style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', padding: '6px 12px', background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text)', cursor: 'pointer', borderRadius: '6px' }}
+                  >
+                    📥 Export Data
+                  </button>
+                </div>
+              )
+            })()}
 
             <div style={{ maxHeight: '420px', overflowY: 'auto', border: '1px solid var(--line)', borderRadius: '6px' }}>
               <table className="configurator-table">
@@ -4405,7 +4637,7 @@ export function EmployeePortalFlow({
                     <th>Employee / Group</th>
                     <th>Rate Code</th>
                     <th style={{ width: '100px' }}>Hours</th>
-                    <th style={{ width: '160px' }}>Full Salary (INR)</th>
+                    <th style={{ width: '160px' }}>Full Salary (USD)</th>
                     <th style={{ width: '160px', textAlign: 'right' }}>Salary Per Hours</th>
                   </tr>
                 </thead>
@@ -4451,7 +4683,7 @@ export function EmployeePortalFlow({
                           />
                         </td>
                         <td style={{ textAlign: 'right', fontWeight: 'bold', color: 'var(--primary)' }}>
-                          ₹{salaryPerHour.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          ${salaryPerHour.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </td>
                       </tr>
                     )
@@ -4467,7 +4699,7 @@ export function EmployeePortalFlow({
               disabled={isPeriodLocked}
               style={{ width: 'fit-content', marginTop: '15px' }}
             >
-              Save Configuration Settings
+              Save/Modify Salary Records
             </button>
           </div>
 
@@ -4682,7 +4914,7 @@ export function EmployeePortalFlow({
                       <td>8 hours</td>
                       <td className="num" style={{ fontWeight: 600, color: bonus > 0 ? '#2ecc71' : 'var(--muted)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px' }}>
-                          <span>₹ {bonus.toLocaleString('en-IN')}</span>
+                          <span>$ {bonus.toLocaleString('en-US')}</span>
                           {bonus > 0 && (
                             <span
                               title="View Bonus Details"
@@ -4763,7 +4995,7 @@ export function EmployeePortalFlow({
         amount: '',
         remarks: ''
       })
-      showToast(`Added ₹${amt.toLocaleString('en-IN')} offcycle pay to ${targetEmp.name}.`)
+      showToast(`Added $${amt.toLocaleString('en-US')} offcycle pay to ${targetEmp.name}.`)
     }
 
     const handleRemoveOffcycle = (id: string) => {
@@ -4792,7 +5024,7 @@ export function EmployeePortalFlow({
                   <th>Employee Name</th>
                   <th>Entity Client</th>
                   <th>Payment Type Code</th>
-                  <th className="num">Amount (INR)</th>
+                  <th className="num">Amount (USD)</th>
                   <th>Date Logged</th>
                   <th>Remarks</th>
                   {!isPeriodLocked && <th className="num">Actions</th>}
@@ -4804,7 +5036,7 @@ export function EmployeePortalFlow({
                     <td><strong>{pay.employeeName}</strong> <br /><small style={{ color: 'var(--muted)' }}><code>{pay.employeeId}</code></small></td>
                     <td>{pay.clientName}</td>
                     <td><span className="badge done">{pay.code}</span></td>
-                    <td className="num" style={{ color: 'var(--primary)', fontWeight: 'bold' }}>₹ {pay.amount.toLocaleString('en-IN')}</td>
+                    <td className="num" style={{ color: 'var(--primary)', fontWeight: 'bold' }}>$ {pay.amount.toLocaleString('en-US')}</td>
                     <td>{pay.date}</td>
                     <td>{pay.remarks}</td>
                     {!isPeriodLocked && (
@@ -4870,12 +5102,12 @@ export function EmployeePortalFlow({
                 </div>
 
                 <div className="field">
-                  <label>Payment Amount (INR)</label>
+                  <label>Payment Amount (USD)</label>
                   <input
                     type="number"
                     className="btn"
                     style={{ width: '100%', padding: '8px 12px', background: 'var(--surface)', color: 'var(--ink)', border: '1px solid var(--line)', textAlign: 'left', cursor: 'text' }}
-                    placeholder="Enter amount in INR"
+                    placeholder="Enter amount in USD"
                     required
                     value={offcycleForm.amount}
                     onChange={(e) => setOffcycleForm(prev => ({ ...prev, amount: e.target.value }))}
@@ -5073,9 +5305,9 @@ export function EmployeePortalFlow({
                     )}
                   </th>
                   <th>Employee Name</th>
-                  <th className="num">June volume (INR)</th>
-                  <th className="num">Offcycle Bonus (INR)</th>
-                  <th className="num">July Total volume (INR)</th>
+                  <th className="num">June volume (USD)</th>
+                  <th className="num">Offcycle Bonus (USD)</th>
+                  <th className="num">July Total volume (USD)</th>
                   <th className="num">Variance Amt</th>
                   <th className="num">Variance %</th>
                 </tr>
@@ -5114,10 +5346,10 @@ export function EmployeePortalFlow({
                         )}
                       </td>
                       <td><strong>{e.name}</strong></td>
-                      <td className="num">₹ {e.prevGross.toLocaleString('en-IN')}</td>
+                      <td className="num">$ {e.prevGross.toLocaleString('en-US')}</td>
                       <td className="num" style={{ color: bonus > 0 ? '#2ecc71' : 'var(--muted)', fontWeight: 600 }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px' }}>
-                          <span>₹ {bonus.toLocaleString('en-IN')}</span>
+                          <span>$ {bonus.toLocaleString('en-US')}</span>
                           {bonus > 0 && (
                             <span
                               title="View Bonus Details"
@@ -5143,8 +5375,8 @@ export function EmployeePortalFlow({
                           )}
                         </div>
                       </td>
-                      <td className="num" style={{ fontWeight: 700 }}>₹ {julyTotal.toLocaleString('en-IN')}</td>
-                      <td className={`num ${rowClass}`}>{diff > 0 ? '+' : ''}₹ {diff.toLocaleString('en-IN')}</td>
+                      <td className="num" style={{ fontWeight: 700 }}>$ {julyTotal.toLocaleString('en-US')}</td>
+                      <td className={`num ${rowClass}`}>{diff > 0 ? '+' : ''}$ {diff.toLocaleString('en-US')}</td>
                       <td className={`num ${rowClass}`}>{pct.toFixed(2)}%</td>
                     </tr>
                   )
@@ -5535,7 +5767,7 @@ export function EmployeePortalFlow({
                   <div key={p.id || idx} style={{ border: '1px solid var(--line)', borderRadius: '8px', padding: '12px', background: 'rgba(255,255,255,0.02)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600, color: 'var(--ink)' }}>
                       <span>{p.code}</span>
-                      <span style={{ color: '#2ecc71' }}>₹ {p.amount.toLocaleString('en-IN')}</span>
+                      <span style={{ color: '#2ecc71' }}>$ {p.amount.toLocaleString('en-US')}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--muted)', marginTop: '6px' }}>
                       <span>Remarks: {p.remarks}</span>
@@ -5576,15 +5808,15 @@ export function EmployeePortalFlow({
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
                       <span style={{ color: 'var(--muted)' }}>Regular Gross Pay:</span>
-                      <strong style={{ color: 'var(--ink)' }}>₹ {regularGross.toLocaleString('en-IN')}</strong>
+                      <strong style={{ color: 'var(--ink)' }}>$ {regularGross.toLocaleString('en-US')}</strong>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
                       <span style={{ color: 'var(--muted)' }}>Special / Offcycle Payments:</span>
-                      <strong style={{ color: 'var(--ink)' }}>₹ {offcycleBonus.toLocaleString('en-IN')}</strong>
+                      <strong style={{ color: 'var(--ink)' }}>$ {offcycleBonus.toLocaleString('en-US')}</strong>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', borderTop: '1px solid var(--line)', paddingTop: '6px', marginTop: '4px' }}>
                       <span style={{ color: 'var(--muted)', fontWeight: 600 }}>Grand Payroll Total:</span>
-                      <strong style={{ color: '#2ecc71' }}>₹ {grandTotal.toLocaleString('en-IN')}</strong>
+                      <strong style={{ color: '#2ecc71' }}>$ {grandTotal.toLocaleString('en-US')}</strong>
                     </div>
                   </div>
                 </div>
@@ -5688,7 +5920,7 @@ export function EmployeePortalFlow({
                               <div className="dash-stat-icon dash-stat-icon--purple">💰</div>
                               <div className="dash-stat-body">
                                 <p className="dash-stat-label">July 2025 Gross Payroll</p>
-                                <p className="dash-stat-value" style={{ fontSize: '20px' }}>₹ {grossTotal.toLocaleString('en-IN')}</p>
+                                <p className="dash-stat-value" style={{ fontSize: '20px' }}>$ {grossTotal.toLocaleString('en-US')}</p>
                                 <p className="dash-stat-sub">Processing Volume</p>
                               </div>
                             </div>
@@ -5698,7 +5930,7 @@ export function EmployeePortalFlow({
                               <div className="dash-stat-body">
                                 <p className="dash-stat-label">Variance</p>
                                 <p className={`dash-stat-value ${variance >= 0 ? 'increase' : 'decrease'}`} style={{ fontSize: '18px', margin: 0 }}>
-                                  {variance >= 0 ? '+' : ''}₹ {variance.toLocaleString('en-IN')}
+                                  {variance >= 0 ? '+' : ''}$ {variance.toLocaleString('en-US')}
                                 </p>
                                 <p className="dash-stat-sub" style={{ margin: 0 }}>{varPct.toFixed(2)}% vs Last Period</p>
                               </div>
@@ -5734,10 +5966,10 @@ export function EmployeePortalFlow({
                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
                                   <span style={{ color: 'var(--muted)' }}>Total Payroll Gross:</span>
                                   <strong style={{ color: '#2ecc71' }}>
-                                    ₹ {(
+                                    $ {(
                                       adminEmployees.reduce((sum, e) => sum + e.currGross, 0) +
                                       offcyclePaymentsList.reduce((sum, o) => sum + o.amount, 0)
-                                    ).toLocaleString('en-IN')}
+                                    ).toLocaleString('en-US')}
                                   </strong>
                                 </div>
                               </div>
@@ -6046,10 +6278,10 @@ export function EmployeePortalFlow({
                                             {row.clientName || 'N/A'}
                                           </span>
                                         </td>
-                                        <td className="num">₹ {row.prev.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                                        <td className="num">₹ {row.curr.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                                        <td className="num">$ {row.prev.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                                        <td className="num">$ {row.curr.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
                                         <td className={`num ${statusClass}`}>
-                                          {diff > 0 ? '+' : ''}₹ {diff.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                          {diff > 0 ? '+' : ''}$ {diff.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                                         </td>
                                         <td className={`num ${statusClass}`}>{pct.toFixed(2)}%</td>
                                         <td>
@@ -6064,12 +6296,12 @@ export function EmployeePortalFlow({
                                     <td></td>
                                     <td><strong>Grand Total:</strong></td>
                                     <td></td>
-                                    <td className="num"><strong>₹ {totalsAdmin.prev.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong></td>
-                                    <td className="num"><strong>₹ {totalsAdmin.curr.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong></td>
+                                    <td className="num"><strong>$ {totalsAdmin.prev.toLocaleString('en-US', { minimumFractionDigits: 2 })}</strong></td>
+                                    <td className="num"><strong>$ {totalsAdmin.curr.toLocaleString('en-US', { minimumFractionDigits: 2 })}</strong></td>
                                     <td className={`num ${totalsAdmin.curr - totalsAdmin.prev >= 0 ? 'increase' : 'decrease'}`}>
                                       <strong>
                                         {totalsAdmin.curr - totalsAdmin.prev >= 0 ? '+' : ''}
-                                        ₹ {(totalsAdmin.curr - totalsAdmin.prev).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                        $ {(totalsAdmin.curr - totalsAdmin.prev).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                                       </strong>
                                     </td>
                                     <td className={`num ${totalsAdmin.curr - totalsAdmin.prev >= 0 ? 'increase' : 'decrease'}`}>
@@ -6143,7 +6375,7 @@ export function EmployeePortalFlow({
                                       <td><strong>{emp.name}</strong></td>
                                       <td>{emp.clientName}</td>
                                       <td><span className="badge done">{emp.role}</span></td>
-                                      <td>₹ {emp.currGross.toLocaleString('en-IN')}</td>
+                                      <td>$ {emp.currGross.toLocaleString('en-US')}</td>
                                       <td><span className="badge done">Form 16 Generated</span></td>
                                       <td className="num">
                                         <button type="button" className="btn btn-secondary btn-sm" style={{ marginRight: '8px' }}
@@ -6188,7 +6420,7 @@ export function EmployeePortalFlow({
                                         <div key={idx} className="admin-payslip-drill-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: '1px solid var(--line-soft)' }}>
                                           <div>
                                             <div style={{ fontWeight: 'bold', fontSize: '13.5px' }}>{m}</div>
-                                            <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px' }}>Gross: ₹ {emp.currGross.toLocaleString('en-IN')}</div>
+                                            <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px' }}>Gross: $ {emp.currGross.toLocaleString('en-US')}</div>
                                           </div>
                                           <button type="button" className="btn btn-secondary btn-sm"
                                             onClick={() => {
@@ -6309,13 +6541,42 @@ export function EmployeePortalFlow({
                         </div>
                       )
                     })() : currentModule === 'client-dashboard' ? (() => {
-                      const clientPersonnel = previewRoleMode === 'client'
+                      const clientPersonnel = (previewRoleMode === 'client'
                         ? clientPersonnelSeed.filter((emp) => emp.clientName === simulatedClientName)
                         : clientPersonnelSeed.filter((emp) => emp.clientName === 'Acme Corp' || emp.clientName === 'Stark Industries')
+                      ).filter((emp) => emp.status !== 'Onboarding in Progress')
 
                       const totalGrossUsd = clientPersonnel.reduce((sum, cp) => {
                         return sum + getClientEmployeeGrossUsd(cp.id, clientDashboardPayPeriod)
                       }, 0)
+
+                      const handleExportExcel = () => {
+                        const headers = ['Employee ID', 'Name', 'Role', 'Pay Group', 'Payment Method', 'Status', 'Gross Salary (USD)']
+                        const rows = clientPersonnel.map((emp) => [
+                          emp.id,
+                          emp.name,
+                          emp.role,
+                          emp.paygroup,
+                          emp.paymentMethod,
+                          emp.status,
+                          getClientEmployeeGrossUsd(emp.id, clientDashboardPayPeriod).toString()
+                        ])
+
+                        const csvContent = [
+                          headers.join(','),
+                          ...rows.map(row => row.map(val => `"${val.replace(/"/g, '""')}"`).join(','))
+                        ].join('\n')
+
+                        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+                        const url = URL.createObjectURL(blob)
+                        const link = document.createElement('a')
+                        link.setAttribute('href', url)
+                        link.setAttribute('download', `employees_list_${clientDashboardPayPeriod}.csv`)
+                        link.style.visibility = 'hidden'
+                        document.body.appendChild(link)
+                        link.click()
+                        document.body.removeChild(link)
+                      }
 
                       return (
                         <div className="dash-shell">
@@ -6372,7 +6633,17 @@ export function EmployeePortalFlow({
                           </div>
 
                           <div className="dash-card">
-                            <h3 className="dash-card-title">Corporate Personnel Directory</h3>
+                            <div className="dash-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                              <h3 className="dash-card-title" style={{ margin: 0 }}>Employees List</h3>
+                              <button
+                                type="button"
+                                className="btn btn-secondary"
+                                onClick={handleExportExcel}
+                                style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', padding: '6px 12px', background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text)', cursor: 'pointer', borderRadius: '6px' }}
+                              >
+                                📥 Export to Excel
+                              </button>
+                            </div>
                             <div className="tbl">
                               <table>
                                 <thead>
