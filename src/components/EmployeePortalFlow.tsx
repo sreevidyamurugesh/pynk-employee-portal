@@ -5368,148 +5368,151 @@ export function EmployeePortalFlow({
           </div>
         )}
 
-        <div className="dash-welcome-row" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div className="dash-welcome-row" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {/* First Line: Title and Recalc Button */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+            <h1 className="dash-welcome-title" style={{ margin: 0 }}>Final Approval & Locking Workflows 🔒</h1>
+            
+            <button
+              type="button"
+              className="btn btn-secondary"
+              disabled={isRefreshingLock}
+              onClick={() => {
+                setIsRefreshingLock(true)
+                setTimeout(() => {
+                  setIsRefreshingLock(false)
+                  showToast('Variance analysis and off-cycle volumes recalculated!')
+                }, 600)
+              }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 14px',
+                fontSize: '0.85rem',
+                borderRadius: '50px',
+                cursor: 'pointer',
+                border: '1px solid var(--line)',
+                background: 'var(--surface)',
+                color: 'var(--ink)',
+                flexShrink: 0
+              }}
+            >
+              <span className={isRefreshingLock ? 'refresh-spin' : ''} style={{ fontSize: '0.9rem' }}>🔄</span>
+              {isRefreshingLock ? 'Recalculating...' : 'Recalc Data for Final Submission'}
+            </button>
+          </div>
+
+          {/* Second Line: Dates and Pay Group Filters */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', flexWrap: 'wrap', gap: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-              <h1 className="dash-welcome-title" style={{ margin: 0 }}>Final Approval & Locking Workflows 🔒</h1>
-              
-              {/* Date selection inline next to the title (synced layout) */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', background: 'var(--surface)', padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--line)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <label htmlFor="lock-start-date-input" style={{ fontSize: '11px', fontWeight: '600', whiteSpace: 'nowrap', color: 'var(--muted)' }}>Start:</label>
-                  <input
-                    id="lock-start-date-input"
-                    type="date"
-                    className="modal-field"
-                    style={{ width: '140px', padding: '4px 6px', fontSize: '11px', background: 'transparent', color: 'var(--text-h)', border: 'none' }}
-                    value={clientPeriodStartDate}
-                    onChange={(e) => setClientPeriodStartDate(e.target.value)}
-                  />
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <label htmlFor="lock-end-date-input" style={{ fontSize: '11px', fontWeight: '600', whiteSpace: 'nowrap', color: 'var(--muted)' }}>End:</label>
-                  <input
-                    id="lock-end-date-input"
-                    type="date"
-                    className="modal-field"
-                    style={{ width: '140px', padding: '4px 6px', fontSize: '11px', background: 'transparent', color: 'var(--text-h)', border: 'none' }}
-                    value={clientPeriodEndDate}
-                    onChange={(e) => setClientPeriodEndDate(e.target.value)}
-                  />
-                </div>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={() => {
-                    if (!clientPeriodStartDate) {
-                      setAlertModal({
-                        type: 'error',
-                        title: 'Validation Error',
-                        message: 'Please select a valid Period Start Date.'
-                      })
-                      return
-                    }
-                    if (!clientPeriodEndDate) {
-                      setAlertModal({
-                        type: 'error',
-                        title: 'Validation Error',
-                        message: 'Please select a valid Period End Date.'
-                      })
-                      return
-                    }
-                    
-                    const start = new Date(clientPeriodStartDate)
-                    const end = new Date(clientPeriodEndDate)
-                    
-                    if (end < start) {
-                      setAlertModal({
-                        type: 'error',
-                        title: 'Validation Error',
-                        message: 'Period End Date cannot be before Period Start Date.'
-                      })
-                      return
-                    }
-
-                    // Calculate date difference in days
-                    const diffTime = Math.abs(end.getTime() - start.getTime())
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1 // inclusive of start & end
-                    
-                    if (clientPayGroupFilter === 'Monthly') {
-                      if (diffDays < 28 || diffDays > 31) {
-                        setAlertModal({
-                          type: 'error',
-                          title: 'Monthly Period Validation Error',
-                          message: `A Monthly pay period must be between 28 and 31 days. Your selected range is ${diffDays} days.`
-                        })
-                        return
-                      }
-                    } else if (clientPayGroupFilter === 'Weekly') {
-                      if (diffDays !== 7) {
-                        setAlertModal({
-                          type: 'error',
-                          title: 'Weekly Period Validation Error',
-                          message: `A Weekly pay period must be exactly 7 days. Your selected range is ${diffDays} days.`
-                        })
-                        return
-                      }
-                    } else if (clientPayGroupFilter === 'Bi-Weekly') {
-                      if (diffDays !== 14) {
-                        setAlertModal({
-                          type: 'error',
-                          title: 'Bi-Weekly Period Validation Error',
-                          message: `A Bi-Weekly pay period must be exactly 14 days. Your selected range is ${diffDays} days.`
-                        })
-                        return
-                      }
-                    } else if (clientPayGroupFilter === 'Semi-Monthly') {
-                      if (diffDays < 13 || diffDays > 16) {
-                        setAlertModal({
-                          type: 'error',
-                          title: 'Semi-Monthly Period Validation Error',
-                          message: `A Semi-Monthly pay period must be between 13 and 16 days. Your selected range is ${diffDays} days.`
-                        })
-                        return
-                      }
-                    }
-                    
-                    showToast('Active pay period dates configured successfully!')
-                  }}
-                  style={{ padding: '4px 10px', fontSize: '11px', height: 'auto', minHeight: 'unset', fontWeight: 600 }}
-                >
-                  Save Dates
-                </button>
+            {/* Date selection inline */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'nowrap', flexShrink: 0, background: 'var(--surface)', padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--line)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <label htmlFor="lock-start-date-input" style={{ fontSize: '11px', fontWeight: '600', whiteSpace: 'nowrap', color: 'var(--muted)' }}>Start:</label>
+                <input
+                  id="lock-start-date-input"
+                  type="date"
+                  className="modal-field"
+                  style={{ width: '120px', padding: '4px 6px', fontSize: '11px', background: 'transparent', color: 'var(--text-h)', border: 'none' }}
+                  value={clientPeriodStartDate}
+                  onChange={(e) => setClientPeriodStartDate(e.target.value)}
+                />
               </div>
-
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <label htmlFor="lock-end-date-input" style={{ fontSize: '11px', fontWeight: '600', whiteSpace: 'nowrap', color: 'var(--muted)' }}>End:</label>
+                <input
+                  id="lock-end-date-input"
+                  type="date"
+                  className="modal-field"
+                  style={{ width: '120px', padding: '4px 6px', fontSize: '11px', background: 'transparent', color: 'var(--text-h)', border: 'none' }}
+                  value={clientPeriodEndDate}
+                  onChange={(e) => setClientPeriodEndDate(e.target.value)}
+                />
+              </div>
               <button
                 type="button"
-                className="btn btn-secondary"
-                disabled={isRefreshingLock}
+                className="btn btn-primary"
                 onClick={() => {
-                  setIsRefreshingLock(true)
-                  setTimeout(() => {
-                    setIsRefreshingLock(false)
-                    showToast('Variance analysis and off-cycle volumes recalculated!')
-                  }, 600)
+                  if (!clientPeriodStartDate) {
+                    setAlertModal({
+                      type: 'error',
+                      title: 'Validation Error',
+                      message: 'Please select a valid Period Start Date.'
+                    })
+                    return
+                  }
+                  if (!clientPeriodEndDate) {
+                    setAlertModal({
+                      type: 'error',
+                      title: 'Validation Error',
+                      message: 'Please select a valid Period End Date.'
+                    })
+                    return
+                  }
+                  
+                  const start = new Date(clientPeriodStartDate)
+                  const end = new Date(clientPeriodEndDate)
+                  
+                  if (end < start) {
+                    setAlertModal({
+                      type: 'error',
+                      title: 'Validation Error',
+                      message: 'Period End Date cannot be before Period Start Date.'
+                    })
+                    return
+                  }
+
+                  // Calculate date difference in days
+                  const diffTime = Math.abs(end.getTime() - start.getTime())
+                  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1 // inclusive of start & end
+                  
+                  if (clientPayGroupFilter === 'Monthly') {
+                    if (diffDays < 28 || diffDays > 31) {
+                      setAlertModal({
+                        type: 'error',
+                        title: 'Monthly Period Validation Error',
+                        message: `A Monthly pay period must be between 28 and 31 days. Your selected range is ${diffDays} days.`
+                      })
+                      return
+                    }
+                  } else if (clientPayGroupFilter === 'Weekly') {
+                    if (diffDays !== 7) {
+                      setAlertModal({
+                        type: 'error',
+                        title: 'Weekly Period Validation Error',
+                        message: `A Weekly pay period must be exactly 7 days. Your selected range is ${diffDays} days.`
+                      })
+                      return
+                    }
+                  } else if (clientPayGroupFilter === 'Bi-Weekly') {
+                    if (diffDays !== 14) {
+                      setAlertModal({
+                        type: 'error',
+                        title: 'Bi-Weekly Period Validation Error',
+                        message: `A Bi-Weekly pay period must be exactly 14 days. Your selected range is ${diffDays} days.`
+                      })
+                      return
+                    }
+                  } else if (clientPayGroupFilter === 'Semi-Monthly') {
+                    if (diffDays < 13 || diffDays > 16) {
+                      setAlertModal({
+                        type: 'error',
+                        title: 'Semi-Monthly Period Validation Error',
+                        message: `A Semi-Monthly pay period must be between 13 and 16 days. Your selected range is ${diffDays} days.`
+                      })
+                      return
+                    }
+                  }
+                  
+                  showToast('Active pay period dates configured successfully!')
                 }}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '6px 14px',
-                  fontSize: '0.85rem',
-                  borderRadius: '50px',
-                  cursor: 'pointer',
-                  border: '1px solid var(--line)',
-                  background: 'var(--surface)',
-                  color: 'var(--ink)'
-                }}
+                style={{ padding: '4px 10px', fontSize: '11px', height: 'auto', minHeight: 'unset', fontWeight: 600 }}
               >
-                <span className={isRefreshingLock ? 'refresh-spin' : ''} style={{ fontSize: '0.9rem' }}>🔄</span>
-                {isRefreshingLock ? 'Recalculating...' : 'Refresh Amounts'}
+                Save Dates
               </button>
             </div>
             
-            <div className="filter-input-group" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div className="filter-input-group" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
               <select value={clientPayGroupFilter} onChange={e => setClientPayGroupFilter(e.target.value as any)} className="btn" style={{ background: 'var(--surface)', color: 'var(--ink)', padding: '6px 12px', fontSize: '13px' }}>
                 <option value="Monthly">Monthly Pay Period</option>
                 <option value="Weekly">Weekly Pay Period</option>
@@ -5531,7 +5534,6 @@ export function EmployeePortalFlow({
               )}
             </div>
           </div>
-          <p className="dash-welcome-sub" style={{ margin: 0 }}>Validate periods variance differences, lock time entries, and submit payroll logs.</p>
         </div>
 
         {isPeriodLocked ? (
@@ -5564,7 +5566,7 @@ export function EmployeePortalFlow({
 
         {/* Variance stats table */}
         <div className="dash-card">
-          <h3 className="dash-card-title">Employee-wise variance summary (July vs June)</h3>
+          <h3 className="dash-card-title">Employee-wise final lock checklist</h3>
           <div className="tbl">
             <table>
               <thead>
@@ -5581,12 +5583,18 @@ export function EmployeePortalFlow({
                       />
                     )}
                   </th>
-                  <th>Employee Name</th>
-                  <th className="num">June volume (USD)</th>
-                  <th className="num">Offcycle Bonus (USD)</th>
-                  <th className="num">July Total volume (USD)</th>
-                  <th className="num">Variance Amt</th>
-                  <th className="num">Variance %</th>
+                  <th>Employee ID</th>
+                  <th>Full Name</th>
+                  <th>Department / Group</th>
+                  <th>Pay Period</th>
+                  <th>Pay Group</th>
+                  <th>Category</th>
+                  <th>Logged Hours (Regular + OT)</th>
+                  <th>Leave Hours (Sick/Earned)</th>
+                  <th className="num">Offcycle Bonus</th>
+                  <th>Timesheet Status</th>
+                  <th>Audit Check</th>
+                  <th>Approval</th>
                 </tr>
               </thead>
               <tbody>
@@ -5594,10 +5602,6 @@ export function EmployeePortalFlow({
                   const isEmpLocked = lockedEmployeeIds.has(e.id)
                   const isChecked = selectedLockEmployeeIds.has(e.id)
                   const bonus = offcyclePaymentsList.filter(o => o.employeeId === e.id).reduce((sum, o) => sum + o.amount, 0)
-                  const julyTotal = e.currGross + bonus
-                  const diff = julyTotal - e.prevGross
-                  const pct = e.prevGross > 0 ? (diff / e.prevGross) * 100 : 0
-                  const rowClass = diff > 0 ? 'increase' : diff < 0 ? 'decrease' : 'neutral'
                   return (
                     <tr key={e.id}
                       onClick={() => { if (!isEmpLocked) handleToggleOneLock(e.id) }}
@@ -5622,9 +5626,19 @@ export function EmployeePortalFlow({
                           />
                         )}
                       </td>
+                      <td><code>{e.id}</code></td>
                       <td><strong>{e.name}</strong></td>
-                      <td className="num">$ {e.prevGross.toLocaleString('en-US')}</td>
-                      <td className="num" style={{ color: bonus > 0 ? '#2ecc71' : 'var(--muted)', fontWeight: 600 }}>
+                      <td>{e.paygroup}</td>
+                      <td>{formatPeriodRange(clientPeriodStartDate, clientPeriodEndDate) || '07/01/2025 - 07/15/2025'}</td>
+                      <td>{clientPayGroupFilter}</td>
+                      <td>
+                        <span className="badge" style={{ background: 'rgba(59,130,246,0.1)', color: '#3b82f6', border: '1px solid rgba(59,130,246,0.2)' }}>
+                          On-Cycle
+                        </span>
+                      </td>
+                      <td>40 hours</td>
+                      <td>8 hours</td>
+                      <td className="num" style={{ fontWeight: 600, color: bonus > 0 ? '#2ecc71' : 'var(--muted)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px' }}>
                           <span>$ {bonus.toLocaleString('en-US')}</span>
                           {bonus > 0 && (
@@ -5652,9 +5666,21 @@ export function EmployeePortalFlow({
                           )}
                         </div>
                       </td>
-                      <td className="num" style={{ fontWeight: 700 }}>$ {julyTotal.toLocaleString('en-US')}</td>
-                      <td className={`num ${rowClass}`}>{diff > 0 ? '+' : ''}$ {diff.toLocaleString('en-US')}</td>
-                      <td className={`num ${rowClass}`}>{pct.toFixed(2)}%</td>
+                      <td>
+                        <span className={`badge ${isEmpLocked ? 'done' : 'done'}`}>
+                          {isEmpLocked ? 'Locked' : 'Submitted'}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="badge ok" style={{ background: 'rgba(46,204,113,0.1)', color: '#2ecc71', border: '1px solid rgba(46,204,113,0.2)' }}>✓ Validated</span>
+                      </td>
+                      <td>
+                        {isEmpLocked ? (
+                          <span className="badge ok" style={{ background: 'rgba(46,204,113,0.15)', color: '#2ecc71', border: '1px solid rgba(46,204,113,0.3)', fontWeight: 600 }}>🔒 Locked</span>
+                        ) : (
+                          <span className="badge" style={{ background: 'rgba(243,156,18,0.1)', color: '#f39c12', border: '1px solid rgba(243,156,18,0.25)' }}>⏳ Pending</span>
+                        )}
+                      </td>
                     </tr>
                   )
                 })}
