@@ -1655,11 +1655,23 @@ export function EmployeePortalFlow({
   })
 
   // Shared Reports State
-  const [activeReportType, setActiveReportType] = useState<'timesheet' | 'costs' | 'variance' | 'access'>('timesheet')
+  const [activeReportType, setActiveReportType] = useState<'timesheet' | 'costs' | 'variance' | 'access' | 'payroll_register' | 'payment_ledger'>('timesheet')
   const [reportFilterEmployee, setReportFilterEmployee] = useState('All')
   const [reportFilterClient, setReportFilterClient] = useState('All')
   const [reportDateFrom, setReportDateFrom] = useState('2025-07-01')
   const [reportDateTo, setReportDateTo] = useState('2025-07-15')
+
+  useEffect(() => {
+    if (currentModule === 'client-reports') {
+      if (activeReportType === 'variance' || activeReportType === 'access') {
+        setActiveReportType('timesheet')
+      }
+    } else if (currentModule === 'admin-reports') {
+      if (activeReportType === 'payroll_register' || activeReportType === 'payment_ledger') {
+        setActiveReportType('timesheet')
+      }
+    }
+  }, [currentModule, activeReportType])
 
 
   const [activeTimeEntryTab, setActiveTimeEntryTab] = useState<(typeof timeEntryTabs)[number]>('My Timesheet')
@@ -4049,10 +4061,31 @@ export function EmployeePortalFlow({
   const renderReportsView = () => {
     const isAccessRestricted = activeReportType === 'access' && activeUserType !== 'admin'
     const finalReportEmployees = adminEmployees.filter(emp => {
-      const matchesClient = activeUserType === 'admin' ? (reportFilterClient === 'All' || emp.clientName === reportFilterClient) : (emp.clientName === 'Acme Corp' || emp.clientName === 'Stark Industries')
+      const matchesClient = activeUserType === 'admin' ? (reportFilterClient === 'All' || emp.clientName === reportFilterClient) : (emp.clientName === simulatedClientName)
       const matchesSearch = reportFilterEmployee === 'All' || emp.id === reportFilterEmployee
       return matchesClient && matchesSearch
     })
+
+    const calculateDetailedRegister = (e: AdminEmployee) => {
+      const gross = e.currGross / 12 // simulated monthly pay period check
+      const dedTax = gross * 0.35 // 35% tax + deductions
+      const employerPaid = gross * 0.12 // 12% employer paid
+      const bonus = offcyclePaymentsList.filter(o => o.employeeId === e.id).reduce((sum, o) => sum + o.amount, 0)
+      
+      return {
+        gross: gross + bonus,
+        dedTax: dedTax,
+        net: (gross + bonus) - dedTax,
+        employerPaid: employerPaid,
+        earningsName: bonus > 0 ? 'Regular + Bonus' : 'Regular Pay',
+        earningsAmount: gross,
+        earningsHours: 80,
+        deductionsName: '401K Contribution',
+        deductionsAmount: gross * 0.05,
+        taxesName: 'OASDI / FICA',
+        taxesAmount: dedTax - (gross * 0.05)
+      }
+    }
 
     const handleDownloadReportCSV = () => {
       let csv = ''
@@ -4080,6 +4113,20 @@ export function EmployeePortalFlow({
         csv = 'ID,Username,Role,Action,Timestamp,IP Address\n'
         portalAccessLogs.forEach(l => {
           csv += `"${l.id}","${l.username}","${l.role}","${l.action}","${l.timestamp}","${l.ipAddress}"\n`
+        })
+      } else if (activeReportType === 'payroll_register') {
+        csv = 'Worker,Pay Group,Pay Cycle Type,Gross,Ded/Tax,Net,Employer Paid,Earnings Name,Earnings Amount,Earnings Hours,Deductions Name,Deductions Amount,Taxes Name,Taxes Amount\n'
+        finalReportEmployees.forEach(e => {
+          const reg = calculateDetailedRegister(e)
+          csv += `"${e.name}","${e.paygroup}","On-cycle",${reg.gross.toFixed(2)},${reg.dedTax.toFixed(2)},${reg.net.toFixed(2)},${reg.employerPaid.toFixed(2)},"${reg.earningsName}",${reg.earningsAmount.toFixed(2)},${reg.earningsHours},"${reg.deductionsName}",${reg.deductionsAmount.toFixed(2)},"${reg.taxesName}",${reg.taxesAmount.toFixed(2)}\n`
+        })
+      } else if (activeReportType === 'payment_ledger') {
+        csv = 'Payment,Payment Category,Company,Status,Payee / Payor,Transaction Date,Bank Account,Payment Type,Payment Group,Transaction Reference,Payment Amount,Currency,Reconciliation Status,Period,Pay Group,Cancel Payment Date\n'
+        const currentYear = new Date().getFullYear()
+        const currentDate = new Date().toLocaleDateString('en-US')
+        finalReportEmployees.forEach(e => {
+          const reg = calculateDetailedRegister(e)
+          csv += `"Payroll Payment: ${e.name} - ${currentYear}-07-02","Payroll On-Cycle Payment","${e.clientName}","Complete","${e.name}","${currentDate}","Stark Pay Bank Account","${e.paymentMode}","Payroll On-Cycle Payment (${e.paymentMode}) for Bank Account","${e.id}",${reg.net.toFixed(2)},"USD","Unreconciled","${formatPeriodRange(clientPeriodStartDate, clientPeriodEndDate)}","${e.paygroup}",""\n`
         })
       }
 
@@ -4113,8 +4160,17 @@ export function EmployeePortalFlow({
             <select value={activeReportType} onChange={e => setActiveReportType(e.target.value as any)} className="btn" style={{ background: 'var(--surface)', color: '#fff' }}>
               <option value="timesheet">Timesheet Hours Report</option>
               <option value="costs">Total Payroll Costs Report</option>
-              <option value="variance">Variance Reconciliation Report</option>
-              {activeUserType === 'admin' && <option value="access">Security Access Logs</option>}
+              {currentModule === 'client-reports' ? (
+                <>
+                  <option value="payroll_register">Payroll Register Detailed Report</option>
+                  <option value="payment_ledger">Payment Ledger Export Report</option>
+                </>
+              ) : (
+                <>
+                  <option value="variance">Variance Reconciliation Report</option>
+                  {activeUserType === 'admin' && <option value="access">Security Access Logs</option>}
+                </>
+              )}
             </select>
           </div>
 
@@ -4145,7 +4201,9 @@ export function EmployeePortalFlow({
             <label style={{ fontSize: '11px', color: 'var(--muted)' }}>Employee Database Search</label>
             <select value={reportFilterEmployee} onChange={e => setReportFilterEmployee(e.target.value)} className="btn" style={{ background: 'var(--surface)', color: '#fff' }}>
               <option value="All">All Employees</option>
-              {adminEmployees.map(emp => <option key={emp.id} value={emp.id}>{emp.name}</option>)}
+              {adminEmployees
+                .filter(emp => activeUserType === 'admin' || emp.clientName === simulatedClientName)
+                .map(emp => <option key={emp.id} value={emp.id}>{emp.name}</option>)}
             </select>
           </div>
         </div>
@@ -4248,6 +4306,108 @@ export function EmployeePortalFlow({
                           <td className="num">$ {r.curr.toLocaleString('en-US')}</td>
                           <td className={`num ${rowClass}`}>{diff > 0 ? '+' : ''}$ {diff.toLocaleString('en-US')}</td>
                           <td className={`num ${rowClass}`}>{pct.toFixed(2)}%</td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              )}
+
+              {activeReportType === 'payroll_register' && (
+                <table>
+                  <thead>
+                    <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
+                      <th style={{ width: '40px', textAlign: 'center' }}>Result</th>
+                      <th>Worker</th>
+                      <th>Pay Group</th>
+                      <th>Pay Cycle Type</th>
+                      <th className="num">Gross</th>
+                      <th className="num">Ded/Tax</th>
+                      <th className="num">Net</th>
+                      <th className="num">Employer Paid</th>
+                      <th>Earnings Name</th>
+                      <th className="num">Earnings Amt</th>
+                      <th className="num">Earnings Hrs</th>
+                      <th>Deductions Name</th>
+                      <th className="num">Deductions Amt</th>
+                      <th>Taxes Name</th>
+                      <th className="num">Taxes Amt</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {finalReportEmployees.map(e => {
+                      const reg = calculateDetailedRegister(e)
+                      return (
+                        <tr key={e.id}>
+                          <td style={{ textAlign: 'center' }}>
+                            <span style={{ cursor: 'pointer', color: 'var(--primary)' }} title="View details">🔍</span>
+                          </td>
+                          <td><strong>{e.name}</strong></td>
+                          <td><span style={{ color: 'var(--primary)', cursor: 'pointer' }}>{e.paygroup}</span></td>
+                          <td>On-cycle</td>
+                          <td className="num">$ {reg.gross.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                          <td className="num">$ {reg.dedTax.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                          <td className="num" style={{ fontWeight: 600 }}>$ {reg.net.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                          <td className="num">$ {reg.employerPaid.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                          <td>{reg.earningsName}</td>
+                          <td className="num">$ {reg.earningsAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                          <td className="num">{reg.earningsHours.toFixed(2)}</td>
+                          <td>{reg.deductionsName}</td>
+                          <td className="num">$ {reg.deductionsAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                          <td>{reg.taxesName}</td>
+                          <td className="num">$ {reg.taxesAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              )}
+
+              {activeReportType === 'payment_ledger' && (
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Payment</th>
+                      <th>Payment Category</th>
+                      <th>Company</th>
+                      <th>Status</th>
+                      <th>Payee / Payor</th>
+                      <th>Transaction Date</th>
+                      <th>Bank Account</th>
+                      <th>Payment Type</th>
+                      <th>Payment Group</th>
+                      <th>Transaction Reference</th>
+                      <th className="num">Payment Amount</th>
+                      <th>Currency</th>
+                      <th>Reconciliation Status</th>
+                      <th>Period</th>
+                      <th>Pay Group</th>
+                      <th>Cancel Payment Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {finalReportEmployees.map(e => {
+                      const reg = calculateDetailedRegister(e)
+                      const currentYear = new Date().getFullYear()
+                      const currentDate = new Date().toLocaleDateString('en-US')
+                      return (
+                        <tr key={e.id}>
+                          <td style={{ whiteSpace: 'nowrap' }}><code>{`Payroll Payment: ${e.name} - ${currentYear}-07-02`}</code></td>
+                          <td style={{ whiteSpace: 'nowrap' }}>Payroll On-Cycle Payment</td>
+                          <td>{e.clientName}</td>
+                          <td><span className="badge done">Complete</span></td>
+                          <td><strong>{e.name}</strong></td>
+                          <td>{currentDate}</td>
+                          <td style={{ whiteSpace: 'nowrap' }}>Stark Pay Bank Account</td>
+                          <td>{e.paymentMode}</td>
+                          <td style={{ whiteSpace: 'nowrap' }}>{`Payroll On-Cycle Payment (${e.paymentMode}) for Bank Account`}</td>
+                          <td><code>{e.id}</code></td>
+                          <td className="num" style={{ fontWeight: 600 }}>$ {reg.net.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                          <td>USD</td>
+                          <td><span className="badge pending">Unreconciled</span></td>
+                          <td style={{ whiteSpace: 'nowrap' }}>{formatPeriodRange(clientPeriodStartDate, clientPeriodEndDate)}</td>
+                          <td>{e.paygroup}</td>
+                          <td>—</td>
                         </tr>
                       )
                     })}
