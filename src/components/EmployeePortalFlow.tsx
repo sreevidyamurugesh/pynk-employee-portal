@@ -2976,24 +2976,24 @@ export function EmployeePortalFlow({
     setConfirmAction(null)
   }
 
-  const handleRequestCorrection = () => {
-    if (!selectedDay || !isWeekdayIso(selectedDay.key)) {
-      return
-    }
-    if (isOlderThan5Days(selectedDay.key)) {
-      setWarningModal({
-        title: 'Action Locked',
-        message: `You cannot request correction for ${formatDateLong(selectedDay.key)} as it is older than 5 days.`,
-      })
-      return
-    }
+  // const handleRequestCorrection = () => {
+  //   if (!selectedDay || !isWeekdayIso(selectedDay.key)) {
+  //     return
+  //   }
+  //   if (isOlderThan5Days(selectedDay.key)) {
+  //     setWarningModal({
+  //       title: 'Action Locked',
+  //       message: `You cannot request correction for ${formatDateLong(selectedDay.key)} as it is older than 5 days.`,
+  //     })
+  //     return
+  //   }
 
-    updateDay(selectedDay.key, (day) => ({
-      ...day,
-      status: 'returned',
-      notes: 'Correction requested for this entry.',
-    }))
-  }
+  //   updateDay(selectedDay.key, (day) => ({
+  //     ...day,
+  //     status: 'returned',
+  //     notes: 'Correction requested for this entry.',
+  //   }))
+  // }
 
   const handleSubmit = () => {
     setSubmitError('')
@@ -8099,9 +8099,9 @@ export function EmployeePortalFlow({
                                 <button type="button" className="quick-link" onClick={requestCopyPreviousPeriod}>
                                   Copy Previous Period <span>›</span>
                                 </button>
-                                <button type="button" className="quick-link" onClick={handleRequestCorrection}>
+                                {/* <button type="button" className="quick-link" onClick={handleRequestCorrection}>
                                   Request Correction <span>›</span>
-                                </button>
+                                </button> */}
                               </section>
                             </div>
 
