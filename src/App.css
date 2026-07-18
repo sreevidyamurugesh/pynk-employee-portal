@@ -8491,19 +8491,26 @@ html:not(.light-mode) .btn-sso-outline:hover {
 /* ── Stat Cards Row ── */
 .dash-stats-row {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 14px;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 768px) {
   .dash-stats-row {
-    grid-template-columns: repeat(3, 1fr);
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-bottom: 8px; /* space to prevent box-shadow clipping */
   }
-}
-
-@media (max-width: 700px) {
-  .dash-stats-row {
-    grid-template-columns: repeat(2, 1fr);
+  .dash-stats-row::-webkit-scrollbar {
+    display: none;
+  }
+  .dash-stat-card {
+    flex: 0 0 250px;
+    scroll-snap-align: start;
   }
 }
 
@@ -8637,103 +8644,47 @@ html:not(.light-mode) .btn-sso-outline:hover {
   opacity: 0.75;
 }
 
-/* ── Responsive Dashboard Layout Grid ── */
-.dash-grid-layout {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
+/* ── Responsive Dashboard Layout ── */
+.dash-columns-wrapper {
+  display: flex;
+  gap: 20px;
   align-items: start;
+  width: 100%;
 }
 
-/* Card Placement for Desktop (3 columns) */
-@media (min-width: 1440px) {
-  .dash-grid-layout {
-    grid-template-columns: 1fr 1fr 320px;
-  }
+.dash-col-main {
+  flex: 7;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
 
-  .dash-time-card {
-    grid-column: 1;
-    grid-row: 1;
-  }
+.dash-col-side {
+  flex: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
 
-  .dash-activity-card {
-    grid-column: 1;
-    grid-row: 2;
+@media (max-width: 1024px) {
+  .dash-columns-wrapper {
+    flex-direction: column;
   }
-
-  .dash-leave-card {
-    grid-column: 2;
-    grid-row: 1;
-  }
-
-  .dash-announce-card {
-    grid-column: 2;
-    grid-row: 2;
-  }
-
-  .dash-upcoming-card {
-    grid-column: 3;
-    grid-row: 1;
-  }
-
-  .dash-reminders-card {
-    grid-column: 3;
-    grid-row: 2;
-  }
-
-  .dash-quick-card {
-    grid-column: 3;
-    grid-row: 3;
+  .dash-col-main,
+  .dash-col-side {
+    flex: none;
+    width: 100%;
   }
 }
 
-/* Card Placement for Laptop/Tablet (2 columns) */
-@media (min-width: 1024px) and (max-width: 1439px) {
-  .dash-grid-layout {
-    grid-template-columns: 1fr 310px;
-  }
-
-  .dash-time-card {
-    grid-column: 1;
-    grid-row: 1;
-  }
-
-  .dash-leave-card {
-    grid-column: 1;
-    grid-row: 2;
-  }
-
-  .dash-activity-card {
-    grid-column: 1;
-    grid-row: 3;
-  }
-
-  .dash-announce-card {
-    grid-column: 1;
-    grid-row: 4;
-  }
-
-  .dash-upcoming-card {
-    grid-column: 2;
-    grid-row: 1;
-  }
-
-  .dash-reminders-card {
-    grid-column: 2;
-    grid-row: 2;
-  }
-
-  .dash-quick-card {
-    grid-column: 2;
-    grid-row: 3;
-  }
-}
-
-/* Card Placement for Mobile/Tablet Stack (1 column) */
-@media (max-width: 1023px) {
-  .dash-grid-layout {
-    grid-template-columns: 1fr;
-  }
+/* ── Admin Dashboard Grid Layout ── */
+.admin-dash-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+  align-items: start;
 }
 
 /* ── Card Base ── */
@@ -10256,6 +10207,18 @@ select {
 .light-mode .module-btn.active {
   background: var(--primary) !important;
   color: #ffffff !important;
+}
+
+@media (max-width: 768px) {
+  .light-mode .module-btn {
+    background: #f3f4f6 !important;
+    border-color: #e5e7eb !important;
+  }
+  .light-mode .module-btn.active {
+    background: var(--primary) !important;
+    color: #ffffff !important;
+    border-color: var(--primary) !important;
+  }
 }
 
 .light-mode .portal-content {

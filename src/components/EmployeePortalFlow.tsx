@@ -121,7 +121,7 @@ interface TimeHistoryItem {
 }
 
 type LeaveStatus = 'pending' | 'approved' | 'returned' | 'cancelled'
-type LeaveTypeId = 'annual' | 'sick' | 'casual' | 'comp' | 'other' | 'maternity' | 'paternity'
+type LeaveTypeId = 'annual' | 'sick' | 'casual' | 'comp' | 'maternity' | 'paternity' | 'lwp' | 'adoption' | 'vacation' | 'jury' | 'std' | 'ltd' | 'bereavement'
 
 interface LeaveBalanceItem {
   id: LeaveTypeId
@@ -713,9 +713,15 @@ const leaveTypeLabel: Record<LeaveTypeId, string> = {
   sick: 'Sick Leave',
   casual: 'Casual Leave',
   comp: 'Comp Off',
-  other: 'Other',
   maternity: 'Maternity Leave',
   paternity: 'Paternity Leave',
+  lwp: 'Leave Without Pay (LWP)',
+  adoption: 'Adoption Leave',
+  vacation: 'Vacation Time Off',
+  jury: 'Jury Duty Leave',
+  std: 'Short-term disability (STD)',
+  ltd: 'Long-term disability (LTD)',
+  bereavement: 'Bereavement Leave',
 }
 
 const leaveTypeDescriptions: Record<LeaveTypeId, string> = {
@@ -723,9 +729,15 @@ const leaveTypeDescriptions: Record<LeaveTypeId, string> = {
   sick: 'Leave for medical reasons.',
   casual: 'Short-term personal leave.',
   comp: 'Compensatory time off.',
-  other: 'Other approved leave type.',
   maternity: 'Maternity benefit leave.',
   paternity: 'Paternity leave benefit.',
+  lwp: 'Unpaid leave of absence.',
+  adoption: 'Leave for parents adopting a child.',
+  vacation: 'Vacation or personal time off.',
+  jury: 'Time off for serving on a jury.',
+  std: 'Leave due to short-term illness or injury.',
+  ltd: 'Leave due to long-term illness or injury.',
+  bereavement: 'Leave following the loss of a loved one.',
 }
 
 const leaveSeedBalances: LeaveBalanceItem[] = [
@@ -735,7 +747,13 @@ const leaveSeedBalances: LeaveBalanceItem[] = [
   { id: 'comp', name: 'Comp Off', entitlement: 6, used: 2, pending: 1, color: '#f4ac3f' },
   { id: 'maternity', name: 'Maternity Leave', entitlement: 180, used: 0, pending: 0, color: '#ff7da8' },
   { id: 'paternity', name: 'Paternity Leave', entitlement: 15, used: 0, pending: 0, color: '#56c2d6' },
-  { id: 'other', name: 'Other', entitlement: 5, used: 0, pending: 0, color: '#9999aa' },
+  { id: 'lwp', name: 'Leave Without Pay (LWP)', entitlement: 30, used: 0, pending: 0, color: '#94a3b8' },
+  { id: 'adoption', name: 'Adoption Leave', entitlement: 42, used: 0, pending: 0, color: '#ec4899' },
+  { id: 'vacation', name: 'Vacation Time Off', entitlement: 15, used: 0, pending: 0, color: '#eab308' },
+  { id: 'jury', name: 'Jury Duty Leave', entitlement: 10, used: 0, pending: 0, color: '#10b981' },
+  { id: 'std', name: 'Short-term disability (STD)', entitlement: 90, used: 0, pending: 0, color: '#3b82f6' },
+  { id: 'ltd', name: 'Long-term disability (LTD)', entitlement: 180, used: 0, pending: 0, color: '#6366f1' },
+  { id: 'bereavement', name: 'Bereavement Leave', entitlement: 5, used: 0, pending: 0, color: '#a855f7' }
 ]
 
 const leaveSeedRequests: LeaveRequestItem[] = [
@@ -1056,11 +1074,11 @@ const getPreferredSelectedDayKey = (days: TimeEntryDay[], todayIso: string) =>
 
 const seedRangeData = (range: TimeEntryRangeData) => {
   const seeded: Array<Partial<TimeEntryDay>> = [
-    { status: 'draft', hours: 8, regularHours: 8, overtimeHours: 0, notes: 'Worked on dashboard and time entry modules.' },
-    { status: 'draft', hours: 8, regularHours: 8, overtimeHours: 0, notes: 'Sprint planning and task breakdown.' },
-    { status: 'submitted', hours: 8, regularHours: 8, overtimeHours: 0, notes: 'Development and code review.' },
-    { status: 'draft', hours: 7.5, regularHours: 7.5, overtimeHours: 0, endTime: '05:30 PM', notes: 'Fixes and documentation.' },
-    { status: 'draft', hours: 7, regularHours: 7, overtimeHours: 0, endTime: '05:00 PM', notes: 'Demo prep and backlog grooming.' },
+    { status: 'draft', hours: 8, regularHours: 8, overtimeHours: 0, notes: '' },
+    { status: 'draft', hours: 8, regularHours: 8, overtimeHours: 0, notes: '' },
+    { status: 'submitted', hours: 8, regularHours: 8, overtimeHours: 0, notes: '' },
+    { status: 'draft', hours: 7.5, regularHours: 7.5, overtimeHours: 0, endTime: '05:30 PM', notes: '' },
+    { status: 'draft', hours: 7, regularHours: 7, overtimeHours: 0, endTime: '05:00 PM', notes: '' },
   ]
 
   range.days = range.days.map((day, idx) => {
@@ -2792,14 +2810,6 @@ export function EmployeePortalFlow({
     // If it was leave, remove the request
     setLeaveRequests((prev) => prev.filter((r) => r.id !== requestId))
 
-    const hasStart = Boolean(editForm.startTime)
-    const hasEnd = Boolean(editForm.endTime)
-
-    if (hasStart !== hasEnd) {
-      setEditError('Please provide both start and end time.')
-      return
-    }
-
     const breakMinutes = Math.max(0, Math.round(editForm.breakMinutes || 0))
     let hours = 0
     let regularHours = 0
@@ -2808,29 +2818,36 @@ export function EmployeePortalFlow({
     let endTime = '--'
     let status: TimeEntryStatus = 'none'
 
-    if (hasStart && hasEnd) {
-      const startMinutes = minutesFromTime(editForm.startTime)
-      const endMinutes = minutesFromTime(editForm.endTime)
-
-      if (startMinutes === null || endMinutes === null || endMinutes <= startMinutes) {
-        setEditError('End time must be later than start time.')
+    if (editForm.timeSpentHours && editForm.timeSpentHours > 0) {
+      if (editForm.timeSpentHours < 0 || editForm.timeSpentHours > 24) {
+        setEditError('Please enter a value between 0 and 24 hours.')
         return
       }
-
-      const totalMinutes = Math.max(0, endMinutes - startMinutes - breakMinutes)
-      hours = Number((totalMinutes / 60).toFixed(1))
+      hours = editForm.timeSpentHours
       regularHours = Number(Math.min(8, hours).toFixed(1))
       overtimeHours = Number(Math.max(0, hours - 8).toFixed(1))
-      startTime = formatTime24To12(editForm.startTime)
-      endTime = formatTime24To12(editForm.endTime)
-      status = hours > 0 ? 'draft' : 'none'
+      status = 'draft'
+
+      const startStr = editForm.startTime || '09:00'
+      const startMin = minutesFromTime(startStr) ?? 540
+
+      let endMin = startMin + Math.round(hours * 60) + breakMinutes
+      if (endMin >= 1440) {
+        endMin = 1439 // Cap to end of day to avoid overflow
+      }
+
+      startTime = formatTime24To12(startStr)
+      const endH = Math.floor(endMin / 60)
+      const endM = endMin % 60
+      const endH24Str = `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`
+      endTime = formatTime24To12(endH24Str)
     }
 
     updateDay(selectedDay.key, (day) => ({
       ...day,
       startTime,
       endTime,
-      breakDuration: hasStart && hasEnd ? formatBreakMinutes(breakMinutes) : '--',
+      breakDuration: hours > 0 ? formatBreakMinutes(breakMinutes) : '--',
       hours,
       regularHours,
       overtimeHours,
@@ -3411,102 +3428,102 @@ export function EmployeePortalFlow({
     showToast('Timesheet exported to Excel successfully!')
   }
 
-  const handleExportWord = () => {
-    const employeeName = getPortalUserName()
-    const period = getRangeLabel(activeRange.fromDateISO, activeRange.toDateISO)
+  // const handleExportWord = () => {
+  //   const employeeName = getPortalUserName()
+  //   const period = getRangeLabel(activeRange.fromDateISO, activeRange.toDateISO)
 
-    let html = `
-      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
-      <head>
-        <title>Timesheet Report</title>
-        <style>
-          body { font-family: Arial, sans-serif; color: #333; margin: 20px; }
-          h2 { color: #EC1B8D; border-bottom: 2px solid #EC1B8D; padding-bottom: 5px; }
-          .meta-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-          .meta-table td { padding: 6px; font-size: 13px; }
-          .meta-label { font-weight: bold; width: 150px; color: #555; }
-          .data-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-          .data-table th, .data-table td { border: 1px solid #ddd; padding: 8px; font-size: 11px; text-align: left; }
-          .data-table th { background-color: #f2f2f2; font-weight: bold; color: #111; }
-          .totals-row { font-weight: bold; background-color: #fafafa; }
-        </style>
-      </head>
-      <body>
-        <h2>Timesheet Details Report</h2>
-        <table class="meta-table">
-          <tr><td class="meta-label">Employee Name:</td><td>${employeeName}</td></tr>
-          <tr><td class="meta-label">Period:</td><td>${period}</td></tr>
-          <tr><td class="meta-label">Overall Status:</td><td>${rangeStatus}</td></tr>
-          <tr><td class="meta-label">Total Hours:</td><td>${formatHours(totals.totalHours)} hrs (Regular: ${formatHours(totals.regularHours)} hrs, Overtime: ${formatHours(totals.overtimeHours)} hrs)</td></tr>
-        </table>
-        
-        <h3>Daily Time Entries</h3>
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Day</th>
-              <th>Status</th>
-              <th>Work Location</th>
-              <th>Start Time</th>
-              <th>End Time</th>
-              <th>Break (min)</th>
-              <th>Reg. Hours</th>
-              <th>OT Hours</th>
-              <th>Total Hours</th>
-              <th>Notes</th>
-            </tr>
-          </thead>
-          <tbody>
-    `
+  //   let html = `
+  //     <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+  //     <head>
+  //       <title>Timesheet Report</title>
+  //       <style>
+  //         body { font-family: Arial, sans-serif; color: #333; margin: 20px; }
+  //         h2 { color: #EC1B8D; border-bottom: 2px solid #EC1B8D; padding-bottom: 5px; }
+  //         .meta-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+  //         .meta-table td { padding: 6px; font-size: 13px; }
+  //         .meta-label { font-weight: bold; width: 150px; color: #555; }
+  //         .data-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  //         .data-table th, .data-table td { border: 1px solid #ddd; padding: 8px; font-size: 11px; text-align: left; }
+  //         .data-table th { background-color: #f2f2f2; font-weight: bold; color: #111; }
+  //         .totals-row { font-weight: bold; background-color: #fafafa; }
+  //       </style>
+  //     </head>
+  //     <body>
+  //       <h2>Timesheet Details Report</h2>
+  //       <table class="meta-table">
+  //         <tr><td class="meta-label">Employee Name:</td><td>${employeeName}</td></tr>
+  //         <tr><td class="meta-label">Period:</td><td>${period}</td></tr>
+  //         <tr><td class="meta-label">Overall Status:</td><td>${rangeStatus}</td></tr>
+  //         <tr><td class="meta-label">Total Hours:</td><td>${formatHours(totals.totalHours)} hrs (Regular: ${formatHours(totals.regularHours)} hrs, Overtime: ${formatHours(totals.overtimeHours)} hrs)</td></tr>
+  //       </table>
 
-    activeRange.days.forEach((day) => {
-      const dayStatus = day.isLeave ? (day.leaveType ? leaveTypeLabel[day.leaveType] : 'Leave') : statusLabel[day.status]
-      const breakMin = day.isLeave ? '--' : day.breakDuration
-      const regHrs = day.isLeave ? '0.0' : formatHours(day.regularHours)
-      const otHrs = day.isLeave ? '0.0' : formatHours(day.overtimeHours)
-      const totalHrs = day.isLeave ? '8.0' : formatHours(day.hours)
+  //       <h3>Daily Time Entries</h3>
+  //       <table class="data-table">
+  //         <thead>
+  //           <tr>
+  //             <th>Date</th>
+  //             <th>Day</th>
+  //             <th>Status</th>
+  //             <th>Work Location</th>
+  //             <th>Start Time</th>
+  //             <th>End Time</th>
+  //             <th>Break (min)</th>
+  //             <th>Reg. Hours</th>
+  //             <th>OT Hours</th>
+  //             <th>Total Hours</th>
+  //             <th>Notes</th>
+  //           </tr>
+  //         </thead>
+  //         <tbody>
+  //   `
 
-      html += `
-        <tr>
-          <td>${day.key}</td>
-          <td>${day.label} ${day.dateLabel}</td>
-          <td>${dayStatus}</td>
-          <td>${day.isLeave ? '--' : day.workLocation}</td>
-          <td>${day.isLeave ? '--' : day.startTime}</td>
-          <td>${day.isLeave ? '--' : day.endTime}</td>
-          <td>${breakMin}</td>
-          <td>${regHrs}</td>
-          <td>${otHrs}</td>
-          <td>${totalHrs}</td>
-          <td>${day.notes || ''}</td>
-        </tr>
-      `
-    })
+  //   activeRange.days.forEach((day) => {
+  //     const dayStatus = day.isLeave ? (day.leaveType ? leaveTypeLabel[day.leaveType] : 'Leave') : statusLabel[day.status]
+  //     const breakMin = day.isLeave ? '--' : day.breakDuration
+  //     const regHrs = day.isLeave ? '0.0' : formatHours(day.regularHours)
+  //     const otHrs = day.isLeave ? '0.0' : formatHours(day.overtimeHours)
+  //     const totalHrs = day.isLeave ? '8.0' : formatHours(day.hours)
 
-    html += `
-            <tr class="totals-row">
-              <td colspan="7">Totals</td>
-              <td>${formatHours(totals.regularHours)}</td>
-              <td>${formatHours(totals.overtimeHours)}</td>
-              <td>${formatHours(totals.totalHours)}</td>
-              <td></td>
-            </tr>
-          </tbody>
-        </table>
-      </body>
-      </html>
-    `
+  //     html += `
+  //       <tr>
+  //         <td>${day.key}</td>
+  //         <td>${day.label} ${day.dateLabel}</td>
+  //         <td>${dayStatus}</td>
+  //         <td>${day.isLeave ? '--' : day.workLocation}</td>
+  //         <td>${day.isLeave ? '--' : day.startTime}</td>
+  //         <td>${day.isLeave ? '--' : day.endTime}</td>
+  //         <td>${breakMin}</td>
+  //         <td>${regHrs}</td>
+  //         <td>${otHrs}</td>
+  //         <td>${totalHrs}</td>
+  //         <td>${day.notes || ''}</td>
+  //       </tr>
+  //     `
+  //   })
 
-    const blob = new Blob(['\ufeff' + html], { type: 'application/msword' })
-    const url = URL.createObjectURL(blob)
-    const anchor = document.createElement('a')
-    anchor.href = url
-    anchor.download = `timesheet_${employeeName.toLowerCase().replace(/\s+/g, '_')}_${activeRange.fromDateISO}.doc`
-    anchor.click()
-    URL.revokeObjectURL(url)
-    showToast('Timesheet exported to Word successfully!')
-  }
+  //   html += `
+  //           <tr class="totals-row">
+  //             <td colspan="7">Totals</td>
+  //             <td>${formatHours(totals.regularHours)}</td>
+  //             <td>${formatHours(totals.overtimeHours)}</td>
+  //             <td>${formatHours(totals.totalHours)}</td>
+  //             <td></td>
+  //           </tr>
+  //         </tbody>
+  //       </table>
+  //     </body>
+  //     </html>
+  //   `
+
+  //   const blob = new Blob(['\ufeff' + html], { type: 'application/msword' })
+  //   const url = URL.createObjectURL(blob)
+  //   const anchor = document.createElement('a')
+  //   anchor.href = url
+  //   anchor.download = `timesheet_${employeeName.toLowerCase().replace(/\s+/g, '_')}_${activeRange.fromDateISO}.doc`
+  //   anchor.click()
+  //   URL.revokeObjectURL(url)
+  //   showToast('Timesheet exported to Word successfully!')
+  // }
 
   const handleExportPDF = () => {
     const employeeName = getPortalUserName()
@@ -4071,7 +4088,7 @@ export function EmployeePortalFlow({
       const dedTax = gross * 0.35 // 35% tax + deductions
       const employerPaid = gross * 0.12 // 12% employer paid
       const bonus = offcyclePaymentsList.filter(o => o.employeeId === e.id).reduce((sum, o) => sum + o.amount, 0)
-      
+
       return {
         gross: gross + bonus,
         dedTax: dedTax,
@@ -5532,7 +5549,7 @@ export function EmployeePortalFlow({
           {/* First Line: Title and Recalc Button */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
             <h1 className="dash-welcome-title" style={{ margin: 0 }}>Final Approval & Locking Workflows 🔒</h1>
-            
+
             <button
               type="button"
               className="btn btn-secondary"
@@ -5609,10 +5626,10 @@ export function EmployeePortalFlow({
                     })
                     return
                   }
-                  
+
                   const start = new Date(clientPeriodStartDate)
                   const end = new Date(clientPeriodEndDate)
-                  
+
                   if (end < start) {
                     setAlertModal({
                       type: 'error',
@@ -5625,7 +5642,7 @@ export function EmployeePortalFlow({
                   // Calculate date difference in days
                   const diffTime = Math.abs(end.getTime() - start.getTime())
                   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1 // inclusive of start & end
-                  
+
                   if (clientPayGroupFilter === 'Monthly') {
                     if (diffDays < 28 || diffDays > 31) {
                       setAlertModal({
@@ -5663,7 +5680,7 @@ export function EmployeePortalFlow({
                       return
                     }
                   }
-                  
+
                   showToast('Active pay period dates configured successfully!')
                 }}
                 style={{ padding: '4px 10px', fontSize: '11px', height: 'auto', minHeight: 'unset', fontWeight: 600 }}
@@ -5671,7 +5688,7 @@ export function EmployeePortalFlow({
                 Save Dates
               </button>
             </div>
-            
+
             <div className="filter-input-group" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
               <select value={clientPayGroupFilter} onChange={e => setClientPayGroupFilter(e.target.value as any)} className="btn" style={{ background: 'var(--surface)', color: 'var(--ink)', padding: '6px 12px', fontSize: '13px' }}>
                 <option value="Monthly">Monthly Pay Period</option>
@@ -6410,7 +6427,7 @@ export function EmployeePortalFlow({
                           </div>
 
                           {/* ── Alerts and Workflows ── */}
-                          <div className="dash-grid-layout">
+                          <div className="admin-dash-grid">
 
                             {/* Alert: Cutoff warning */}
                             <div className="dash-card dash-time-card">
@@ -7335,235 +7352,222 @@ export function EmployeePortalFlow({
                               </div>
                             </div>
 
+                            {/* Upcoming Leave */}
+                            <div className="dash-stat-card">
+                              <div className="dash-stat-icon dash-stat-icon--orange">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M17.8 19.2L16 11l3.5-3.5C21 6 21 4 19 4c-1.5 0-3 1-4.5 2.5L11 8 2.8 6.2c-.5-.1-.9.4-.6.8L6 10l-2 3.5c-.3.5.1 1 .6.9L8 14l.5 2.5c.1.5.6.8 1 .5l2.5-2.5L14 16l2.2.8c.7.3 1.4-.3 1.2-1l-.6-1.5-.8-.1z" />
+                                </svg>
+                              </div>
+                              <div className="dash-stat-body">
+                                <p className="dash-stat-label">Upcoming Leave</p>
+                                <p className="dash-stat-value">{upcomingLeaves.length}</p>
+                                <p className="dash-stat-sub">{upcomingLeaves.length === 0 ? 'No leaves scheduled' : `${upcomingLeaves.length} Scheduled`}</p>
+                                <button type="button" className="dash-link-btn" onClick={() => { setCurrentModule('time-entry'); setActiveTimeEntryTab('Leave'); setActiveLeaveTab('Leave History') }}>
+                                  View Leave
+                                </button>
+                              </div>
+                            </div>
+
                           </div>
 
-                          {/* ── Dashboard Grid Layout ── */}
-                          <div className="dash-grid-layout">
+                          {/* ── Dashboard Columns Layout ── */}
+                          <div className="dash-columns-wrapper">
+                            <div className="dash-col-main">
 
-                            {/* My Time Overview */}
-                            <div className="dash-card dash-time-card">
-                              <h3 className="dash-card-title">My Time Overview</h3>
-                              <div className="dash-time-week-bar">
-                                <div className="dash-time-week-label">
-                                  <span>This Week ({getRangeLabel(activeRange.fromDateISO, activeRange.toDateISO)})</span>
-                                  <strong>{dashTimesheetLabel} / 40h</strong>
-                                </div>
-                                <div className="dash-progress-track">
-                                  <div className="dash-progress-fill" style={{ width: `${dashTimesheetPct}%` }} />
-                                </div>
-                              </div>
-
-                              <div className="dash-day-grid">
-                                {dayGridDays.map(day => {
-                                  const hrs = Math.floor(day.hours)
-                                  const mins = Math.round((day.hours - hrs) * 60)
-                                  const label = hrs > 0 ? `${hrs}h${mins > 0 ? ` ${mins}m` : ''}` : '–'
-                                  return (
-                                    <div key={day.key} className="dash-day-cell">
-                                      <span className="dash-day-label">{day.label.slice(0, 3)}</span>
-                                      <span className="dash-day-hours">{label}</span>
-                                      <span className={`dash-day-dot ${day.status === 'submitted' ? 'dot-submitted' : day.status === 'draft' ? 'dot-draft' : 'dot-none'}`} />
-                                    </div>
-                                  )
-                                })}
-                              </div>
-
-                              <button type="button" className="dash-view-link" onClick={() => setCurrentModule('time-entry')}>
-                                View Time Entry →
-                              </button>
-                            </div>
-
-                            {/* My Leave Overview */}
-                            <div className="dash-card dash-leave-card">
-                              <h3 className="dash-card-title">My Leave Overview</h3>
-                              <div className="dash-leave-body">
-                                {/* Donut Chart SVG */}
-                                <div className="dash-donut-wrap">
-                                  <svg width="140" height="140" viewBox="0 0 140 140">
-                                    <circle cx="70" cy="70" r={donutR} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="18" />
-                                    {donutTotal > 0 && donutSegments.map(seg => {
-                                      const dashLen = (seg.days / donutTotal) * donutCirc
-                                      const gap = donutCirc - dashLen
-                                      const currentOffset = donutOffset
-                                      donutOffset += dashLen
-                                      if (seg.days === 0) return null
-                                      return (
-                                        <circle
-                                          key={seg.label}
-                                          cx="70" cy="70" r={donutR}
-                                          fill="none"
-                                          stroke={seg.color}
-                                          strokeWidth="18"
-                                          strokeDasharray={`${dashLen} ${gap}`}
-                                          strokeDashoffset={donutCirc / 4 - currentOffset}
-                                          strokeLinecap="butt"
-                                        />
-                                      )
-                                    })}
-                                    <text x="70" y="66" textAnchor="middle" dominantBaseline="middle" style={{ fill: 'var(--ink)', fontSize: '22px', fontWeight: 700 }}>
-                                      {totalAvailableDays}
-                                    </text>
-                                    <text x="70" y="84" textAnchor="middle" dominantBaseline="middle" style={{ fill: 'var(--muted)', fontSize: '11px' }}>
-                                      Days
-                                    </text>
-                                  </svg>
-                                </div>
-
-                                {/* Legend */}
-                                <div className="dash-leave-legend">
-                                  {donutSegments.map(seg => (
-                                    <div key={seg.label} className="dash-legend-row">
-                                      <span className="dash-legend-dot" style={{ background: seg.color }} />
-                                      <span className="dash-legend-label">{seg.label}</span>
-                                      <span className="dash-legend-val">{seg.days.toFixed(1)} Days</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                              <button type="button" className="dash-view-link" onClick={() => { setCurrentModule('time-entry'); setActiveTimeEntryTab('Leave'); setActiveLeaveTab('Leave Balance') }}>
-                                View Leave Balance
-                              </button>
-                            </div>
-
-                            {/* Upcoming Leave */}
-                            <div className="dash-card dash-upcoming-card">
-                              <div className="dash-card-header-row">
-                                <h3 className="dash-card-title">Upcoming Leave</h3>
-                                <button type="button" className="dash-view-all-btn" onClick={() => { setCurrentModule('time-entry'); setActiveTimeEntryTab('Leave'); setActiveLeaveTab('Leave History') }}>View All</button>
-                              </div>
-                              {upcomingLeaves.length === 0 ? (
-                                <p className="dash-empty-note">No upcoming leaves scheduled.</p>
-                              ) : (
-                                <div className="dash-upcoming-list">
-                                  {upcomingLeaves.map(r => (
-                                    <div key={r.id} className="dash-upcoming-item">
-                                      <div className="dash-upcoming-info">
-                                        <p className="dash-upcoming-type">{leaveTypeLabel[r.leaveType]}</p>
-                                        <p className="dash-upcoming-dates">{formatDateWithYear(r.fromDateISO)} – {formatDateWithYear(r.toDateISO)}</p>
-                                      </div>
-                                      <div className="dash-upcoming-right">
-                                        <span className={`dash-badge ${r.status === 'approved' ? 'dash-badge--green' : 'dash-badge--yellow'}`}>
-                                          {r.status === 'approved' ? 'Approved' : 'Pending'}
-                                        </span>
-                                        <span className="dash-upcoming-days">{r.durationDays} Day{r.durationDays !== 1 ? 's' : ''}</span>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Important Reminders */}
-                            <div className="dash-card dash-reminders-card">
-                              <div className="dash-card-header-row">
-                                <h3 className="dash-card-title">Important Reminders</h3>
-                              </div>
-                              <div className="dash-reminders-list">
-                                {reminders.map(rem => (
-                                  <div key={rem.id} className="dash-reminder-item" role="button" tabIndex={0}
-                                    onClick={() => setCurrentModule(rem.module)}
-                                    onKeyDown={e => e.key === 'Enter' && setCurrentModule(rem.module)}>
-                                    <span className="dash-reminder-icon">{rem.icon}</span>
-                                    <div className="dash-reminder-body">
-                                      <p className="dash-reminder-title">{rem.title}</p>
-                                      <p className="dash-reminder-sub">{rem.sub}</p>
-                                    </div>
-                                    <span className="dash-reminder-arrow">→</span>
+                              {/* My Time Overview */}
+                              <div className="dash-card dash-time-card">
+                                <h3 className="dash-card-title">My Time Overview</h3>
+                                <div className="dash-time-week-bar">
+                                  <div className="dash-time-week-label">
+                                    <span>This Week ({getRangeLabel(activeRange.fromDateISO, activeRange.toDateISO)})</span>
+                                    <strong>{dashTimesheetLabel} / 40h</strong>
                                   </div>
-                                ))}
-                                {reminders.length === 0 && (
-                                  <p className="dash-empty-note">No active reminders.</p>
-                                )}
-                              </div>
-                              <button type="button" className="dash-view-link" onClick={() => setIsNotificationDrawerOpen(true)}>View All Reminders</button>
-                            </div>
+                                  <div className="dash-progress-track">
+                                    <div className="dash-progress-fill" style={{ width: `${dashTimesheetPct}%` }} />
+                                  </div>
+                                </div>
 
-                            {/* Quick Actions */}
-                            <div className="dash-card dash-quick-card">
-                              <h3 className="dash-card-title">Quick Actions</h3>
-                              <div className="dash-quick-grid">
-                                <button type="button" className="dash-quick-btn" onClick={() => { setCurrentModule('time-entry'); setActiveTimeEntryTab('My Timesheet') }}>
-                                  <span className="dash-quick-icon dash-qi--green">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                      <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" />
-                                      <line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
-                                    </svg>
-                                  </span>
-                                  Request Day Off / Leave
-                                </button>
-                                <button type="button" className="dash-quick-btn" onClick={() => setCurrentModule('time-entry')}>
-                                  <span className="dash-quick-icon dash-qi--blue">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                      <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
-                                    </svg>
-                                  </span>
-                                  Log Time
-                                </button>
-                                {/* <button type="button" className="dash-quick-btn" onClick={() => { setCurrentModule('documents'); setActiveDocTab('Uploaded Documents') }}>
-                                  <span className="dash-quick-icon dash-qi--purple">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                      <polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" />
-                                    </svg>
-                                  </span>
-                                  Upload Document
-                                </button> */}
-                                <button type="button" className="dash-quick-btn" onClick={() => { setCurrentModule('my-pay'); setActivePayTab('Payslips') }}>
-                                  <span className="dash-quick-icon dash-qi--red">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                      <rect x="2" y="3" width="20" height="14" rx="2" />
-                                      <line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" />
-                                    </svg>
-                                  </span>
-                                  View Payslip
-                                </button>
-                              </div>
-                            </div>
+                                <div className="dash-day-grid">
+                                  {dayGridDays.map(day => {
+                                    const hrs = Math.floor(day.hours)
+                                    const mins = Math.round((day.hours - hrs) * 60)
+                                    const label = hrs > 0 ? `${hrs}h${mins > 0 ? ` ${mins}m` : ''}` : '–'
+                                    return (
+                                      <div key={day.key} className="dash-day-cell">
+                                        <span className="dash-day-label">{day.label.slice(0, 3)}</span>
+                                        <span className="dash-day-hours">{label}</span>
+                                        <span className={`dash-day-dot ${day.status === 'submitted' ? 'dot-submitted' : day.status === 'draft' ? 'dot-draft' : 'dot-none'}`} />
+                                      </div>
+                                    )
+                                  })}
+                                </div>
 
-                            {/* Recent Activity */}
-                            <div className="dash-card dash-activity-card">
-                              <div className="dash-card-header-row">
-                                <h3 className="dash-card-title">Recent Activity</h3>
-                                <button type="button" className="dash-view-all-btn" onClick={() => setIsNotificationDrawerOpen(true)}>View All</button>
+                                <button type="button" className="dash-view-link" onClick={() => setCurrentModule('time-entry')}>
+                                  View Time Entry →
+                                </button>
                               </div>
-                              <div className="dash-activity-list">
-                                {recentActivity.map(item => (
-                                  <div key={item.id} className="dash-activity-item" role="button" tabIndex={0}
-                                    onClick={() => handleNotificationClick(item)}
-                                    onKeyDown={e => e.key === 'Enter' && handleNotificationClick(item)}>
-                                    <span className="dash-activity-icon">
-                                      {item.category === 'leave' ? '✈️' : item.category === 'payroll' ? '💰' : item.category === 'time-entry' ? '⏱️' : item.category === 'documents' ? '📄' : '🔔'}
+
+                              {/* My Leave Overview */}
+                              <div className="dash-card dash-leave-card">
+                                <h3 className="dash-card-title">My Leave Overview</h3>
+                                <div className="dash-leave-body">
+                                  {/* Donut Chart SVG */}
+                                  <div className="dash-donut-wrap">
+                                    <svg width="140" height="140" viewBox="0 0 140 140">
+                                      <circle cx="70" cy="70" r={donutR} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="18" />
+                                      {donutTotal > 0 && donutSegments.map(seg => {
+                                        const dashLen = (seg.days / donutTotal) * donutCirc
+                                        const gap = donutCirc - dashLen
+                                        const currentOffset = donutOffset
+                                        donutOffset += dashLen
+                                        if (seg.days === 0) return null
+                                        return (
+                                          <circle
+                                            key={seg.label}
+                                            cx="70" cy="70" r={donutR}
+                                            fill="none"
+                                            stroke={seg.color}
+                                            strokeWidth="18"
+                                            strokeDasharray={`${dashLen} ${gap}`}
+                                            strokeDashoffset={donutCirc / 4 - currentOffset}
+                                            strokeLinecap="butt"
+                                          />
+                                        )
+                                      })}
+                                      <text x="70" y="66" textAnchor="middle" dominantBaseline="middle" style={{ fill: 'var(--ink)', fontSize: '22px', fontWeight: 700 }}>
+                                        {totalAvailableDays}
+                                      </text>
+                                      <text x="70" y="84" textAnchor="middle" dominantBaseline="middle" style={{ fill: 'var(--muted)', fontSize: '11px' }}>
+                                        Days
+                                      </text>
+                                    </svg>
+                                  </div>
+
+                                  {/* Legend */}
+                                  <div className="dash-leave-legend">
+                                    {donutSegments.map(seg => (
+                                      <div key={seg.label} className="dash-legend-row">
+                                        <span className="dash-legend-dot" style={{ background: seg.color }} />
+                                        <span className="dash-legend-label">{seg.label}</span>
+                                        <span className="dash-legend-val">{seg.days.toFixed(1)} Days</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                                <button type="button" className="dash-view-link" onClick={() => { setCurrentModule('time-entry'); setActiveTimeEntryTab('Leave'); setActiveLeaveTab('Leave Balance') }}>
+                                  View Leave Balance
+                                </button>
+                              </div>
+
+                              {/* Recent Activity */}
+                              <div className="dash-card dash-activity-card">
+                                <div className="dash-card-header-row">
+                                  <h3 className="dash-card-title">Recent Activity</h3>
+                                  <button type="button" className="dash-view-all-btn" onClick={() => setIsNotificationDrawerOpen(true)}>View All</button>
+                                </div>
+                                <div className="dash-activity-list">
+                                  {recentActivity.map(item => (
+                                    <div key={item.id} className="dash-activity-item" role="button" tabIndex={0}
+                                      onClick={() => handleNotificationClick(item)}
+                                      onKeyDown={e => e.key === 'Enter' && handleNotificationClick(item)}>
+                                      <span className="dash-activity-icon">
+                                        {item.category === 'leave' ? '✈️' : item.category === 'payroll' ? '💰' : item.category === 'time-entry' ? '⏱️' : item.category === 'documents' ? '📄' : '🔔'}
+                                      </span>
+                                      <div className="dash-activity-body">
+                                        <p className="dash-activity-title">{item.title}</p>
+                                        <p className="dash-activity-sub">{item.description}</p>
+                                      </div>
+                                      <span className="dash-activity-time">{item.timestamp}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+
+                            </div>
+                            <div className="dash-col-side">
+
+
+
+                              {/* Important Reminders */}
+                              <div className="dash-card dash-reminders-card">
+                                <div className="dash-card-header-row">
+                                  <h3 className="dash-card-title">Important Reminders</h3>
+                                </div>
+                                <div className="dash-reminders-list">
+                                  {reminders.map(rem => (
+                                    <div key={rem.id} className="dash-reminder-item" role="button" tabIndex={0}
+                                      onClick={() => setCurrentModule(rem.module)}
+                                      onKeyDown={e => e.key === 'Enter' && setCurrentModule(rem.module)}>
+                                      <span className="dash-reminder-icon">{rem.icon}</span>
+                                      <div className="dash-reminder-body">
+                                        <p className="dash-reminder-title">{rem.title}</p>
+                                        <p className="dash-reminder-sub">{rem.sub}</p>
+                                      </div>
+                                      <span className="dash-reminder-arrow">→</span>
+                                    </div>
+                                  ))}
+                                  {reminders.length === 0 && (
+                                    <p className="dash-empty-note">No active reminders.</p>
+                                  )}
+                                </div>
+                                <button type="button" className="dash-view-link" onClick={() => setIsNotificationDrawerOpen(true)}>View All Reminders</button>
+                              </div>
+
+                              {/* Quick Actions */}
+                              <div className="dash-card dash-quick-card">
+                                <h3 className="dash-card-title">Quick Actions</h3>
+                                <div className="dash-quick-grid">
+                                  <button type="button" className="dash-quick-btn" onClick={() => { setCurrentModule('time-entry'); setActiveTimeEntryTab('My Timesheet') }}>
+                                    <span className="dash-quick-icon dash-qi--green">
+                                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" />
+                                        <line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+                                      </svg>
                                     </span>
-                                    <div className="dash-activity-body">
-                                      <p className="dash-activity-title">{item.title}</p>
-                                      <p className="dash-activity-sub">{item.description}</p>
-                                    </div>
-                                    <span className="dash-activity-time">{item.timestamp}</span>
-                                  </div>
-                                ))}
+                                    Request Day Off / Leave
+                                  </button>
+                                  <button type="button" className="dash-quick-btn" onClick={() => setCurrentModule('time-entry')}>
+                                    <span className="dash-quick-icon dash-qi--blue">
+                                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+                                      </svg>
+                                    </span>
+                                    Log Time
+                                  </button>
+                                  <button type="button" className="dash-quick-btn" onClick={() => { setCurrentModule('my-pay'); setActivePayTab('Payslips') }}>
+                                    <span className="dash-quick-icon dash-qi--red">
+                                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <rect x="2" y="3" width="20" height="14" rx="2" />
+                                        <line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" />
+                                      </svg>
+                                    </span>
+                                    View Payslip
+                                  </button>
+                                </div>
                               </div>
+
+                              {/* Company Announcements */}
+                              {/* <div className="dash-card dash-announce-card">
+                                <div className="dash-card-header-row">
+                                  <h3 className="dash-card-title">Company Announcements</h3>
+                                  <button type="button" className="dash-view-all-btn" onClick={() => setIsNotificationDrawerOpen(true)}>View All</button>
+                                </div>
+                                <div className="dash-announcements-list">
+                                  {announcements.map(ann => (
+                                    <div key={ann.id} className="dash-announce-item">
+                                      <span className="dash-announce-icon">{ann.icon}</span>
+                                      <div className="dash-announce-body">
+                                        <p className="dash-announce-title">{ann.title}</p>
+                                        <p className="dash-announce-desc">{ann.body}</p>
+                                        <p className="dash-announce-age">{ann.age}</p>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div> */}
+
                             </div>
-
-                            {/* Company Announcements */}
-                            {/* <div className="dash-card dash-announce-card">
-                              <div className="dash-card-header-row">
-                                <h3 className="dash-card-title">Company Announcements</h3>
-                                <button type="button" className="dash-view-all-btn" onClick={() => setIsNotificationDrawerOpen(true)}>View All</button>
-                              </div>
-                              <div className="dash-announcements-list">
-                                {announcements.map(ann => (
-                                  <div key={ann.id} className="dash-announce-item">
-                                    <span className="dash-announce-icon">{ann.icon}</span>
-                                    <div className="dash-announce-body">
-                                      <p className="dash-announce-title">{ann.title}</p>
-                                      <p className="dash-announce-desc">{ann.body}</p>
-                                      <p className="dash-announce-age">{ann.age}</p>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </div> */}
-
                           </div>
 
                         </div>
@@ -8073,10 +8077,10 @@ export function EmployeePortalFlow({
                                       <svg viewBox="0 0 384 512" style={{ width: '12px', height: '12px', fill: 'currentColor' }}><path d="M224 136V0H24C10.7 0 0 10.7 0 24v464c0 13.3 10.7 24 24 24h336c13.3 0 24-10.7 24-24V160H248c-13.2 0-24-10.8-24-24zm60.1 106.5L224 336l60.1 93.5c5.1 8-2.6 18.5-11.9 18.5h-31.9c-5.9 0-11.2-3.2-14-8.4L192 385.3l-34.3 54.3c-2.8 5.2-8.1 8.4-14 8.4H111.8c-9.3 0-17-10.5-11.9-18.5L160 336l-60.1-93.5c-5.1-8 2.6-18.5 11.9-18.5h31.9c5.9 0 11.2 3.2 14 8.4L192 286.7l34.3-54.3c2.8-5.2 8.1-8.4 14-8.4H272.2c9.3 0 17 10.5 11.9 18.5zM384 121.9v6.1H256V0h6.1c6.4 0 12.5 2.5 17 7l97.9 98c4.5 4.5 7 10.6 7 16.9z" /></svg>
                                       Excel
                                     </button>
-                                    <button type="button" className="export-btn word" onClick={handleExportWord} title="Export to Word">
+                                    {/* <button type="button" className="export-btn word" onClick={handleExportWord} title="Export to Word">
                                       <svg viewBox="0 0 384 512" style={{ width: '12px', height: '12px', fill: 'currentColor' }}><path d="M224 136V0H24C10.7 0 0 10.7 0 24v464c0 13.3 10.7 24 24 24h336c13.3 0 24-10.7 24-24V160H248c-13.2 0-24-10.8-24-24zm39 123.9c.4 5.3-2.5 10.4-7.4 12.5L224 336l31.6 63.6c2.4 4.8 1.9 10.6-1.5 14.9s-9 6.9-14.3 6.9H208c-5.8 0-11.1-3.1-13.9-8.3L168 360l-26.1 53.1c-2.8 5.2-8.1 8.3-13.9 8.3H95.8c-5.3 0-10.1-2.6-12.5-6.9s-1.9-9.7 1.5-14.9L116 336l-31.6-63.6c-2.4-4.8-1.9-10.6 1.5-14.9s9-6.9 14.3-6.9H128c5.8 0 11.1 3.1 13.9 8.3L168 312l26.1-53.1c2.8-5.2 8.1-8.3 13.9-8.3h32.2c5.3 0 10.1 2.6 12.5 6.9s1.9 9.7-1.5 14.9zM384 121.9v6.1H256V0h6.1c6.4 0 12.5 2.5 17 7l97.9 98c4.5 4.5 7 10.6 7 16.9z" /></svg>
                                       Word
-                                    </button>
+                                    </button> */}
                                   </div>
                                 </div>
                                 <table className="time-table">
