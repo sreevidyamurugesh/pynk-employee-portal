@@ -3539,6 +3539,26 @@ html:not(.light-mode) .btn-sso-outline:hover {
   cursor: pointer
 }
 
+.status-chip-btn.locked {
+  cursor: not-allowed;
+  opacity: 0.6;
+  border-style: dashed;
+}
+
+.locked-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  background: #232338;
+  color: #8b8ea8;
+  border: 1px dashed #424263;
+  cursor: not-allowed;
+}
+
 .quick-link {
   appearance: none;
   border: none;
@@ -5024,6 +5044,11 @@ html:not(.light-mode) .btn-sso-outline:hover {
   border-radius: 12px;
   padding: 0 10px;
   min-height: 40px
+}
+
+.light-mode .leave-date-pill {
+  background: #fff;
+  border-color: #e5e7eb;
 }
 
 .leave-date-pill input {
@@ -8503,11 +8528,14 @@ html:not(.light-mode) .btn-sso-outline:hover {
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
     -ms-overflow-style: none;
-    padding-bottom: 8px; /* space to prevent box-shadow clipping */
+    padding-bottom: 8px;
+    /* space to prevent box-shadow clipping */
   }
+
   .dash-stats-row::-webkit-scrollbar {
     display: none;
   }
+
   .dash-stat-card {
     flex: 0 0 250px;
     scroll-snap-align: start;
@@ -8672,6 +8700,7 @@ html:not(.light-mode) .btn-sso-outline:hover {
   .dash-columns-wrapper {
     flex-direction: column;
   }
+
   .dash-col-main,
   .dash-col-side {
     flex: none;
@@ -10214,6 +10243,7 @@ select {
     background: #f3f4f6 !important;
     border-color: #e5e7eb !important;
   }
+
   .light-mode .module-btn.active {
     background: var(--primary) !important;
     color: #ffffff !important;

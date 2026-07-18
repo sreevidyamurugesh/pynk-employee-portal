@@ -877,6 +877,14 @@ const getTodayDate = () => {
 
 const getTodayIso = () => toIso(getTodayDate())
 
+const isOlderThan5Days = (dayKey: string) => {
+  const today = getTodayDate()
+  const date = fromIso(dayKey)
+  const diffTime = today.getTime() - date.getTime()
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+  return diffDays > 5
+}
+
 const formatDateShort = (date: Date) =>
   date.toLocaleDateString('en-GB', {
     day: '2-digit',
@@ -2749,6 +2757,13 @@ export function EmployeePortalFlow({
       openFutureDateWarning(dayKey, 'edit')
       return
     }
+    if (isOlderThan5Days(dayKey)) {
+      setWarningModal({
+        title: 'Time Entry Locked',
+        message: `${formatDateLong(dayKey)} is older than 5 days. You cannot edit or change time entries older than 5 days.`,
+      })
+      return
+    }
     setSelectedDayKey(dayKey)
     setEditForm(getEditFormFromDay(day))
     setEditError('')
@@ -2898,6 +2913,13 @@ export function EmployeePortalFlow({
     if (!selectedDay || !isWeekdayIso(selectedDay.key)) {
       return
     }
+    if (isOlderThan5Days(selectedDay.key)) {
+      setWarningModal({
+        title: 'Action Locked',
+        message: `You cannot clock in/out for ${formatDateLong(selectedDay.key)} as it is older than 5 days.`,
+      })
+      return
+    }
     setConfirmAction('clock')
   }
 
@@ -2905,6 +2927,9 @@ export function EmployeePortalFlow({
     updateActiveRange((range) => ({
       ...range,
       days: range.days.map((day) => {
+        if (isOlderThan5Days(day.key)) {
+          return day
+        }
         if (!isWeekdayIso(day.key)) {
           return {
             ...day,
@@ -2953,6 +2978,13 @@ export function EmployeePortalFlow({
 
   const handleRequestCorrection = () => {
     if (!selectedDay || !isWeekdayIso(selectedDay.key)) {
+      return
+    }
+    if (isOlderThan5Days(selectedDay.key)) {
+      setWarningModal({
+        title: 'Action Locked',
+        message: `You cannot request correction for ${formatDateLong(selectedDay.key)} as it is older than 5 days.`,
+      })
       return
     }
 
@@ -7611,8 +7643,14 @@ export function EmployeePortalFlow({
                                 >
                                   Filters
                                 </button>
-                                <button type="button" className="btn" onClick={() => openEditModalForDay(selectedDay.key)}>
-                                  Edit Selected
+                                <button
+                                  type="button"
+                                  className="btn"
+                                  onClick={() => openEditModalForDay(selectedDay.key)}
+                                  disabled={isOlderThan5Days(selectedDay.key)}
+                                  title={isOlderThan5Days(selectedDay.key) ? 'Locked (older than 5 days)' : ''}
+                                >
+                                  {isOlderThan5Days(selectedDay.key) ? '🔒 Locked' : 'Edit Selected'}
                                 </button>
                                 <button type="button" className="btn btn-primary" onClick={handleSubmit}>Submit</button>
                               </div>
@@ -7850,7 +7888,11 @@ export function EmployeePortalFlow({
                               <section className="calendar-summary-card">
                                 <div className="day-card-head compact">
                                   <h4>{formatDateLong(selectedDay.key)}</h4>
-                                  <button type="button" onClick={() => openEditModalForDay(selectedDay.key)}>Edit</button>
+                                  {isOlderThan5Days(selectedDay.key) ? (
+                                    <span className="locked-badge" title="Locked (older than 5 days)">🔒 Locked</span>
+                                  ) : (
+                                    <button type="button" onClick={() => openEditModalForDay(selectedDay.key)}>Edit</button>
+                                  )}
                                 </div>
                                 <dl className="calendar-detail-list">
                                   <div>
@@ -8107,11 +8149,12 @@ export function EmployeePortalFlow({
                                         <td key={`status-${day.key}`} className={selectedDayKey === day.key ? 'selected' : ''}>
                                           <button
                                             type="button"
-                                            className={`status-chip status-chip-btn ${day.isLeave ? 'leave' : day.status}`}
+                                            className={`status-chip status-chip-btn ${day.isLeave ? 'leave' : day.status} ${isOlderThan5Days(day.key) ? 'locked' : ''}`}
                                             onClick={() => openEditModalForDay(day.key)}
-                                            title="Edit this date"
+                                            title={isOlderThan5Days(day.key) ? 'Locked (older than 5 days)' : 'Edit this date'}
                                           >
                                             {day.isLeave ? (day.leaveType ? leaveTypeLabel[day.leaveType] : 'Leave') : statusLabel[day.status]}
+                                            {isOlderThan5Days(day.key) && ' 🔒'}
                                           </button>
                                         </td>
                                       ))}
@@ -8166,7 +8209,11 @@ export function EmployeePortalFlow({
                               <aside className="time-day-card" aria-label="Selected date details">
                                 <div className="day-card-head">
                                   <h4>{formatDateLong(selectedDay.key)}</h4>
-                                  <button type="button" onClick={() => openEditModalForDay(selectedDay.key)}>Edit</button>
+                                  {isOlderThan5Days(selectedDay.key) ? (
+                                    <span className="locked-badge" title="Locked (older than 5 days)">🔒 Locked</span>
+                                  ) : (
+                                    <button type="button" onClick={() => openEditModalForDay(selectedDay.key)}>Edit</button>
+                                  )}
                                 </div>
                                 <dl>
                                   <div><dt>Work Location</dt><dd>{selectedDay.workLocation}</dd></div>
