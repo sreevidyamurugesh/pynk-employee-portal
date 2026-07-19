@@ -178,7 +178,7 @@ const leaveTabs = ['Leave Balance', 'Leave History'] as const
 const myPayTabs = ['Overview', 'Payslips', 'Salary Breakdown', 'Tax Documents', 'Bank Details', 'Payment History'] as const
 type MyPayTab = (typeof myPayTabs)[number]
 
-const documentTabs = ['My Documents', 'Payroll Documents', 'Expiring Documents'] as const
+const documentTabs = ['My Documents', 'Expiring Documents'] as const
 type DocumentTab = (typeof documentTabs)[number]
 
 const profileTabs = [
@@ -538,7 +538,6 @@ const taxDocumentSeedData: TaxDocument[] = [
   { id: 'td-t4', name: 'T-4', financialYear: '2024-25', description: 'Statement of Remuneration Paid for Canadian tax reporting.' },
   { id: 'td-garn', name: 'Garnishment - Court order', financialYear: '2024-25', description: 'Court order details regarding garnishment of wages or salary withholding.' },
   { id: 'td-001', name: 'Form 16', financialYear: '2024-25', description: 'Annual tax statement as per income tax act.' },
-  { id: 'td-002', name: 'Tax Certificate', financialYear: '2024-25', description: 'Certificate for tax deducted at source.' },
   { id: 'td-004', name: 'Investment Proof Declaration', financialYear: '2024-25', description: 'Proof of your declared investments.' },
 ]
 
@@ -554,6 +553,8 @@ const bankDetailsSeed: BankDetails = {
   accountHolderName: 'John Doe',
   verified: true,
 }
+
+const secondaryBankDetailsSeed: (BankDetails & { label: string }) | null = null
 
 const paymentHistorySeed: PaymentHistoryItem[] = [
   { id: 'ph-001', month: 'June 2025', payDate: '30 Jun 2025', grossSalary: 98500, netSalary: 68750, paymentMode: 'NEFT', transactionId: 'NEFT202506300001', status: 'Credited' },
@@ -571,15 +572,10 @@ const paymentHistorySeed: PaymentHistoryItem[] = [
 //   { id: 'ed-005', name: 'Experience Letter', description: 'Experience letter for previous employment', issuedOn: '20 Dec 2024', status: 'Available', size: '150 KB' },
 // ]
 
-const payrollDocsSeed: PortalDocument[] = [
-  { id: 'pd-004', name: 'Salary Certificate', description: 'Certificate for loan / visa purposes', monthYear: 'FY 2024-25', status: 'Available', size: '400 KB' },
-  { id: 'pd-005', name: 'Payroll Summary', description: 'Annual payroll summary', monthYear: 'FY 2024-25', status: 'Available', size: '800 KB' },
-  { id: 'pd-006', name: 'Bonus Letter', description: 'Annual performance bonus letter', monthYear: 'FY 2024-25', status: 'Available', size: '180 KB' },
-]
+
 
 const taxDocsSeed: PortalDocument[] = [
   { id: 'td-001', name: 'Form 16', description: 'Annual tax statement', financialYear: '2024-25', status: 'Available', size: '1.1 MB' },
-  { id: 'td-002', name: 'Tax Certificate', description: 'Certificate for tax deducted at source', financialYear: '2024-25', status: 'Available', size: '350 KB' },
   { id: 'td-004', name: 'Investment Declaration', description: 'Proof of your declared investments', financialYear: '2024-25', status: 'Available', size: '2.5 MB' },
 ]
 
@@ -2312,6 +2308,7 @@ export function EmployeePortalFlow({
   const [submitError, setSubmitError] = useState('')
   const [historyFilterError, setHistoryFilterError] = useState('')
   const [confirmAction, setConfirmAction] = useState<'clock' | 'copy' | null>(null)
+  const [selectedCopySource, setSelectedCopySource] = useState<string>('default')
   const [warningModal, setWarningModal] = useState<TimeEntryWarning | null>(null)
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -2660,11 +2657,22 @@ export function EmployeePortalFlow({
     }
 
     const impactedDays = activeRange.days.filter((day) => isWeekdayIso(day.key)).length
-    return {
-      title: 'Confirm Copy Previous Period',
-      message: `This will overwrite ${impactedDays} working dates in the selected range with default values (09:00 AM to 06:00 PM, 8.0 hours, Draft status). Existing entries for those dates will be replaced.`,
+    if (selectedCopySource === 'default') {
+      return {
+        title: 'Confirm Copy Period',
+        message: `This will overwrite ${impactedDays} working dates in the selected range with default template values (09:00 AM to 06:00 PM, 8.0 hours, Draft status). Existing entries for those dates will be replaced.`,
+      }
     }
-  }, [confirmAction, selectedDay, activeRange.days])
+
+    const selectedItem = timeHistoryItems.find((item) => item.key === selectedCopySource)
+    const sourceLabel = selectedItem
+      ? getRangeLabel(selectedItem.fromDateISO, selectedItem.toDateISO)
+      : 'the selected period'
+    return {
+      title: 'Confirm Copy Period',
+      message: `This will copy entries from the past period (${sourceLabel}) to the matching weekdays of the current active period. Existing entries for those dates will be replaced.`,
+    }
+  }, [confirmAction, selectedDay, activeRange.days, selectedCopySource, timeHistoryItems])
 
   const closeConfirmModal = () => setConfirmAction(null)
 
@@ -2924,6 +2932,90 @@ export function EmployeePortalFlow({
   }
 
   const handleCopyPreviousPeriod = () => {
+    if (selectedCopySource === 'default') {
+      updateActiveRange((range) => ({
+        ...range,
+        days: range.days.map((day) => {
+          if (isOlderThan5Days(day.key)) {
+            return day
+          }
+          if (!isWeekdayIso(day.key)) {
+            return {
+              ...day,
+              status: 'none',
+              hours: 0,
+              regularHours: 0,
+              overtimeHours: 0,
+              startTime: '--',
+              endTime: '--',
+              breakDuration: '--',
+              workLocation: 'Off',
+              notes: 'Weekend.',
+            }
+          }
+
+          return {
+            ...day,
+            status: 'draft',
+            hours: 8,
+            regularHours: 8,
+            overtimeHours: 0,
+            startTime: '09:00 AM',
+            endTime: '06:00 PM',
+            breakDuration: '01:00 hr',
+            workLocation: 'Remote',
+            notes: 'Copied from previous period template.',
+          }
+        }),
+        lastSaved: 'Just now',
+      }))
+      return
+    }
+
+    // Get source days from the selected copy week
+    let sourceDays: TimeEntryDay[] | undefined = timeEntryStore.ranges[selectedCopySource]?.days
+
+    if (!sourceDays) {
+      const histItem = timeHistoryItems.find((item) => item.key === selectedCopySource)
+      if (histItem) {
+        // Construct the source days on the fly using default values but distributing seed hours
+        const rangeData = buildRangeData(histItem.fromDateISO, histItem.toDateISO)
+        const { regularPerDay, hoursPerDay } = distributeHoursAcrossWeek(
+          histItem.totalHours,
+          histItem.regularHours,
+          histItem.overtimeHours
+        )
+        let weekdayIdx = 0
+        rangeData.days = rangeData.days.map((day) => {
+          if (!isWeekdayIso(day.key)) {
+            return day
+          }
+          const hours = hoursPerDay[weekdayIdx] ?? 8
+          const reg = regularPerDay[weekdayIdx] ?? 8
+          const ot = hours - reg
+          weekdayIdx++
+          return {
+            ...day,
+            hours,
+            regularHours: reg,
+            overtimeHours: ot,
+            startTime: hours > 0 ? '09:00 AM' : '--',
+            endTime: hours > 0 ? '06:00 PM' : '--',
+            breakDuration: hours > 0 ? '01:00 hr' : '--',
+            workLocation: hours > 0 ? 'Remote' : 'Off',
+            notes: 'Copied from history template.',
+          }
+        })
+        sourceDays = rangeData.days
+      }
+    }
+
+    if (!sourceDays) {
+      return
+    }
+
+    const sourceDaysList = sourceDays // non-optional reference
+
     updateActiveRange((range) => ({
       ...range,
       days: range.days.map((day) => {
@@ -2945,24 +3037,32 @@ export function EmployeePortalFlow({
           }
         }
 
-        return {
-          ...day,
-          status: 'draft',
-          hours: 8,
-          regularHours: 8,
-          overtimeHours: 0,
-          startTime: '09:00 AM',
-          endTime: '06:00 PM',
-          breakDuration: '01:00 hr',
-          workLocation: 'Remote',
-          notes: 'Copied from previous period template.',
+        const targetDayOfWeek = fromIso(day.key).getDay()
+        const matchingSourceDay = sourceDaysList.find((sd) => fromIso(sd.key).getDay() === targetDayOfWeek)
+
+        if (matchingSourceDay) {
+          return {
+            ...day,
+            status: 'draft',
+            hours: matchingSourceDay.hours,
+            regularHours: matchingSourceDay.regularHours,
+            overtimeHours: matchingSourceDay.overtimeHours,
+            startTime: matchingSourceDay.startTime,
+            endTime: matchingSourceDay.endTime,
+            breakDuration: matchingSourceDay.breakDuration,
+            workLocation: matchingSourceDay.workLocation,
+            notes: matchingSourceDay.notes || 'Copied from selected period.',
+          }
         }
+
+        return day
       }),
       lastSaved: 'Just now',
     }))
   }
 
   const requestCopyPreviousPeriod = () => {
+    setSelectedCopySource('default')
     setConfirmAction('copy')
   }
 
@@ -7643,7 +7743,7 @@ export function EmployeePortalFlow({
                                 >
                                   Filters
                                 </button>
-                                <button
+                                {/* <button
                                   type="button"
                                   className="btn"
                                   onClick={() => openEditModalForDay(selectedDay.key)}
@@ -7652,7 +7752,7 @@ export function EmployeePortalFlow({
                                 >
                                   {isOlderThan5Days(selectedDay.key) ? '🔒 Locked' : 'Edit Selected'}
                                 </button>
-                                <button type="button" className="btn btn-primary" onClick={handleSubmit}>Submit</button>
+                                <button type="button" className="btn btn-primary" onClick={handleSubmit}>Submit</button> */}
                               </div>
 
                               {isCalendarFiltersOpen && (
@@ -8338,6 +8438,26 @@ export function EmployeePortalFlow({
                             >
                               <h3>{confirmContent.title}</h3>
                               <p className="time-confirm-message">{confirmContent.message}</p>
+                              {confirmAction === 'copy' && (
+                                <div className="time-modal-grid" style={{ marginTop: '16px', marginBottom: '16px' }}>
+                                  <label className="full">
+                                    Select period or template to copy from
+                                    <select
+                                      value={selectedCopySource}
+                                      onChange={(event) => setSelectedCopySource(event.target.value)}
+                                    >
+                                      <option value="default">Default Template (Mon-Fri, 9:00 AM - 6:00 PM)</option>
+                                      {timeHistoryItems
+                                        .filter((item) => item.key !== timeEntryStore.activeRangeKey) // Exclude current range
+                                        .map((item) => (
+                                          <option key={item.key} value={item.key}>
+                                            Past Week: {getRangeLabel(item.fromDateISO, item.toDateISO)} ({item.status})
+                                          </option>
+                                        ))}
+                                    </select>
+                                  </label>
+                                </div>
+                              )}
                               <div className="time-modal-actions">
                                 <button type="button" className="btn" onClick={closeConfirmModal}>Cancel</button>
                                 <button type="button" className="btn btn-primary" onClick={handleConfirmAction}>Yes, Continue</button>
@@ -8853,6 +8973,49 @@ export function EmployeePortalFlow({
                               </section>
                             </div>
 
+                             {/* Secondary Bank Account */}
+                             <div className="pay-bank-grid" style={{ marginTop: '16px' }}>
+                               <section className="pay-card pay-bank-card" aria-label="Secondary bank account" style={{ borderTop: '2px solid var(--line)', paddingTop: '16px' }}>
+                                 <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                   Secondary Account
+                                   <span style={{ fontSize: '12px', fontWeight: 400, color: 'var(--muted)', background: 'var(--line)', borderRadius: '4px', padding: '2px 8px' }}>Optional</span>
+                                 </h3>
+                                 {secondaryBankDetailsSeed ? (
+                                   <div className="pay-bank-inner">
+                                     <div className="pay-bank-icon-wrap">
+                                       <span className="pay-bank-icon">🏦</span>
+                                       {secondaryBankDetailsSeed.verified && (
+                                         <span className="pay-bank-verified">✅ Verified</span>
+                                       )}
+                                     </div>
+                                     <dl className="pay-bank-dl">
+                                       {getBankDisplayFields(employmentCountryCode, secondaryBankDetailsSeed).map((row) => (
+                                         <div key={row.label}>
+                                           <dt>{row.label}</dt>
+                                           <dd>
+                                             {row.label === 'Bank Name' ? <strong>{row.value}</strong> : row.label === 'Account Number' ? maskAccountNumber(row.value) : row.value}
+                                           </dd>
+                                         </div>
+                                       ))}
+                                     </dl>
+                                   </div>
+                                 ) : (
+                                   <div style={{ color: 'var(--muted)', fontSize: '13px', padding: '12px 0' }}>
+                                     No secondary account linked.
+                                     <br />
+                                     <button
+                                       type="button"
+                                       className="btn btn-primary"
+                                       style={{ marginTop: '12px', fontSize: '13px' }}
+                                       onClick={() => { setBankUpdateModalOpen(true); setBankUpdateError(''); setBankUpdateSuccess(false) }}
+                                     >
+                                       + Add Secondary Account
+                                     </button>
+                                   </div>
+                                 )}
+                               </section>
+             </div>
+
                             <p className="pay-breakdown-note">* Salary is credited to your above bank account every month.</p>
 
                             {/* Bank Update Modal */}
@@ -9039,30 +9202,12 @@ export function EmployeePortalFlow({
                                     </div>
                                   </button> */}
 
-                                  <button type="button" className="doc-quick-btn" onClick={() => setActiveDocTab('Payroll Documents')}>
-                                    <div className="doc-quick-icon green">💵</div>
-                                    <div className="doc-quick-text">
-                                      <strong>View Payroll Documents</strong>
-                                      <span>Salary certificates & more</span>
-                                    </div>
-                                  </button>
-                                  {/* <button type="button" className="doc-quick-btn" onClick={() => setActiveDocTab('Tax Documents')}>
-                                    <div className="doc-quick-icon purple">🧾</div>
-                                    <div className="doc-quick-text">
-                                      <strong>View Tax Documents</strong>
-                                      <span>Download tax files</span>
-                                    </div>
-                                  </button> */}
                                 </div>
                               </section>
 
                               <section className="doc-card" aria-label="Recent Documents">
-                                {/* <div className="doc-card-head">
-                                  <h3>Recent Documents</h3>
-                                  <button type="button" className="doc-view-all" onClick={() => setActiveDocTab('Employment Documents')}>View All</button>
-                                </div> */}
                                 <div className="doc-recent-list">
-                                  {[payrollDocsSeed[0], taxDocsSeed[0]].map((doc, idx) => (
+                                  {[taxDocsSeed[0]].map((doc, idx) => (
                                     <div key={idx} className="doc-recent-row">
                                       <span className="doc-recent-icon">📄</span>
                                       <span className="doc-recent-name">{doc.name}</span>
@@ -9075,9 +9220,6 @@ export function EmployeePortalFlow({
                               </section>
                             </div>
 
-                            {/* <div className="doc-info-tip">
-                              <span>ℹ️</span> Tip: You can upload documents in PDF, JPG, PNG format. Max file size 10MB.
-                            </div> */}
                           </div>
                         )}
 
@@ -9088,24 +9230,11 @@ export function EmployeePortalFlow({
                               <div className="doc-table-title">
                                 <h3>{activeDocTab}</h3>
                                 <p>
-                                  {/* {activeDocTab === 'Employment Documents' && 'Documents issued by your employer.'} */}
-                                  {activeDocTab === 'Payroll Documents' && 'Payroll related documents and salary information.'}
-                                  {/* {activeDocTab === 'Tax Documents' && 'Tax related documents and certificates.'} */}
-                                  {/* {activeDocTab === 'Uploaded Documents' && 'Documents uploaded by you for verification.'} */}
                                   {activeDocTab === 'Expiring Documents' && 'Documents that are expiring soon.'}
                                 </p>
                               </div>
 
                               <div className="doc-table-controls">
-                                {/* {activeDocTab === 'Tax Documents' ? (
-                                  <div className="doc-filter-group">
-                                    <label>Financial Year</label>
-                                    <select value={taxYearFilter} onChange={(e) => { setTaxYearFilter(e.target.value); setDocCurrentPage(1); }}>
-                                      <option value="2024-25">2024-25 (Apr 2024 - Mar 2025)</option>
-                                      <option value="2023-24">2023-24 (Apr 2023 - Mar 2024)</option>
-                                    </select>
-                                  </div>
-                                ) : ( */}
                                 <div className="doc-search-box">
                                   <input
                                     type="text"
@@ -9115,11 +9244,7 @@ export function EmployeePortalFlow({
                                   />
                                   <span className="doc-search-icon">🔍</span>
                                 </div>
-                                {/* )} */}
 
-                                {/* {activeDocTab === 'Uploaded Documents' && (
-                                  <button type="button" className="doc-upload-btn" onClick={() => setIsDocUploadModalOpen(true)}>📤 Upload Document</button>
-                                )} */}
                                 <select className="doc-filter-btn" value={docStatusFilter} onChange={(e) => { setDocStatusFilter(e.target.value); setDocCurrentPage(1); }} style={{ appearance: 'auto' }}>
                                   <option value="All">All Status</option>
                                   <option value="Available">Available</option>
@@ -9135,29 +9260,15 @@ export function EmployeePortalFlow({
                                   <thead>
                                     <tr>
                                       <th>Document Name</th>
-                                      {/* {
-                                      activeDocTab === 'Uploaded Documents' ? (
-                                        <th>Category</th>
-                                      ) : (
-                                        <th>Description</th>
-                                      )} */}
                                       <th>Description</th>
-                                      {/* {activeDocTab === 'Employment Documents' && <th>Issued On</th>} */}
-                                      {activeDocTab === 'Payroll Documents' && <th>Month / Year</th>}
-                                      {/* {activeDocTab === 'Tax Documents' && <th>Financial Year</th>} */}
-                                      {/* {activeDocTab === 'Uploaded Documents' && <th>Uploaded On</th>} */}
                                       <th>Status</th>
-                                      {/* {activeDocTab === 'Uploaded Documents' && <th>Verified On</th>} */}
                                       <th>Actions</th>
                                     </tr>
                                   </thead>
                                   <tbody>
                                     {(() => {
                                       let source: PortalDocument[] = []
-                                      if (activeDocTab === 'Payroll Documents') source = payrollDocsSeed
-                                      // else if (activeDocTab === 'Tax Documents') source = taxDocsSeed
-                                      // else if (activeDocTab === 'Uploaded Documents') source = uploadedDocsState
-                                      else if (activeDocTab === 'Expiring Documents') source = [uploadedDocsState[1]]
+                                      if (activeDocTab === 'Expiring Documents') source = [uploadedDocsState[1]]
 
                                       let filtered = source.filter(d => d.name.toLowerCase().includes(docSearchQuery.toLowerCase()))
 
@@ -9184,26 +9295,12 @@ export function EmployeePortalFlow({
                                       return paginated.map((doc) => (
                                         <tr key={doc.id}>
                                           <td className="doc-cell-name">{doc.name}</td>
-
-                                          {/* {activeDocTab === 'Uploaded Documents' ? (
-                                            <td>{doc.category}</td>
-                                          ) : (
-                                            <td>{doc.description}</td>
-                                          )} */}
                                           <td>{doc.description}</td>
-                                          {/* {activeDocTab === 'Employment Documents' && <td>{doc.issuedOn}</td>} */}
-                                          {activeDocTab === 'Payroll Documents' && <td>{doc.monthYear}</td>}
-                                          {/* {activeDocTab === 'Tax Documents' && <td>{doc.financialYear}</td>} */}
-                                          {/* {activeDocTab === 'Uploaded Documents' && <td>{doc.uploadedOn}</td>} */}
-
                                           <td>
                                             <span className={`doc-status ${doc.status === 'Available' || doc.status === 'Verified' ? 'success' : 'warning'}`}>
                                               {doc.status}
                                             </span>
                                           </td>
-
-                                          {/* {activeDocTab === 'Uploaded Documents' && <td>{doc.verifiedOn}</td>} */}
-
                                           <td>
                                             <div className="doc-table-actions">
                                               <button type="button" title="View" onClick={() => setDocPreview(doc)}>👁️</button>
@@ -9220,10 +9317,7 @@ export function EmployeePortalFlow({
                                 <span className="doc-pagination-info">
                                   {(() => {
                                     let source: PortalDocument[] = []
-                                    if (activeDocTab === 'Payroll Documents') source = payrollDocsSeed
-                                    // else if (activeDocTab === 'Tax Documents') source = taxDocsSeed
-                                    // else if (activeDocTab === 'Uploaded Documents') source = uploadedDocsState
-                                    else if (activeDocTab === 'Expiring Documents') source = [uploadedDocsState[1]]
+                                      if (activeDocTab === 'Expiring Documents') source = [uploadedDocsState[1]]
 
                                     let filtered = source.filter(d => d.name.toLowerCase().includes(docSearchQuery.toLowerCase()))
                                     // if (activeDocTab === 'Tax Documents') {
@@ -9245,10 +9339,7 @@ export function EmployeePortalFlow({
                                   <button type="button" className="btn" disabled={
                                     (() => {
                                       let source: PortalDocument[] = []
-                                      if (activeDocTab === 'Payroll Documents') source = payrollDocsSeed
-                                      // else if (activeDocTab === 'Tax Documents') source = taxDocsSeed
-                                      // else if (activeDocTab === 'Uploaded Documents') source = uploadedDocsState
-                                      else if (activeDocTab === 'Expiring Documents') source = [uploadedDocsState[1]]
+                                      if (activeDocTab === 'Expiring Documents') source = [uploadedDocsState[1]]
 
                                       let filtered = source.filter(d => d.name.toLowerCase().includes(docSearchQuery.toLowerCase()))
                                       // if (activeDocTab === 'Tax Documents') {
@@ -9967,6 +10058,51 @@ export function EmployeePortalFlow({
                                     </button>
                                   </div>
                                 </div>
+                              </div>
+                            </div>
+
+                            {/* Secondary Bank Account */}
+                            <div className="profile-personal-grid" style={{ marginTop: '16px' }}>
+                              <div className="profile-card profile-personal-info-card">
+                                <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  Secondary Account
+                                  <span style={{ fontSize: '12px', fontWeight: 400, color: 'var(--muted)', background: 'var(--line)', borderRadius: '4px', padding: '2px 8px' }}>Optional</span>
+                                </h3>
+                                {secondaryBankDetailsSeed ? (
+                                  <div className="contact-details-grid" style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '20px', alignItems: 'center' }}>
+                                    <div style={{ background: 'rgba(90, 125, 255, 0.1)', padding: '16px', borderRadius: '12px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                      <span style={{ fontSize: '48px' }}>🏦</span>
+                                    </div>
+                                    <div className="contact-details-grid">
+                                      {getBankDisplayFields(employmentCountryCode, secondaryBankDetailsSeed).map((row) => (
+                                        <div key={row.label} className="contact-field">
+                                          <span className="label">{row.label}</span>
+                                          {row.label === 'Bank Name' ? (
+                                            <div className="value-with-badge">
+                                              <span className="value">{row.value}</span>
+                                              {secondaryBankDetailsSeed.verified && <span className="verified-badge">Verified</span>}
+                                            </div>
+                                          ) : (
+                                            <span className="value">{row.value}</span>
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div style={{ color: 'var(--muted)', fontSize: '13px', padding: '12px 0' }}>
+                                    No secondary account linked.
+                                    <br />
+                                    <button
+                                      type="button"
+                                      className="btn btn-primary"
+                                      style={{ marginTop: '12px', fontSize: '13px' }}
+                                      onClick={handleOpenBankChange}
+                                    >
+                                      + Add Secondary Account
+                                    </button>
+                                  </div>
+                                )}
                               </div>
                             </div>
 

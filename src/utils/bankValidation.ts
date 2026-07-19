@@ -80,6 +80,14 @@ const COUNTRY_FIELD_CONFIG: Record<BankCountryCode, BankFieldDef[]> = {
       minLengthMessage: 'Account number must be at least 9 digits.',
     },
     {
+      key: 'routingNumber',
+      label: 'Routing Number',
+      placeholder: 'e.g. 021000021 (9 digits)',
+      required: false,
+      pattern: ROUTING_PATTERN,
+      patternMessage: 'Routing number must be exactly 9 digits.',
+    },
+    {
       key: 'accountHolderName',
       label: 'Account Holder Name',
       placeholder: 'Name as on bank account',
@@ -299,6 +307,7 @@ export function getBankDisplayFields(
       { label: 'Account Number', value: details.accountNumber },
       { label: 'IFSC Code', value: details.ifscCode ?? '-' },
     )
+    if (details.routingNumber) rows.push({ label: 'Routing Number', value: details.routingNumber })
   } else if (countryCode === 'US') {
     rows.push(
       { label: 'Routing Number', value: details.routingNumber ?? '-' },
