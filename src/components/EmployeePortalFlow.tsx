@@ -7310,7 +7310,15 @@ export function EmployeePortalFlow({
                           {/* Reconcile Send Confirmation Modal */}
                               {showReconcileConfirmModal && (
                             <div className="time-modal-backdrop" role="presentation" onClick={handleCloseReconcileModal}>
-                              <div className="modal-caution-box" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()} style={{ width: 'min(98vw, 1100px)', maxHeight: '92vh', overflowY: 'auto', padding: '28px', borderRadius: '18px' }}>
+                              <div className="modal-caution-box" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()} style={{ position: 'relative', width: 'min(98vw, 1100px)', maxHeight: '92vh', overflowY: 'auto', padding: '28px', borderRadius: '18px' }}>
+                                <button
+                                  type="button"
+                                  aria-label="Close"
+                                  onClick={handleCloseReconcileModal}
+                                  style={{ position: 'absolute', top: 12, right: 12, background: 'transparent', border: 'none', fontSize: '1.25rem', cursor: 'pointer', color: 'var(--muted)' }}
+                                >
+                                  ✕
+                                </button>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
                                   <span style={{ fontSize: '2.4rem', lineHeight: 1 }}>✈️</span>
                                   <div style={{ minWidth: 0 }}>
