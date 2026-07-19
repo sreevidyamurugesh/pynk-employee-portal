@@ -8469,7 +8469,7 @@ html:not(.light-mode) .btn-sso-outline:hover {
    ========================================================================== */
 
 .dash-shell {
-  padding: 24px 28px 40px;
+  padding: 0px 24px 28px 24px;
   display: flex;
   flex-direction: column;
   gap: 10px;

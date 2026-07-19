@@ -2383,7 +2383,7 @@ export function EmployeePortalFlow({
 
       clientMenu.push(
         { id: 'client-offcycles' as Module, label: 'Offcycles / Bonus', icon: '💸' },
-        { id: 'client-payroll-period' as Module, label: 'Payroll Period', icon: '📅' },
+        { id: 'client-payroll-period' as Module, label: 'Time Entry Details & Approval', icon: '📅' },
         { id: 'client-lock' as Module, label: 'Approval & Lock', icon: '🔒' },
         { id: 'client-reports' as Module, label: 'Reports', icon: '📈' },
       )
@@ -5086,6 +5086,9 @@ export function EmployeePortalFlow({
     const isAllSelected = pendingIds.length > 0 && pendingIds.every(id => selectedEmployeeIds.has(id))
     const isIndeterminate = pendingIds.some(id => selectedEmployeeIds.has(id)) && !isAllSelected
     const selectedCount = selectedEmployeeIds.size
+    const selectedAmount = adminEmployees
+      .filter(emp => selectedEmployeeIds.has(emp.id))
+      .reduce((sum, emp) => sum + emp.currGross, 0)
     const approvedCount = approvedEmployeeIds.size
 
     const handleSelectAll = () => {
@@ -5121,6 +5124,37 @@ export function EmployeePortalFlow({
       showToast(`Timesheet entries approved for ${selectedCount} employee${selectedCount > 1 ? 's' : ''}!`)
     }
 
+    const totalPayrollAmount = adminEmployees.reduce((sum, emp) => sum + emp.currGross, 0)
+
+    const handleExportPayrollPeriodExcel = () => {
+      const headers = ['Employee ID', 'Name', 'Department / Group', 'Pay Group', 'Payment Method', 'Timesheet Status', 'Approval Status', 'Current Gross']
+      const rows = adminEmployees.map((emp) => [
+        emp.id,
+        emp.name,
+        emp.clientName,
+        emp.paygroup,
+        emp.paymentMode,
+        'Submitted',
+        approvedEmployeeIds.has(emp.id) ? 'Approved' : 'Pending',
+        emp.currGross.toString(),
+      ])
+
+      const csvContent = [
+        headers.join(','),
+        ...rows.map((row) => row.map((val) => `"${String(val).replace(/"/g, '""')}"`).join(',')),
+      ].join('\n')
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.setAttribute('href', url)
+      link.setAttribute('download', `time_entry_details_approval_${new Date().toISOString().slice(0, 10)}.csv`)
+      link.style.visibility = 'hidden'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    }
+
     return (
       <div className="dash-shell">
         {/* Confirmation Modal */}
@@ -5154,136 +5188,173 @@ export function EmployeePortalFlow({
         )}
 
 
-        <div className="dash-welcome-row" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', flexWrap: 'nowrap', gap: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'nowrap', flexShrink: 0 }}>
-              <h1 className="dash-welcome-title" style={{ margin: 0, whiteSpace: 'nowrap' }}>Payroll Area & Time Approval Checklist 📅</h1>
-
-              {/* Date selection inline next to the title */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'nowrap', flexShrink: 0, background: 'var(--surface)', padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--line)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <label htmlFor="period-start-date-input" style={{ fontSize: '11px', fontWeight: '600', whiteSpace: 'nowrap', color: 'var(--muted)' }}>Start:</label>
-                  <input
-                    id="period-start-date-input"
-                    type="date"
-                    className="modal-field"
-                    style={{ width: '120px', padding: '4px 6px', fontSize: '11px', background: 'transparent', color: 'var(--text-h)', border: 'none' }}
-                    value={clientPeriodStartDate}
-                    onChange={(e) => setClientPeriodStartDate(e.target.value)}
-                  />
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <label htmlFor="period-end-date-input" style={{ fontSize: '11px', fontWeight: '600', whiteSpace: 'nowrap', color: 'var(--muted)' }}>End:</label>
-                  <input
-                    id="period-end-date-input"
-                    type="date"
-                    className="modal-field"
-                    style={{ width: '120px', padding: '4px 6px', fontSize: '11px', background: 'transparent', color: 'var(--text-h)', border: 'none' }}
-                    value={clientPeriodEndDate}
-                    onChange={(e) => setClientPeriodEndDate(e.target.value)}
-                  />
-                </div>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={() => {
-                    if (!clientPeriodStartDate) {
-                      setAlertModal({
-                        type: 'error',
-                        title: 'Validation Error',
-                        message: 'Please select a valid Period Start Date.'
-                      })
-                      return
-                    }
-                    if (!clientPeriodEndDate) {
-                      setAlertModal({
-                        type: 'error',
-                        title: 'Validation Error',
-                        message: 'Please select a valid Period End Date.'
-                      })
-                      return
-                    }
-
-                    const start = new Date(clientPeriodStartDate)
-                    const end = new Date(clientPeriodEndDate)
-
-                    if (end < start) {
-                      setAlertModal({
-                        type: 'error',
-                        title: 'Validation Error',
-                        message: 'Period End Date cannot be before Period Start Date.'
-                      })
-                      return
-                    }
-
-                    // Calculate date difference in days
-                    const diffTime = Math.abs(end.getTime() - start.getTime())
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1 // inclusive of start & end
-
-                    if (clientPayGroupFilter === 'Monthly') {
-                      if (diffDays < 28 || diffDays > 31) {
-                        setAlertModal({
-                          type: 'error',
-                          title: 'Monthly Period Validation Error',
-                          message: `A Monthly pay period must be between 28 and 31 days. Your selected range is ${diffDays} days.`
-                        })
-                        return
-                      }
-                    } else if (clientPayGroupFilter === 'Weekly') {
-                      if (diffDays !== 7) {
-                        setAlertModal({
-                          type: 'error',
-                          title: 'Weekly Period Validation Error',
-                          message: `A Weekly pay period must be exactly 7 days. Your selected range is ${diffDays} days.`
-                        })
-                        return
-                      }
-                    } else if (clientPayGroupFilter === 'Bi-Weekly') {
-                      if (diffDays !== 14) {
-                        setAlertModal({
-                          type: 'error',
-                          title: 'Bi-Weekly Period Validation Error',
-                          message: `A Bi-Weekly pay period must be exactly 14 days. Your selected range is ${diffDays} days.`
-                        })
-                        return
-                      }
-                    } else if (clientPayGroupFilter === 'Semi-Monthly') {
-                      if (diffDays < 13 || diffDays > 16) {
-                        setAlertModal({
-                          type: 'error',
-                          title: 'Semi-Monthly Period Validation Error',
-                          message: `A Semi-Monthly pay period must be between 13 and 16 days. Your selected range is ${diffDays} days.`
-                        })
-                        return
-                      }
-                    }
-
-                    showToast('Active pay period dates configured successfully!')
-                  }}
-                  style={{ padding: '4px 10px', fontSize: '11px', height: 'auto', minHeight: 'unset', fontWeight: 600 }}
-                >
-                  Save Dates
-                </button>
-              </div>
+        <div className="dash-welcome-row" style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch',gap:'10px' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', minWidth: '260px', flex: '1 1 460px' }}>
+              <h1 className="dash-welcome-title" style={{ margin: 0, whiteSpace: 'normal' }}>Time Entry Details & Approval</h1>
+              <p className="dash-welcome-sub" style={{ margin: 0, maxWidth: '620px' }}>Select employees to approve timesheet entries.</p>
             </div>
+            <button type="button" className="btn btn-primary"
+              onClick={() => setShowApproveConfirmModal(true)}
+              disabled={selectedCount === 0}
+              style={{ height: '38px', background: selectedCount > 0 ? 'linear-gradient(135deg,#f39c12,#e67e22)' : 'var(--surface)', border: 'linear-gradient(135deg, rgb(243, 156, 18), rgb(230, 126, 34));', padding: '0 16px', fontSize: '13px', color: selectedCount > 0 ? 'var(--bg)' : '#e67e1b', cursor: selectedCount > 0 ? 'pointer' : 'not-allowed' }}>
+              ✓ Approve Selected ({selectedCount})
+            </button>
+          </div>
 
-            <div className="filter-input-group" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
-              <select value={clientPayGroupFilter} onChange={e => setClientPayGroupFilter(e.target.value as any)} className="btn" style={{ background: 'var(--surface)', color: 'var(--ink)', padding: '6px 12px', fontSize: '13px' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center', width: '100%', maxWidth: '900px', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center' }}>
+              <select value={clientPayGroupFilter} onChange={e => setClientPayGroupFilter(e.target.value as any)} className="btn" style={{ background: 'var(--surface)', color: 'var(--ink)', padding: '10px 14px', fontSize: '13px', minWidth: '170px' }}>
                 <option value="Monthly">Monthly Pay Period</option>
                 <option value="Weekly">Weekly Pay Period</option>
                 <option value="Bi-Weekly">Bi-Weekly Pay Period</option>
                 <option value="Semi-Monthly">Semi-Monthly Pay Period</option>
               </select>
-              {!allApproved && selectedCount > 0 && (
-                <button type="button" className="btn btn-primary"
-                  onClick={() => setShowApproveConfirmModal(true)}
-                  style={{ width: 'fit-content', background: 'linear-gradient(135deg,#f39c12,#e67e22)', border: 'none', padding: '6px 12px', fontSize: '13px' }}>
-                  ✓ Approve Selected ({selectedCount})
-                </button>
-              )}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '190px' }}>
+                <label htmlFor="period-start-date-input" style={{ fontSize: '12px', fontWeight: 600, whiteSpace: 'nowrap', color: 'var(--muted)' }}>Start</label>
+                <input
+                  id="period-start-date-input"
+                  type="date"
+                  className="modal-field"
+                  style={{ flex: 1, minWidth: '130px', padding: '10px 12px', fontSize: '13px', background: 'transparent', color: 'var(--text-h)', border: '1px solid var(--line)', borderRadius: '8px' }}
+                  value={clientPeriodStartDate}
+                  onChange={(e) => setClientPeriodStartDate(e.target.value)}
+                />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '180px' }}>
+                <label htmlFor="period-end-date-input" style={{ fontSize: '12px', fontWeight: 600, whiteSpace: 'nowrap', color: 'var(--muted)' }}>End</label>
+                <input
+                  id="period-end-date-input"
+                  type="date"
+                  className="modal-field"
+                  style={{ flex: 1, minWidth: '130px', padding: '10px 12px', fontSize: '13px', background: 'transparent', color: 'var(--text-h)', border: '1px solid var(--line)', borderRadius: '8px' }}
+                  value={clientPeriodEndDate}
+                  onChange={(e) => setClientPeriodEndDate(e.target.value)}
+                />
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center' }}>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => {
+                  if (!clientPeriodStartDate) {
+                    setAlertModal({
+                      type: 'error',
+                      title: 'Validation Error',
+                      message: 'Please select a valid Period Start Date.'
+                    })
+                    return
+                  }
+                  if (!clientPeriodEndDate) {
+                    setAlertModal({
+                      type: 'error',
+                      title: 'Validation Error',
+                      message: 'Please select a valid Period End Date.'
+                    })
+                    return
+                  }
+
+                  const start = new Date(clientPeriodStartDate)
+                  const end = new Date(clientPeriodEndDate)
+
+                  if (end < start) {
+                    setAlertModal({
+                      type: 'error',
+                      title: 'Validation Error',
+                      message: 'Period End Date cannot be before Period Start Date.'
+                    })
+                    return
+                  }
+
+                  const diffTime = Math.abs(end.getTime() - start.getTime())
+                  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
+
+                  if (clientPayGroupFilter === 'Monthly') {
+                    if (diffDays < 28 || diffDays > 31) {
+                      setAlertModal({
+                        type: 'error',
+                        title: 'Monthly Period Validation Error',
+                        message: `A Monthly pay period must be between 28 and 31 days. Your selected range is ${diffDays} days.`
+                      })
+                      return
+                    }
+                  } else if (clientPayGroupFilter === 'Weekly') {
+                    if (diffDays !== 7) {
+                      setAlertModal({
+                        type: 'error',
+                        title: 'Weekly Period Validation Error',
+                        message: `A Weekly pay period must be exactly 7 days. Your selected range is ${diffDays} days.`
+                      })
+                      return
+                    }
+                  } else if (clientPayGroupFilter === 'Bi-Weekly') {
+                    if (diffDays !== 14) {
+                      setAlertModal({
+                        type: 'error',
+                        title: 'Bi-Weekly Period Validation Error',
+                        message: `A Bi-Weekly pay period must be exactly 14 days. Your selected range is ${diffDays} days.`
+                      })
+                      return
+                    }
+                  } else if (clientPayGroupFilter === 'Semi-Monthly') {
+                    if (diffDays < 13 || diffDays > 16) {
+                      setAlertModal({
+                        type: 'error',
+                        title: 'Semi-Monthly Period Validation Error',
+                        message: `A Semi-Monthly pay period must be between 13 and 16 days. Your selected range is ${diffDays} days.`
+                      })
+                      return
+                    }
+                  }
+
+                  showToast('Active pay period dates configured successfully!')
+                }}
+                style={{ height: '38px', padding: '0 16px', fontSize: '13px', fontWeight: 700 }}>
+                Save Dates
+              </button>
+              <button type="button" className="btn btn-primary"
+                onClick={handleExportPayrollPeriodExcel}
+                style={{ height: '38px', border: '1px solid var(--border)', padding: '0 16px', fontSize: '13px', background: 'var(--surface)', color: 'var(--ink)' }}>
+                📥 Export to Excel
+              </button>
             </div>
           </div>
-          <p className="dash-welcome-sub" style={{ margin: 0 }}>Manage processing periods, approve employee logs, and run validation audits.</p>
+
+          <div className="dash-stats-row" style={{ marginTop: '0', gridTemplateColumns: 'repeat(4, minmax(150px, 1fr))' }}>
+            <div className="dash-stat-card" style={{ minWidth: '140px', padding: '14px' }}>
+              <div className="dash-stat-icon dash-stat-icon--blue">👥</div>
+              <div className="dash-stat-body">
+                <p className="dash-stat-label">Total Employee Count</p>
+                <p className="dash-stat-value" style={{ fontSize: '22px' }}>{allIds.length}</p>
+                <p className="dash-stat-sub">Active in current period</p>
+              </div>
+            </div>
+            <div className="dash-stat-card" style={{ minWidth: '150px', padding: '14px' }}>
+              <div className="dash-stat-icon dash-stat-icon--green">💰</div>
+              <div className="dash-stat-body">
+                <p className="dash-stat-label">Total Payroll Amount</p>
+                <p className="dash-stat-value" style={{ fontSize: '22px' }}>${totalPayrollAmount.toLocaleString('en-US')}</p>
+                <p className="dash-stat-sub">Current gross payroll</p>
+              </div>
+            </div>
+            <div className="dash-stat-card" style={{ minWidth: '140px', padding: '14px' }}>
+              <div className="dash-stat-icon dash-stat-icon--blue">✅</div>
+              <div className="dash-stat-body">
+                <p className="dash-stat-label">Selected Employee Count</p>
+                <p className="dash-stat-value" style={{ fontSize: '22px' }}>{selectedCount}</p>
+                <p className="dash-stat-sub">Ready for approval</p>
+              </div>
+            </div>
+            <div className="dash-stat-card" style={{ minWidth: '150px', padding: '14px' }}>
+              <div className="dash-stat-icon dash-stat-icon--green">📊</div>
+              <div className="dash-stat-body">
+                <p className="dash-stat-label">Selected Payroll Amount</p>
+                <p className="dash-stat-value" style={{ fontSize: '22px' }}>${selectedAmount.toLocaleString('en-US')}</p>
+                <p className="dash-stat-sub">Selected gross payroll</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Modal Alert Banner */}
