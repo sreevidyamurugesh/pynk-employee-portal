@@ -1692,9 +1692,11 @@ export function EmployeePortalFlow({
   })
 
   // Shared Reports State
-  const [activeReportType, setActiveReportType] = useState<'timesheet' | 'costs' | 'variance' | 'access' | 'payroll_register' | 'payment_ledger'>('timesheet')
+  const [activeReportType, setActiveReportType] = useState<'timesheet' | 'costs' | 'variance' | 'access' | 'payroll_register' | 'payment_ledger' | 'payroll_detail'>('timesheet')
   const [reportFilterEmployee, setReportFilterEmployee] = useState('All')
   const [reportFilterClient, setReportFilterClient] = useState('All')
+  const [reportFilterPaygroup, setReportFilterPaygroup] = useState('All')
+  const [reportFilterStatus, setReportFilterStatus] = useState<'All' | 'Completed' | 'In Progress'>('All')
   const [reportDateFrom, setReportDateFrom] = useState('2025-07-01')
   const [reportDateTo, setReportDateTo] = useState('2025-07-15')
 
@@ -4227,7 +4229,13 @@ export function EmployeePortalFlow({
     const finalReportEmployees = adminEmployees.filter(emp => {
       const matchesClient = activeUserType === 'admin' ? (reportFilterClient === 'All' || emp.clientName === reportFilterClient) : (emp.clientName === simulatedClientName)
       const matchesSearch = reportFilterEmployee === 'All' || emp.id === reportFilterEmployee
-      return matchesClient && matchesSearch
+      const matchesPaygroup = reportFilterPaygroup === 'All' || emp.paygroup === reportFilterPaygroup
+      const matchesStatus = reportFilterStatus === 'All' || activeReportType !== 'payroll_detail'
+        ? true
+        : reportFilterStatus === 'Completed'
+          ? isPayrollSubmitted
+          : !isPayrollSubmitted
+      return matchesClient && matchesSearch && matchesPaygroup && matchesStatus
     })
 
     const calculateDetailedRegister = (e: AdminEmployee) => {
@@ -4292,6 +4300,32 @@ export function EmployeePortalFlow({
           const reg = calculateDetailedRegister(e)
           csv += `"Payroll Payment: ${e.name} - ${currentYear}-07-02","Payroll On-Cycle Payment","${e.clientName}","Complete","${e.name}","${currentDate}","Stark Pay Bank Account","${e.paymentMode}","Payroll On-Cycle Payment (${e.paymentMode}) for Bank Account","${e.id}",${reg.net.toFixed(2)},"USD","Unreconciled","${formatPeriodRange(clientPeriodStartDate, clientPeriodEndDate)}","${e.paygroup}",""\n`
         })
+      } else if (activeReportType === 'payroll_detail') {
+        csv = 'Company,Paygroup,Pay Period,Employee Name,Employee ID,Payment Category,Working Hours,Payment Date,Payment Amount,Currency,Payment Type,Status\n'
+        const reportPeriodLabel = `${new Date(reportDateFrom).toLocaleDateString('en-US')} - ${new Date(reportDateTo).toLocaleDateString('en-US')}`
+
+        finalReportEmployees.forEach(e => {
+          const status = isPayrollSubmitted ? 'Completed' : 'In Progress'
+          csv += `"${e.clientName}","${e.paygroup}","${reportPeriodLabel}","${e.name}","${e.id}","Regular On-cycle Payroll",160,"${new Date(reportDateTo).toLocaleDateString('en-US')}",${e.currGross},"USD","${e.paymentMode}","${status}"\n`
+        })
+
+        const offcycleRows = offcyclePaymentsList.filter(o => {
+          const employee = adminEmployees.find(emp => emp.id === o.employeeId)
+          if (!employee) return false
+          const matchesClient = reportFilterClient === 'All' || employee.clientName === reportFilterClient
+          const matchesEmployee = reportFilterEmployee === 'All' || employee.id === reportFilterEmployee
+          const matchesPaygroup = reportFilterPaygroup === 'All' || employee.paygroup === reportFilterPaygroup
+          const statusLabel = o.status === 'Approved' ? 'Completed' : 'In Progress'
+          const matchesStatus = reportFilterStatus === 'All' || reportFilterStatus === statusLabel
+          return matchesClient && matchesEmployee && matchesPaygroup && matchesStatus
+        })
+
+        offcycleRows.forEach(o => {
+          const employee = adminEmployees.find(emp => emp.id === o.employeeId)
+          if (!employee) return
+          const status = o.status === 'Approved' ? 'Completed' : 'In Progress'
+          csv += `"${o.clientName}","${employee.paygroup}","${reportPeriodLabel}","${o.employeeName}","${o.employeeId}","Payroll Off-cycle",0,"${o.date}",${o.amount},"USD","Off-cycle Adjustment","${status}"\n`
+        })
       }
 
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
@@ -4328,10 +4362,12 @@ export function EmployeePortalFlow({
                 <>
                   <option value="payroll_register">Payroll Register Detailed Report</option>
                   <option value="payment_ledger">Payment Ledger Export Report</option>
+                  <option value="payroll_detail">Payroll Detail Report</option>
                 </>
               ) : (
                 <>
                   <option value="variance">Variance Reconciliation Report</option>
+                  <option value="payroll_detail">Payroll Detail Report</option>
                   {activeUserType === 'admin' && <option value="access">Security Access Logs</option>}
                 </>
               )}
@@ -4339,18 +4375,18 @@ export function EmployeePortalFlow({
           </div>
 
           <div className="filter-input-group">
-            <label style={{ fontSize: '11px', color: 'var(--muted)' }}>Pay Period From</label>
+            <label style={{ fontSize: '11px', color: 'var(--muted)' }}>Select Pay Period From</label>
             <input type="date" value={reportDateFrom} onChange={e => setReportDateFrom(e.target.value)} className="btn" style={{ background: 'var(--surface)', color: '#fff' }} />
           </div>
 
           <div className="filter-input-group">
-            <label style={{ fontSize: '11px', color: 'var(--muted)' }}>Pay Period To</label>
+            <label style={{ fontSize: '11px', color: 'var(--muted)' }}>Select Pay Period To</label>
             <input type="date" value={reportDateTo} onChange={e => setReportDateTo(e.target.value)} className="btn" style={{ background: 'var(--surface)', color: '#fff' }} />
           </div>
 
           {activeUserType === 'admin' && (
             <div className="filter-input-group">
-              <label style={{ fontSize: '11px', color: 'var(--muted)' }}>Corporate Client Filter</label>
+              <label style={{ fontSize: '11px', color: 'var(--muted)' }}>Select Company</label>
               <select value={reportFilterClient} onChange={e => setReportFilterClient(e.target.value)} className="btn" style={{ background: 'var(--surface)', color: '#fff' }}>
                 <option value="All">All Clients</option>
                 <option value="Acme Corp">Acme Corp</option>
@@ -4360,6 +4396,25 @@ export function EmployeePortalFlow({
               </select>
             </div>
           )}
+
+          <div className="filter-input-group">
+            <label style={{ fontSize: '11px', color: 'var(--muted)' }}>Select Pay Group</label>
+            <select value={reportFilterPaygroup} onChange={e => setReportFilterPaygroup(e.target.value)} className="btn" style={{ background: 'var(--surface)', color: '#fff' }}>
+              <option value="All">All Pay Groups</option>
+              {Array.from(new Set(adminEmployees.map(emp => emp.paygroup))).sort().map(paygroup => (
+                <option key={paygroup} value={paygroup}>{paygroup}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="filter-input-group">
+            <label style={{ fontSize: '11px', color: 'var(--muted)' }}>Payment Status</label>
+            <select value={reportFilterStatus} onChange={e => setReportFilterStatus(e.target.value as any)} className="btn" style={{ background: 'var(--surface)', color: '#fff' }}>
+              <option value="All">All Statuses</option>
+              <option value="Completed">Completed</option>
+              <option value="In Progress">In Progress</option>
+            </select>
+          </div>
 
           <div className="filter-input-group">
             <label style={{ fontSize: '11px', color: 'var(--muted)' }}>Employee Database Search</label>
@@ -4572,6 +4627,77 @@ export function EmployeePortalFlow({
                           <td style={{ whiteSpace: 'nowrap' }}>{formatPeriodRange(clientPeriodStartDate, clientPeriodEndDate)}</td>
                           <td>{e.paygroup}</td>
                           <td>—</td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              )}
+
+              {activeReportType === 'payroll_detail' && (
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Company</th>
+                      <th>Paygroup</th>
+                      <th>Pay Period</th>
+                      <th>Employee Name</th>
+                      <th>Employee ID</th>
+                      <th>Payment Category</th>
+                      <th className="num">Working Hours</th>
+                      <th>Payment Date</th>
+                      <th className="num">Payment Amount</th>
+                      <th>Currency</th>
+                      <th>Payment Type</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {finalReportEmployees.map(e => {
+                      const status = isPayrollSubmitted ? 'Completed' : 'In Progress'
+                      return (
+                        <tr key={`cycle-${e.id}`}>
+                          <td>{e.clientName}</td>
+                          <td>{e.paygroup}</td>
+                          <td>{`${new Date(reportDateFrom).toLocaleDateString('en-US')} - ${new Date(reportDateTo).toLocaleDateString('en-US')}`}</td>
+                          <td>{e.name}</td>
+                          <td><code>{e.id}</code></td>
+                          <td>Regular On-cycle Payroll</td>
+                          <td className="num">160</td>
+                          <td>{new Date(reportDateTo).toLocaleDateString('en-US')}</td>
+                          <td className="num">$ {e.currGross.toLocaleString('en-US')}</td>
+                          <td>USD</td>
+                          <td>{e.paymentMode}</td>
+                          <td>{status}</td>
+                        </tr>
+                      )
+                    })}
+                    {offcyclePaymentsList.filter(o => {
+                      const employee = adminEmployees.find(emp => emp.id === o.employeeId)
+                      if (!employee) return false
+                      const matchesClient = reportFilterClient === 'All' || employee.clientName === reportFilterClient
+                      const matchesSearch = reportFilterEmployee === 'All' || employee.id === reportFilterEmployee
+                      const matchesPaygroup = reportFilterPaygroup === 'All' || employee.paygroup === reportFilterPaygroup
+                      const statusLabel = o.status === 'Approved' ? 'Completed' : 'In Progress'
+                      const matchesStatus = reportFilterStatus === 'All' || reportFilterStatus === statusLabel
+                      return matchesClient && matchesSearch && matchesPaygroup && matchesStatus
+                    }).map(o => {
+                      const employee = adminEmployees.find(emp => emp.id === o.employeeId)!
+                      const status = o.status === 'Approved' ? 'Completed' : 'In Progress'
+                      return (
+                        <tr key={`offcycle-${o.id}`}>
+                          <td>{o.clientName}</td>
+                          <td>{employee.paygroup}</td>
+                          <td>{`${new Date(reportDateFrom).toLocaleDateString('en-US')} - ${new Date(reportDateTo).toLocaleDateString('en-US')}`}</td>
+                          <td>{o.employeeName}</td>
+                          <td><code>{o.employeeId}</code></td>
+                          <td>Payroll Off-cycle</td>
+                          <td className="num">0</td>
+                          <td>{o.date}</td>
+                          <td className="num">$ {o.amount.toLocaleString('en-US')}</td>
+                          <td>USD</td>
+                          <td>Off-cycle Adjustment</td>
+                          <td>{status}</td>
                         </tr>
                       )
                     })}
