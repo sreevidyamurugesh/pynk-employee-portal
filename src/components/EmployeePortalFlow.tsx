@@ -420,12 +420,14 @@ interface ClientOffcyclePayment {
   amount: number
   date: string
   remarks: string
+  payPeriod: string
+  status: 'Pending' | 'Approved' | 'Cancelled'
 }
 
 const clientOffcyclesSeed: ClientOffcyclePayment[] = [
-  { id: 'off-001', employeeId: 'EMP-001', employeeName: 'John Doe', clientName: 'Acme Corp', code: 'Performance Incentive', amount: 8000, date: '10 July 2025', remarks: 'Q2 Performance Bonus' },
-  { id: 'off-002', employeeId: 'EMP-002', employeeName: 'Jane Smith', clientName: 'Acme Corp', code: 'Referral Bonus', amount: 5000, date: '08 July 2025', remarks: 'Referred developer candidate' },
-  { id: 'off-003', employeeId: 'EMP-003', employeeName: 'Robert Brown', clientName: 'Stark Industries', code: 'Shift Bonus', amount: 3500, date: '11 July 2025', remarks: 'Weekend overnight shifts' }
+  { id: 'off-001', employeeId: 'EMP-001', employeeName: 'John Doe', clientName: 'Acme Corp', code: 'Performance Incentive', amount: 8000, date: '10 July 2025', remarks: 'Q2 Performance Bonus', payPeriod: `${new Date().getFullYear()}-07`, status: 'Approved' },
+  { id: 'off-002', employeeId: 'EMP-002', employeeName: 'Jane Smith', clientName: 'Acme Corp', code: 'Referral Bonus', amount: 5000, date: '08 July 2025', remarks: 'Referred developer candidate', payPeriod: `${new Date().getFullYear()}-07`, status: 'Approved' },
+  { id: 'off-003', employeeId: 'EMP-003', employeeName: 'Robert Brown', clientName: 'Stark Industries', code: 'Shift Bonus', amount: 3500, date: '11 July 2025', remarks: 'Weekend overnight shifts', payPeriod: `${new Date().getFullYear()}-06`, status: 'Cancelled' },
 ]
 
 type ClientEmployeeStatus = 'Active' | 'Terminated' | 'Onboarding in Progress'
@@ -574,10 +576,10 @@ const paymentHistorySeed: PaymentHistoryItem[] = [
 
 
 
-const taxDocsSeed: PortalDocument[] = [
-  { id: 'td-001', name: 'Form 16', description: 'Annual tax statement', financialYear: '2024-25', status: 'Available', size: '1.1 MB' },
-  { id: 'td-004', name: 'Investment Declaration', description: 'Proof of your declared investments', financialYear: '2024-25', status: 'Available', size: '2.5 MB' },
-]
+// const taxDocsSeed: PortalDocument[] = [
+//   { id: 'td-001', name: 'Form 16', description: 'Annual tax statement', financialYear: '2024-25', status: 'Available', size: '1.1 MB' },
+//   { id: 'td-004', name: 'Investment Declaration', description: 'Proof of your declared investments', financialYear: '2024-25', status: 'Available', size: '2.5 MB' },
+// ]
 
 const uploadedDocsSeed: PortalDocument[] = [
   { id: 'ud-001', name: 'Passport', category: 'Identity Proof', uploadedOn: '10 Jan 2025', status: 'Verified', verifiedOn: '11 Jan 2025', size: '450 KB' },
@@ -1658,6 +1660,13 @@ export function EmployeePortalFlow({
 
   // Client Offcycle Modal
   const [isOffcycleModalOpen, setIsOffcycleModalOpen] = useState(false)
+  const [offcyclePayPeriodFilter, setOffcyclePayPeriodFilter] = useState<string>('All')
+  const [offcycleMonthFrom, setOffcycleMonthFrom] = useState<string>('')
+  const [offcycleMonthTo, setOffcycleMonthTo] = useState<string>('')
+  const [offcycleStatusFilter, setOffcycleStatusFilter] = useState<'All' | 'Pending' | 'Approved' | 'Cancelled'>('All')
+  const [showOffcycleConfirmModal, setShowOffcycleConfirmModal] = useState(false)
+  const [pendingOffcyclePayment, setPendingOffcyclePayment] = useState<ClientOffcyclePayment | null>(null)
+  const [offcycleEditId, setOffcycleEditId] = useState<string | null>(null)
   const [isRefreshingLock, setIsRefreshingLock] = useState(false)
   const [activeOffcycleDetailsModal, setActiveOffcycleDetailsModal] = useState<{ employeeName: string; payments: ClientOffcyclePayment[] } | null>(null)
   const [lockedEmployeeIds, setLockedEmployeeIds] = useState<Set<string>>(new Set())
@@ -1673,7 +1682,8 @@ export function EmployeePortalFlow({
     employeeId: 'EMP-001',
     code: 'Monthly Bonus',
     amount: '',
-    remarks: ''
+    remarks: '',
+    payPeriod: `${new Date().getFullYear()}-07`
   })
 
   // Shared Reports State
@@ -5435,7 +5445,7 @@ export function EmployeePortalFlow({
   }
 
   const renderClientOffcycles = () => {
-    const handleAddOffcyclePayment = (e: React.FormEvent) => {
+    const handleSubmitOffcycleForm = (e: React.FormEvent) => {
       e.preventDefault()
       const amt = parseFloat(offcycleForm.amount) || 0
       if (amt <= 0) {
@@ -5445,32 +5455,90 @@ export function EmployeePortalFlow({
       const targetEmp = adminEmployees.find(emp => emp.id === offcycleForm.employeeId)
       if (!targetEmp) return
 
-      const newPay: ClientOffcyclePayment = {
-        id: `off-${Date.now()}`,
+      const pendingPay: ClientOffcyclePayment = {
+        id: offcycleEditId || `off-${Date.now()}`,
         employeeId: offcycleForm.employeeId,
         employeeName: targetEmp.name,
         clientName: targetEmp.clientName,
         code: offcycleForm.code,
         amount: amt,
-        date: '15 July 2025',
-        remarks: offcycleForm.remarks || 'Additional special pay'
+        date: offcycleEditId
+          ? (offcyclePaymentsList.find(p => p.id === offcycleEditId)?.date || '15 July 2025')
+          : '15 July 2025',
+        remarks: offcycleForm.remarks || 'Additional special pay',
+        payPeriod: offcycleForm.payPeriod,
+        status: offcycleEditId
+          ? (offcyclePaymentsList.find(p => p.id === offcycleEditId)?.status || 'Pending')
+          : 'Pending'
       }
 
-      setOffcyclePaymentsList(prev => [newPay, ...prev])
+      setPendingOffcyclePayment(pendingPay)
+      setShowOffcycleConfirmModal(true)
+    }
+
+    const handleConfirmSaveOffcycle = () => {
+      if (!pendingOffcyclePayment) return
+      const isEdit = !!offcycleEditId
+
+      if (isEdit) {
+        setOffcyclePaymentsList(prev => prev.map(p => p.id === pendingOffcyclePayment.id ? pendingOffcyclePayment : p))
+        showToast(`Updated offcycle pay of $${pendingOffcyclePayment.amount.toLocaleString('en-US')} for ${pendingOffcyclePayment.employeeName}.`)
+      } else {
+        setOffcyclePaymentsList(prev => [pendingOffcyclePayment, ...prev])
+        showToast(`Added $${pendingOffcyclePayment.amount.toLocaleString('en-US')} offcycle pay to ${pendingOffcyclePayment.employeeName}.`)
+      }
+
       setIsOffcycleModalOpen(false)
+      setShowOffcycleConfirmModal(false)
+      setPendingOffcyclePayment(null)
+      setOffcycleEditId(null)
       setOffcycleForm({
         employeeId: 'EMP-001',
         code: 'Monthly Bonus',
         amount: '',
-        remarks: ''
+        remarks: '',
+        payPeriod: `${new Date().getFullYear()}-07`
       })
-      showToast(`Added $${amt.toLocaleString('en-US')} offcycle pay to ${targetEmp.name}.`)
     }
 
-    const handleRemoveOffcycle = (id: string) => {
-      setOffcyclePaymentsList(prev => prev.filter(item => item.id !== id))
-      showToast('Offcycle bonus transaction removed.')
+    const handleCancelOffcycle = (id: string) => {
+      setOffcyclePaymentsList(prev => prev.map(item => {
+        if (item.id === id) {
+          return { ...item, status: 'Cancelled' as const }
+        }
+        return item
+      }))
+      showToast('Offcycle payment cancelled.')
     }
+
+    const handleEditOffcycle = (pay: ClientOffcyclePayment) => {
+      setOffcycleEditId(pay.id)
+      setOffcycleForm({
+        employeeId: pay.employeeId,
+        code: pay.code,
+        amount: pay.amount.toString(),
+        remarks: pay.remarks,
+        payPeriod: pay.payPeriod
+      })
+      setIsOffcycleModalOpen(true)
+    }
+
+    // Filter payments
+    const filteredPayments = offcyclePaymentsList.filter(pay => {
+      if (offcyclePayPeriodFilter !== 'All' && pay.payPeriod !== offcyclePayPeriodFilter) {
+        return false
+      }
+      if (offcycleMonthFrom && pay.payPeriod < offcycleMonthFrom) {
+        return false
+      }
+      if (offcycleMonthTo && pay.payPeriod > offcycleMonthTo) {
+        return false
+      }
+      if (offcycleStatusFilter !== 'All' && pay.status !== offcycleStatusFilter) {
+        return false
+      }
+      return true
+    })
 
     return (
       <div className="dash-shell">
@@ -5479,9 +5547,96 @@ export function EmployeePortalFlow({
             <h1 className="dash-welcome-title">Offcycles & Special One-Time Payments 💸</h1>
             <p className="dash-welcome-sub">Credit bonuses, quarterly incentives, sales commissions, spot awards, and final settlements.</p>
           </div>
-          <button type="button" className="btn btn-primary" onClick={() => setIsOffcycleModalOpen(true)} disabled={isPeriodLocked}>
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => {
+              setOffcycleEditId(null)
+              setOffcycleForm({
+                employeeId: 'EMP-001',
+                code: 'Monthly Bonus',
+                amount: '',
+                remarks: '',
+                payPeriod: `${new Date().getFullYear()}-07`
+              })
+              setIsOffcycleModalOpen(true)
+            }}
+            disabled={isPeriodLocked}
+          >
             + Add Special Payment
           </button>
+        </div>
+
+        {/* Filters */}
+        <div className="dash-card" style={{ marginBottom: '16px', padding: '16px' }}>
+          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--muted)' }}>Pay Period</label>
+              <select
+                className="btn"
+                style={{ padding: '6px 12px', background: 'var(--surface)', color: 'var(--ink)', border: '1px solid var(--line)', minWidth: '150px' }}
+                value={offcyclePayPeriodFilter}
+                onChange={(e) => setOffcyclePayPeriodFilter(e.target.value)}
+              >
+                <option value="All">All Periods</option>
+                {clientDashboardPayPeriods.map(p => (
+                  <option key={p.value} value={p.value}>{p.label}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--muted)' }}>From Month</label>
+              <input
+                type="month"
+                className="btn"
+                style={{ padding: '6px 12px', background: 'var(--surface)', color: 'var(--ink)', border: '1px solid var(--line)' }}
+                value={offcycleMonthFrom}
+                onChange={(e) => setOffcycleMonthFrom(e.target.value)}
+              />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--muted)' }}>To Month</label>
+              <input
+                type="month"
+                className="btn"
+                style={{ padding: '6px 12px', background: 'var(--surface)', color: 'var(--ink)', border: '1px solid var(--line)' }}
+                value={offcycleMonthTo}
+                onChange={(e) => setOffcycleMonthTo(e.target.value)}
+              />
+            </div> */}
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--muted)' }}>Status</label>
+              <select
+                className="btn"
+                style={{ padding: '6px 12px', background: 'var(--surface)', color: 'var(--ink)', border: '1px solid var(--line)', minWidth: '120px' }}
+                value={offcycleStatusFilter}
+                onChange={(e) => setOffcycleStatusFilter(e.target.value as any)}
+              >
+                <option value="All">All Statuses</option>
+                <option value="Pending">Pending</option>
+                <option value="Approved">Approved</option>
+                <option value="Cancelled">Cancelled</option>
+              </select>
+            </div>
+
+            {(offcyclePayPeriodFilter !== 'All' || offcycleMonthFrom || offcycleMonthTo || offcycleStatusFilter !== 'All') && (
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => {
+                  setOffcyclePayPeriodFilter('All')
+                  setOffcycleMonthFrom('')
+                  setOffcycleMonthTo('')
+                  setOffcycleStatusFilter('All')
+                }}
+              >
+                Reset Filters
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Ledger list */}
@@ -5493,45 +5648,76 @@ export function EmployeePortalFlow({
                   <th>Employee Name</th>
                   <th>Entity Client</th>
                   <th>Payment Type Code</th>
+                  <th>Pay Period</th>
                   <th className="num">Amount (USD)</th>
                   <th>Date Logged</th>
+                  <th>Status</th>
                   <th>Remarks</th>
                   {!isPeriodLocked && <th className="num">Actions</th>}
                 </tr>
               </thead>
               <tbody>
-                {offcyclePaymentsList.map(pay => (
+                {filteredPayments.map(pay => (
                   <tr key={pay.id}>
                     <td><strong>{pay.employeeName}</strong> <br /><small style={{ color: 'var(--muted)' }}><code>{pay.employeeId}</code></small></td>
                     <td>{pay.clientName}</td>
                     <td><span className="badge done">{pay.code}</span></td>
+                    <td>{pay.payPeriod}</td>
                     <td className="num" style={{ color: 'var(--primary)', fontWeight: 'bold' }}>$ {pay.amount.toLocaleString('en-US')}</td>
                     <td>{pay.date}</td>
+                    <td>
+                      <span className={`badge ${pay.status === 'Approved' ? 'done' : pay.status === 'Cancelled' ? 'terminated' : 'warning'}`}>
+                        {pay.status}
+                      </span>
+                    </td>
                     <td>{pay.remarks}</td>
                     {!isPeriodLocked && (
                       <td className="num">
-                        <button type="button" className="btn btn-secondary btn-sm" onClick={() => handleRemoveOffcycle(pay.id)}>
-                          🗑️ Remove
-                        </button>
+                        <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+                          <button
+                            type="button"
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => handleEditOffcycle(pay)}
+                          >
+                            ✏️ Edit
+                          </button>
+                          {pay.status !== 'Cancelled' && (
+                            <button
+                              type="button"
+                              className="btn btn-secondary btn-sm"
+                              style={{ borderColor: '#e74c3c', color: '#e74c3c' }}
+                              onClick={() => handleCancelOffcycle(pay.id)}
+                            >
+                              🚫 Cancel
+                            </button>
+                          )}
+                        </div>
                       </td>
                     )}
                   </tr>
                 ))}
+                {filteredPayments.length === 0 && (
+                  <tr>
+                    <td colSpan={9} style={{ textAlign: 'center', padding: '24px', color: 'var(--muted)' }}>
+                      No off-cycle payments found matching the filters.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
         </div>
 
-        {/* Add Payment Modal */}
+        {/* Add/Edit Payment Modal */}
         {isOffcycleModalOpen && (
           <div className="time-modal-backdrop" role="dialog" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 9999, display: 'grid', placeItems: 'center' }}>
             <div className="time-modal-content" style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '24px', width: '90%', maxWidth: '500px' }}>
               <div className="time-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--line)', paddingBottom: '12px' }}>
-                <h3 style={{ margin: 0, color: 'var(--ink)' }}>Add One-Time Special Payment</h3>
+                <h3 style={{ margin: 0, color: 'var(--ink)' }}>{offcycleEditId ? 'Edit One-Time Special Payment' : 'Add One-Time Special Payment'}</h3>
                 <button type="button" style={{ background: 'none', border: 'none', color: 'var(--ink)', fontSize: '20px', cursor: 'pointer' }}
                   onClick={() => setIsOffcycleModalOpen(false)}>✕</button>
               </div>
-              <form onSubmit={handleAddOffcyclePayment} style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '16px' }}>
+              <form onSubmit={handleSubmitOffcycleForm} style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '16px' }}>
                 <div className="field">
                   <label>Select Recipient Employee</label>
                   <select
@@ -5571,6 +5757,20 @@ export function EmployeePortalFlow({
                 </div>
 
                 <div className="field">
+                  <label>Pay Period</label>
+                  <select
+                    className="btn"
+                    style={{ width: '100%', padding: '8px 12px', background: 'var(--surface)', color: 'var(--ink)', border: '1px solid var(--line)' }}
+                    value={offcycleForm.payPeriod}
+                    onChange={(e) => setOffcycleForm(prev => ({ ...prev, payPeriod: e.target.value }))}
+                  >
+                    {clientDashboardPayPeriods.map(p => (
+                      <option key={p.value} value={p.value}>{p.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="field">
                   <label>Payment Amount (USD)</label>
                   <input
                     type="number"
@@ -5599,6 +5799,29 @@ export function EmployeePortalFlow({
                   Save Payment
                 </button>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Confirmation Modal */}
+        {showOffcycleConfirmModal && pendingOffcyclePayment && (
+          <div className="time-modal-backdrop" role="dialog" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 10000, display: 'grid', placeItems: 'center' }}>
+            <div className="time-modal-content" style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '24px', width: '90%', maxWidth: '450px', textAlign: 'center' }}>
+              <div style={{ fontSize: '3rem', marginBottom: '12px' }}>💸</div>
+              <h3 style={{ margin: 0, color: 'var(--ink)', marginBottom: '8px' }}>Confirm Payment Submission</h3>
+              <p style={{ color: 'var(--muted)', fontSize: '0.95rem', lineHeight: 1.5, margin: '0 0 20px 0' }}>
+                You are going to submit a payment of <strong>$ {pendingOffcyclePayment.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</strong> ({pendingOffcyclePayment.code}) for <strong>{pendingOffcyclePayment.employeeName}</strong>.
+                <br /><br />
+                Are you OK to proceed?
+              </p>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
+                <button type="button" className="btn btn-secondary" onClick={() => { setShowOffcycleConfirmModal(false); setPendingOffcyclePayment(null); }}>
+                  Cancel
+                </button>
+                <button type="button" className="btn btn-primary" onClick={handleConfirmSaveOffcycle}>
+                  Yes, Proceed
+                </button>
+              </div>
             </div>
           </div>
         )}
