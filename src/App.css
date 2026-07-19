@@ -11407,7 +11407,7 @@ select {
   border: 1px solid rgba(243, 156, 18, 0.35);
   border-radius: 16px;
   padding: 36px 32px;
-  max-width: 460px;
+  max-width: 900px;
   width: 90%;
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
   display: flex;

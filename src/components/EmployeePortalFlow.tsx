@@ -1673,8 +1673,8 @@ export function EmployeePortalFlow({
   const [selectedReconcileKeys, setSelectedReconcileKeys] = useState<Set<string>>(new Set())
   const [submittedReconcileKeys, setSubmittedReconcileKeys] = useState<Set<string>>(new Set())
   const [showReconcileConfirmModal, setShowReconcileConfirmModal] = useState(false)
-  const [reconcileEmailRecipient, setReconcileEmailRecipient] = useState('partners@payroll-partners.com')
-  const [reconcileEmailCc, setReconcileEmailCc] = useState('finance-team@payroll-partners.com')
+  const [reconcileEmailRecipient, setReconcileEmailRecipient] = useState('')
+  const [reconcileEmailCc, setReconcileEmailCc] = useState('')
   const [reconcileEmailSubject, setReconcileEmailSubject] = useState('Reconciled payroll data ready for review')
   const [reconcileEmailBody, setReconcileEmailBody] = useState(
     'Hello partner,\n\nPlease review the attached reconciled payroll and variance details for the selected groups. Let us know if you need any clarifications.\n\nThanks,\nPynk Payroll Team'
@@ -7274,6 +7274,9 @@ export function EmployeePortalFlow({
                       }
 
                       const handleOpenReconcileEmailModal = () => {
+                        // Clear recipients by default so admins supply recipients per transmission
+                        setReconcileEmailRecipient('')
+                        setReconcileEmailCc('')
                         setReconcileEmailSubject(`Reconciled payroll details ready for review (${selectedReconcileCount} groups)`)
                         setReconcileEmailBody(
                           `Hello partner,\n\nPlease review the attached reconciled payroll and variance details for the selected ${selectedReconcileCount} groups.\n\nSelected groups:\n${selectedReconcileNames.join('\n')}\n\nBest regards,\nPynk Payroll Team`
@@ -7305,9 +7308,9 @@ export function EmployeePortalFlow({
                       return (
                         <div className="dash-shell">
                           {/* Reconcile Send Confirmation Modal */}
-                          {showReconcileConfirmModal && (
+                              {showReconcileConfirmModal && (
                             <div className="time-modal-backdrop" role="presentation" onClick={handleCloseReconcileModal}>
-                              <div className="modal-caution-box" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()} style={{ width: 'min(96vw, 920px)', maxHeight: '92vh', overflowY: 'auto', padding: '28px', borderRadius: '18px' }}>
+                              <div className="modal-caution-box" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()} style={{ width: 'min(98vw, 1100px)', maxHeight: '92vh', overflowY: 'auto', padding: '28px', borderRadius: '18px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
                                   <span style={{ fontSize: '2.4rem', lineHeight: 1 }}>✈️</span>
                                   <div style={{ minWidth: 0 }}>
@@ -7317,26 +7320,26 @@ export function EmployeePortalFlow({
                                     </p>
                                   </div>
                                 </div>
-                                <div style={{ display: 'grid', gap: '14px', marginTop: '22px' }}>
-                                  <div style={{ display: 'grid', gap: '14px', gridTemplateColumns: '1fr 1fr', alignItems: 'stretch' }}>
+                                    <div style={{ display: 'grid', gap: '14px', marginTop: '22px' }}>
+                                      <div style={{ fontSize: '0.9rem', color: 'var(--muted)' }}>From: <strong>{contactDetails?.workEmail || 'noreply@pynkpayroll.com'}</strong></div>
+                                      <div style={{ display: 'grid', gap: '14px', gridTemplateColumns: '1fr 1fr', alignItems: 'stretch' }}>
                                     <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.9rem', color: 'var(--muted)' }}>
                                       To
                                       <input
                                         type="text"
                                         value={reconcileEmailRecipient}
                                         onChange={(e) => setReconcileEmailRecipient(e.target.value)}
-                                        placeholder="partner@example.com"
+                                        placeholder="partner1@example.com, partner2@example.com"
                                         style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--line)', fontSize: '0.95rem' }}
                                       />
                                     </label>
-
                                     <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.9rem', color: 'var(--muted)' }}>
                                       CC
                                       <input
                                         type="text"
                                         value={reconcileEmailCc}
                                         onChange={(e) => setReconcileEmailCc(e.target.value)}
-                                        placeholder="cc@example.com"
+                                        placeholder="finance1@example.com, finance2@example.com"
                                         style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--line)', fontSize: '0.95rem' }}
                                       />
                                     </label>
