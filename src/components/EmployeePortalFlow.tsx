@@ -8973,48 +8973,48 @@ export function EmployeePortalFlow({
                               </section>
                             </div>
 
-                             {/* Secondary Bank Account */}
-                             <div className="pay-bank-grid" style={{ marginTop: '16px' }}>
-                               <section className="pay-card pay-bank-card" aria-label="Secondary bank account" style={{ borderTop: '2px solid var(--line)', paddingTop: '16px' }}>
-                                 <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                   Secondary Account
-                                   <span style={{ fontSize: '12px', fontWeight: 400, color: 'var(--muted)', background: 'var(--line)', borderRadius: '4px', padding: '2px 8px' }}>Optional</span>
-                                 </h3>
-                                 {secondaryBankDetailsSeed ? (
-                                   <div className="pay-bank-inner">
-                                     <div className="pay-bank-icon-wrap">
-                                       <span className="pay-bank-icon">🏦</span>
-                                       {secondaryBankDetailsSeed.verified && (
-                                         <span className="pay-bank-verified">✅ Verified</span>
-                                       )}
-                                     </div>
-                                     <dl className="pay-bank-dl">
-                                       {getBankDisplayFields(employmentCountryCode, secondaryBankDetailsSeed).map((row) => (
-                                         <div key={row.label}>
-                                           <dt>{row.label}</dt>
-                                           <dd>
-                                             {row.label === 'Bank Name' ? <strong>{row.value}</strong> : row.label === 'Account Number' ? maskAccountNumber(row.value) : row.value}
-                                           </dd>
-                                         </div>
-                                       ))}
-                                     </dl>
-                                   </div>
-                                 ) : (
-                                   <div style={{ color: 'var(--muted)', fontSize: '13px', padding: '12px 0' }}>
-                                     No secondary account linked.
-                                     <br />
-                                     <button
-                                       type="button"
-                                       className="btn btn-primary"
-                                       style={{ marginTop: '12px', fontSize: '13px' }}
-                                       onClick={() => { setBankUpdateModalOpen(true); setBankUpdateError(''); setBankUpdateSuccess(false) }}
-                                     >
-                                       + Add Secondary Account
-                                     </button>
-                                   </div>
-                                 )}
-                               </section>
-             </div>
+                            {/* Secondary Bank Account */}
+                            <div className="pay-bank-grid" style={{ marginTop: '16px' }}>
+                              <section className="pay-card pay-bank-card" aria-label="Secondary bank account" style={{ borderTop: '2px solid var(--line)', paddingTop: '16px' }}>
+                                <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  Secondary Account
+                                  <span style={{ fontSize: '12px', fontWeight: 400, color: 'var(--muted)', background: 'var(--line)', borderRadius: '4px', padding: '2px 8px' }}>Optional</span>
+                                </h3>
+                                {secondaryBankDetailsSeed ? (
+                                  <div className="pay-bank-inner">
+                                    <div className="pay-bank-icon-wrap">
+                                      <span className="pay-bank-icon">🏦</span>
+                                      {secondaryBankDetailsSeed.verified && (
+                                        <span className="pay-bank-verified">✅ Verified</span>
+                                      )}
+                                    </div>
+                                    <dl className="pay-bank-dl">
+                                      {getBankDisplayFields(employmentCountryCode, secondaryBankDetailsSeed).map((row) => (
+                                        <div key={row.label}>
+                                          <dt>{row.label}</dt>
+                                          <dd>
+                                            {row.label === 'Bank Name' ? <strong>{row.value}</strong> : row.label === 'Account Number' ? maskAccountNumber(row.value) : row.value}
+                                          </dd>
+                                        </div>
+                                      ))}
+                                    </dl>
+                                  </div>
+                                ) : (
+                                  <div style={{ color: 'var(--muted)', fontSize: '13px', padding: '12px 0' }}>
+                                    No secondary account linked.
+                                    <br />
+                                    <button
+                                      type="button"
+                                      className="btn btn-primary"
+                                      style={{ marginTop: '12px', fontSize: '13px' }}
+                                      onClick={() => { setBankUpdateModalOpen(true); setBankUpdateError(''); setBankUpdateSuccess(false) }}
+                                    >
+                                      + Add Secondary Account
+                                    </button>
+                                  </div>
+                                )}
+                              </section>
+                            </div>
 
                             <p className="pay-breakdown-note">* Salary is credited to your above bank account every month.</p>
 
@@ -9190,36 +9190,6 @@ export function EmployeePortalFlow({
                               </div>
                             </div>
 
-                            <div className="doc-overview-split">
-                              <section className="doc-card" aria-label="Quick Actions">
-                                <h3>Quick Actions</h3>
-                                <div className="doc-quick-actions-grid">
-                                  {/* <button type="button" className="doc-quick-btn" onClick={() => setActiveDocTab('Uploaded Documents')}>
-                                    <div className="doc-quick-icon blue">📤</div>
-                                    <div className="doc-quick-text">
-                                      <strong>Upload Document</strong>
-                                      <span>Upload new document</span>
-                                    </div>
-                                  </button> */}
-
-                                </div>
-                              </section>
-
-                              <section className="doc-card" aria-label="Recent Documents">
-                                <div className="doc-recent-list">
-                                  {[taxDocsSeed[0]].map((doc, idx) => (
-                                    <div key={idx} className="doc-recent-row">
-                                      <span className="doc-recent-icon">📄</span>
-                                      <span className="doc-recent-name">{doc.name}</span>
-                                      <span className="doc-recent-meta">PDF • {doc.size}</span>
-                                      <span className="doc-recent-date">{doc.issuedOn || doc.monthYear || doc.uploadedOn || doc.financialYear}</span>
-                                      <button type="button" className="doc-action-btn" onClick={() => handleDownloadDoc(doc)}>⬇️</button>
-                                    </div>
-                                  ))}
-                                </div>
-                              </section>
-                            </div>
-
                           </div>
                         )}
 
@@ -9317,7 +9287,7 @@ export function EmployeePortalFlow({
                                 <span className="doc-pagination-info">
                                   {(() => {
                                     let source: PortalDocument[] = []
-                                      if (activeDocTab === 'Expiring Documents') source = [uploadedDocsState[1]]
+                                    if (activeDocTab === 'Expiring Documents') source = [uploadedDocsState[1]]
 
                                     let filtered = source.filter(d => d.name.toLowerCase().includes(docSearchQuery.toLowerCase()))
                                     // if (activeDocTab === 'Tax Documents') {
