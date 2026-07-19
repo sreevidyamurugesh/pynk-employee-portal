@@ -1623,7 +1623,6 @@ export function EmployeePortalFlow({
   const [searchEmployeeQuery, setSearchEmployeeQuery] = useState('')
   const [filterClientName, setFilterClientName] = useState('All')
   const [isPayrollSubmitted, setIsPayrollSubmitted] = useState(false)
-  const [isSecondApprovalNotified, setIsSecondApprovalNotified] = useState(false)
   const [selectedEmployeeForPayslipModal, setSelectedEmployeeForPayslipModal] = useState<AdminEmployee | null>(null)
   const [successToastMessage, setSuccessToastMessage] = useState<string | null>(null)
   const [alertModal, setAlertModal] = useState<{ type: 'success' | 'info' | 'warning' | 'error', title: string, message: string } | null>(null)
@@ -1655,8 +1654,6 @@ export function EmployeePortalFlow({
   const [dismissedPeriodOpen, setDismissedPeriodOpen] = useState(false)
   const [dismissedPayrollSubmitted, setDismissedPayrollSubmitted] = useState(false)
   const [dismissedPayrollWarning, setDismissedPayrollWarning] = useState(false)
-  const [dismissedSecondApprovalNotified, setDismissedSecondApprovalNotified] = useState(false)
-  const [dismissedSecondApprovalRequired, setDismissedSecondApprovalRequired] = useState(false)
 
   // Client Offcycle Modal
   const [isOffcycleModalOpen, setIsOffcycleModalOpen] = useState(false)
@@ -1676,6 +1673,14 @@ export function EmployeePortalFlow({
   const [selectedReconcileKeys, setSelectedReconcileKeys] = useState<Set<string>>(new Set())
   const [submittedReconcileKeys, setSubmittedReconcileKeys] = useState<Set<string>>(new Set())
   const [showReconcileConfirmModal, setShowReconcileConfirmModal] = useState(false)
+  const [reconcileEmailRecipient, setReconcileEmailRecipient] = useState('partners@payroll-partners.com')
+  const [reconcileEmailCc, setReconcileEmailCc] = useState('finance-team@payroll-partners.com')
+  const [reconcileEmailSubject, setReconcileEmailSubject] = useState('Reconciled payroll data ready for review')
+  const [reconcileEmailBody, setReconcileEmailBody] = useState(
+    'Hello partner,\n\nPlease review the attached reconciled payroll and variance details for the selected groups. Let us know if you need any clarifications.\n\nThanks,\nPynk Payroll Team'
+  )
+  const [reconcileAttachmentName, setReconcileAttachmentName] = useState<string | null>(null)
+  const [reconcileAttachmentUrl, setReconcileAttachmentUrl] = useState<string | null>(null)
   const [reconcileClientFilter, setReconcileClientFilter] = useState<string>('All')
   const [reconcileSearchQuery, setReconcileSearchQuery] = useState<string>('')
   const [offcycleForm, setOffcycleForm] = useState({
@@ -7113,10 +7118,54 @@ export function EmployeePortalFlow({
                         })
                       }
 
+                      const selectedReconcileNames = reconciliationData
+                        .filter((row) => selectedReconcileKeys.has(row.name))
+                        .map((row) => row.name)
+
+                      const cleanupAttachment = () => {
+                        if (reconcileAttachmentUrl) {
+                          URL.revokeObjectURL(reconcileAttachmentUrl)
+                          setReconcileAttachmentUrl(null)
+                        }
+                        setReconcileAttachmentName(null)
+                      }
+
+                      const createReconcileAttachment = () => {
+                        const selectedRows = reconciliationData.filter((row) => selectedReconcileKeys.has(row.name))
+                        const headers = ['Dimension / Name', 'Previous Gross (USD)', 'Current Gross (USD)', 'Difference (USD)', 'Variance (%)']
+                        const csvRows = selectedRows.map((row) => {
+                          const diff = row.curr - row.prev
+                          const pct = row.prev > 0 ? ((diff / row.prev) * 100).toFixed(2) : '0.00'
+                          return `"${row.name}",${row.prev},${row.curr},${diff},${pct}%`
+                        })
+                        const csvContent = [headers.join(','), ...csvRows].join('\n')
+                        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+                        const fileName = `reconciliation_selected_${new Date().toISOString().slice(0, 10)}.csv`
+                        const url = URL.createObjectURL(blob)
+                        cleanupAttachment()
+                        setReconcileAttachmentUrl(url)
+                        setReconcileAttachmentName(fileName)
+                      }
+
+                      const handleOpenReconcileEmailModal = () => {
+                        setReconcileEmailSubject(`Reconciled payroll details ready for review (${selectedReconcileCount} groups)`)
+                        setReconcileEmailBody(
+                          `Hello partner,\n\nPlease review the attached reconciled payroll and variance details for the selected ${selectedReconcileCount} groups.\n\nSelected groups:\n${selectedReconcileNames.join('\n')}\n\nBest regards,\nPynk Payroll Team`
+                        )
+                        createReconcileAttachment()
+                        setShowReconcileConfirmModal(true)
+                      }
+
+                      const handleCloseReconcileModal = () => {
+                        cleanupAttachment()
+                        setShowReconcileConfirmModal(false)
+                      }
+
                       const handleConfirmSendToPartners = () => {
                         const nextSubmitted = new Set([...submittedReconcileKeys, ...selectedReconcileKeys])
                         setSubmittedReconcileKeys(nextSubmitted)
                         setSelectedReconcileKeys(new Set())
+                        cleanupAttachment()
                         setShowReconcileConfirmModal(false)
 
                         const allSubmittedNow = allReconcileKeys.every(key => nextSubmitted.has(key))
@@ -7124,33 +7173,109 @@ export function EmployeePortalFlow({
                           setIsPayrollSubmitted(true)
                         }
 
-                        showToast(`Sent reconciled details to partners for ${selectedReconcileCount} groups successfully!`)
+                        showToast(`Sent reconciled details to ${reconcileEmailRecipient} for ${selectedReconcileCount} groups successfully!`)
                       }
 
                       return (
                         <div className="dash-shell">
                           {/* Reconcile Send Confirmation Modal */}
                           {showReconcileConfirmModal && (
-                            <div className="time-modal-backdrop" role="presentation" onClick={() => setShowReconcileConfirmModal(false)}>
-                              <div className="modal-caution-box" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                                  <span style={{ fontSize: '2.2rem', lineHeight: 1 }}>✈️</span>
-                                  <div>
-                                    <h2 style={{ color: 'var(--ink)' }}>Confirm Transmission to Partners</h2>
-                                    <p className="time-confirm-message" style={{ margin: '6px 0 0 0', fontSize: '0.95rem' }}>
-                                      Are you sure you want to send the reconciled payroll and variance details to processing partners for the selected <strong>{selectedReconcileCount}</strong> groups?
-                                    </p>
-                                    <p style={{ color: 'var(--muted)', fontSize: '0.85rem', margin: '4px 0 0 0' }}>
-                                      This will lock the selected groups and transmit the reconciled variance sheet to partner organizations.
+                            <div className="time-modal-backdrop" role="presentation" onClick={handleCloseReconcileModal}>
+                              <div className="modal-caution-box" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()} style={{ width: 'min(96vw, 920px)', maxHeight: '92vh', overflowY: 'auto', padding: '28px', borderRadius: '18px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+                                  <span style={{ fontSize: '2.4rem', lineHeight: 1 }}>✈️</span>
+                                  <div style={{ minWidth: 0 }}>
+                                    <h2 style={{ color: 'var(--ink)', margin: 0 }}>Send Reconciliation Summary to Partners</h2>
+                                    <p className="time-confirm-message" style={{ margin: '8px 0 0 0', fontSize: '0.95rem' }}>
+                                      Compose the partner transmission for the selected <strong>{selectedReconcileCount}</strong> reconciliation groups.
                                     </p>
                                   </div>
                                 </div>
+                                <div style={{ display: 'grid', gap: '14px', marginTop: '22px' }}>
+                                  <div style={{ display: 'grid', gap: '14px', gridTemplateColumns: '1fr 1fr', alignItems: 'stretch' }}>
+                                    <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.9rem', color: 'var(--muted)' }}>
+                                      To
+                                      <input
+                                        type="text"
+                                        value={reconcileEmailRecipient}
+                                        onChange={(e) => setReconcileEmailRecipient(e.target.value)}
+                                        placeholder="partner@example.com"
+                                        style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--line)', fontSize: '0.95rem' }}
+                                      />
+                                    </label>
+
+                                    <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.9rem', color: 'var(--muted)' }}>
+                                      CC
+                                      <input
+                                        type="text"
+                                        value={reconcileEmailCc}
+                                        onChange={(e) => setReconcileEmailCc(e.target.value)}
+                                        placeholder="cc@example.com"
+                                        style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--line)', fontSize: '0.95rem' }}
+                                      />
+                                    </label>
+                                  </div>
+
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.9rem', color: 'var(--muted)' }}>
+                                    Subject
+                                    <input
+                                      type="text"
+                                      value={reconcileEmailSubject}
+                                      onChange={(e) => setReconcileEmailSubject(e.target.value)}
+                                      placeholder="Reconciliation summary subject"
+                                      style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--line)', fontSize: '0.95rem' }}
+                                    />
+                                  </label>
+
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.9rem', color: 'var(--muted)' }}>
+                                    Message
+                                    <textarea
+                                      value={reconcileEmailBody}
+                                      onChange={(e) => setReconcileEmailBody(e.target.value)}
+                                      rows={8}
+                                      placeholder="Write a note to partner contacts..."
+                                      style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--line)', fontSize: '0.95rem', minHeight: '220px', resize: 'vertical' }}
+                                    />
+                                  </label>
+
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', padding: '14px', border: '1px solid var(--line-soft)', borderRadius: '12px', background: 'var(--surface-alt)' }}>
+                                    <div>
+                                      <strong style={{ display: 'block', marginBottom: '8px' }}>Attachment</strong>
+                                      <span style={{ fontSize: '0.9rem', color: 'var(--muted)' }}>
+                                        {reconcileAttachmentName ? `Excel-compatible file attached: ${reconcileAttachmentName}` : 'Preparing attachment for selected groups...'}
+                                      </span>
+                                    </div>
+                                    {reconcileAttachmentUrl && reconcileAttachmentName && (
+                                      <a
+                                        href={reconcileAttachmentUrl}
+                                        download={reconcileAttachmentName}
+                                        className="btn btn-secondary"
+                                        style={{ whiteSpace: 'nowrap', alignSelf: 'center' }}
+                                      >
+                                        📎 Download Attachment
+                                      </a>
+                                    )}
+                                  </div>
+
+                                  <div style={{ padding: '14px', border: '1px solid var(--line-soft)', borderRadius: '12px', background: 'var(--surface-alt)' }}>
+                                    <strong style={{ display: 'block', marginBottom: '8px' }}>Selected groups ({selectedReconcileCount})</strong>
+                                    <div style={{ maxHeight: '140px', overflowY: 'auto', fontSize: '0.9rem', color: 'var(--muted)' }}>
+                                      {selectedReconcileNames.length > 0 ? (
+                                        selectedReconcileNames.map((name) => (
+                                          <div key={name} style={{ marginBottom: '6px' }}>• {name}</div>
+                                        ))
+                                      ) : (
+                                        <div>No groups selected yet.</div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
                                 <div className="modal-caution-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
-                                  <button type="button" className="btn btn-secondary" onClick={() => setShowReconcileConfirmModal(false)}>
+                                  <button type="button" className="btn btn-secondary" onClick={handleCloseReconcileModal}>
                                     Cancel
                                   </button>
                                   <button type="button" className="btn btn-primary" onClick={handleConfirmSendToPartners}>
-                                    Yes, Reconcile & Send
+                                    Send to Partners
                                   </button>
                                 </div>
                               </div>
@@ -7168,9 +7293,7 @@ export function EmployeePortalFlow({
                               </button>
                               <button type="button" className="btn btn-primary"
                                 disabled={selectedReconcileCount === 0 || isPayrollSubmitted}
-                                onClick={() => {
-                                  setShowReconcileConfirmModal(true)
-                                }}>
+                                onClick={handleOpenReconcileEmailModal}>
                                 ✈️ Send Selected ({selectedReconcileCount}) to Partners
                               </button>
                             </div>
