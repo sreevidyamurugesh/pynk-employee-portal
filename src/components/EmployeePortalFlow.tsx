@@ -5905,6 +5905,24 @@ export function EmployeePortalFlow({
     const allIds = adminEmployees.map(emp => emp.id)
     const pendingLockIds = allIds.filter(id => !lockedEmployeeIds.has(id))
     const selectedLockCount = selectedLockEmployeeIds.size
+    const selectedLockAmount = adminEmployees
+      .filter((emp) => selectedLockEmployeeIds.has(emp.id))
+      .reduce((sum, emp) => {
+        const bonus = offcyclePaymentsList
+          .filter((o) => o.employeeId === emp.id)
+          .reduce((acc, payment) => acc + payment.amount, 0)
+        return sum + emp.currGross + bonus
+      }, 0)
+
+    const pendingLockAmount = adminEmployees
+      .filter((emp) => pendingLockIds.includes(emp.id))
+      .reduce((sum, emp) => {
+        const bonus = offcyclePaymentsList
+          .filter((o) => o.employeeId === emp.id)
+          .reduce((acc, payment) => acc + payment.amount, 0)
+        return sum + emp.currGross + bonus
+      }, 0)
+
     const isAllLockSelected = pendingLockIds.length > 0 && pendingLockIds.every(id => selectedLockEmployeeIds.has(id))
     const isLockIndeterminate = selectedLockEmployeeIds.size > 0 && !isAllLockSelected
 
@@ -5939,6 +5957,51 @@ export function EmployeePortalFlow({
       }
 
       showToast(`Locked pay period & submitted for ${selectedLockCount} employee(s) - OK.`)
+    }
+
+    const handleExportLockExcel = () => {
+      const headers = [
+        'Employee ID',
+        'Name',
+        'Client',
+        'Pay Group',
+        'Payment Method',
+        'Current Gross',
+        'Offcycle Bonus',
+        'Locked Status',
+      ]
+
+      const rows = adminEmployees.map((emp) => {
+        const bonus = offcyclePaymentsList
+          .filter((o) => o.employeeId === emp.id)
+          .reduce((sum, payment) => sum + payment.amount, 0)
+
+        return [
+          emp.id,
+          emp.name,
+          emp.clientName,
+          emp.paygroup,
+          emp.paymentMode,
+          emp.currGross.toFixed(2),
+          bonus.toFixed(2),
+          lockedEmployeeIds.has(emp.id) ? 'Locked' : 'Pending',
+        ]
+      })
+
+      const csvContent = [
+        headers.join(','),
+        ...rows.map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(',')),
+      ].join('\n')
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const anchor = document.createElement('a')
+      anchor.href = url
+      anchor.download = 'approval_lock_export.csv'
+      anchor.click()
+      URL.revokeObjectURL(url)
+
+      showToast('Approval & Lock export generated successfully!')
     }
 
     return (
@@ -6137,6 +6200,32 @@ export function EmployeePortalFlow({
               )}
             </div>
           </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: '10px', alignItems: 'stretch', width: '100%' }}>
+            <div style={{ border: '1px solid var(--line)', borderRadius: '12px', background: 'var(--surface)', padding: '12px', minWidth: '150px' }}>
+              <div style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted)' }}>Pending</div>
+              <div style={{ marginTop: '8px', fontSize: '1.4rem', fontWeight: 700, color: 'var(--ink)' }}>{pendingLockIds.length}</div>
+              <div style={{ marginTop: '4px', fontSize: '0.8rem', color: 'var(--muted)' }}>Awaiting lock</div>
+            </div>
+
+            <div style={{ border: '1px solid var(--line)', borderRadius: '12px', background: 'var(--surface)', padding: '12px', minWidth: '150px' }}>
+              <div style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted)' }}>Selected</div>
+              <div style={{ marginTop: '8px', fontSize: '1.4rem', fontWeight: 700, color: 'var(--ink)' }}>{selectedLockCount}</div>
+              <div style={{ marginTop: '4px', fontSize: '0.8rem', color: 'var(--muted)' }}>Chosen for lock</div>
+            </div>
+
+            <div style={{ border: '1px solid var(--line)', borderRadius: '12px', background: 'var(--surface)', padding: '12px', minWidth: '150px' }}>
+              <div style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted)' }}>Pending value</div>
+              <div style={{ marginTop: '8px', fontSize: '1.4rem', fontWeight: 700, color: 'var(--ink)' }}>$ {pendingLockAmount.toLocaleString('en-US')}</div>
+              <div style={{ marginTop: '4px', fontSize: '0.8rem', color: 'var(--muted)' }}>Gross + bonuses</div>
+            </div>
+
+            <div style={{ border: '1px solid var(--line)', borderRadius: '12px', background: 'var(--surface)', padding: '12px', minWidth: '150px' }}>
+              <div style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted)' }}>Selected value</div>
+              <div style={{ marginTop: '8px', fontSize: '1.4rem', fontWeight: 700, color: 'var(--ink)' }}>$ {selectedLockAmount.toLocaleString('en-US')}</div>
+              <div style={{ marginTop: '4px', fontSize: '0.8rem', color: 'var(--muted)' }}>Selected amount</div>
+            </div>
+          </div>
         </div>
 
         {isPeriodLocked ? (
@@ -6169,7 +6258,17 @@ export function EmployeePortalFlow({
 
         {/* Variance stats table */}
         <div className="dash-card">
-          <h3 className="dash-card-title">Employee-wise final lock checklist</h3>
+          <div className="dash-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
+            <h3 className="dash-card-title" style={{ margin: 0 }}>Employee-wise final lock checklist</h3>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={handleExportLockExcel}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 14px', fontSize: '13px', whiteSpace: 'nowrap' }}
+            >
+              📥 Export to Excel
+            </button>
+          </div>
           <div className="tbl">
             <table>
               <thead>
@@ -6922,7 +7021,7 @@ export function EmployeePortalFlow({
                             </div>
 
                             {/* Alert: Secondary approval workflows */}
-                            <div className="dash-card dash-leave-card">
+                            {/* <div className="dash-card dash-leave-card">
                               <h3 className="dash-card-title">Pending Secondary Approvals</h3>
                               {isSecondApprovalNotified ? (
                                 !dismissedSecondApprovalNotified && (
@@ -6961,7 +7060,7 @@ export function EmployeePortalFlow({
                                   Notify Wayne Enterprises 2nd Approver
                                 </button>
                               )}
-                            </div>
+                            </div> */}
 
                             {/* Card: Quick tools */}
                             <div className="dash-card dash-upcoming-card">
