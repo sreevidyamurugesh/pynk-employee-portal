@@ -6457,6 +6457,12 @@ html:not(.light-mode) .btn-sso-outline:hover {
   border-radius: 8px
 }
 
+.ifsc-manual-hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
 /* ── PAYMENT HISTORY ── */
 .pay-payhistory-shell {
   display: flex;

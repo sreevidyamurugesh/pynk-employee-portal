@@ -124,8 +124,10 @@ export function BankDetailsFormFields({
     onChange({ [field.key]: value })
   }
 
+  // Make fields read-only only when they were pre-filled AND an IFSC code is present.
+  // This allows users to manually edit `bankName` and `branch` when no IFSC is entered.
   const isReadOnly = (field: BankFieldDef) =>
-    Boolean(field.readOnlyWhenFilled && form[field.key]?.trim())
+    Boolean(field.readOnlyWhenFilled && form[field.key]?.trim() && form.ifscCode?.trim())
 
   const gridClass = variant === 'pay' ? 'pay-bank-form-grid' : 'leave-form-grid bank-profile-form-grid'
   const inputClass = variant === 'profile' ? 'modal-field' : undefined
@@ -133,55 +135,86 @@ export function BankDetailsFormFields({
     ? { display: 'flex' as const, flexDirection: 'column' as const, gap: '4px', textAlign: 'left' as const }
     : undefined
 
+  let renderedRouting = false
+
   return (
     <div className={gridClass} style={variant === 'profile' ? { display: 'grid', gridTemplateColumns: '1fr', gap: '12px', marginTop: '16px' } : undefined}>
       {fields.map((field) => {
         if (field.key === 'ifscCode' && field.lookup === 'ifsc') {
-          return (
-            <div
-              key={field.key}
-              className={`ifsc-field-wrap${field.fullWidth ? ' pay-form-full' : ''}`}
-              ref={ifscWrapRef}
-            >
-              <label style={labelStyle}>
-                {field.label} {field.required && <span className="pay-req">*</span>}
+          const routingField = fields.find((f) => f.key === 'routingNumber')
+          if (routingField) renderedRouting = true
+
+          return [
+            (
+              <div
+                key={`ifsc-${field.key}`}
+                className={`ifsc-field-wrap${field.fullWidth ? ' pay-form-full' : ''}`}
+                ref={ifscWrapRef}
+              >
+                <label style={labelStyle}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {field.label} {field.required && <span className="pay-req">*</span>}
+                  </div>
+                  <input
+                    id={`${idPrefix}-ifsc-input`}
+                    type="text"
+                    className={inputClass}
+                    placeholder={field.placeholder}
+                    value={form.ifscCode}
+                    onChange={(e) => handleFieldChange(field, e.target.value)}
+                    onFocus={() => ifscSuggestions.length > 0 && setShowSuggestions(true)}
+                    autoComplete="off"
+                  />
+                  <div className="ifsc-manual-hint">Or enter the routing number in the adjacent field if IFSC is not available.</div>
+                </label>
+                {ifscLookupLoading && <p className="ifsc-lookup-hint">Looking up IFSC…</p>}
+                {ifscLookupError && !ifscLookupLoading && <p className="ifsc-lookup-error">{ifscLookupError}</p>}
+                {showSuggestions && ifscSuggestions.length > 0 && (
+                  <ul className="ifsc-suggestions" role="listbox" aria-label="IFSC suggestions">
+                    {ifscSuggestions.map((item) => (
+                      <li key={item.ifsc}>
+                        <button
+                          type="button"
+                          role="option"
+                          className="ifsc-suggestion-item"
+                          onClick={() => applyIfscResult(item)}
+                        >
+                          <strong>{item.ifsc}</strong>
+                          <span>{item.bank}</span>
+                          <span className="ifsc-suggestion-branch">{item.branch}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ),
+            routingField ? (
+              <label
+                key={`routing-${routingField.key}`}
+                className={routingField.fullWidth ? 'pay-form-full' : undefined}
+                style={labelStyle}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {routingField.label} {routingField.required && <span className="pay-req">*</span>}
+                </div>
                 <input
-                  id={`${idPrefix}-ifsc-input`}
+                  id={`${idPrefix}-${routingField.key}-input`}
                   type="text"
                   className={inputClass}
-                  placeholder={field.placeholder}
-                  value={form.ifscCode}
-                  onChange={(e) => handleFieldChange(field, e.target.value)}
-                  onFocus={() => ifscSuggestions.length > 0 && setShowSuggestions(true)}
-                  autoComplete="off"
+                  placeholder={routingField.placeholder}
+                  value={form.routingNumber}
+                  onChange={(e) => handleFieldChange(routingField, e.target.value)}
                 />
               </label>
-              {ifscLookupLoading && <p className="ifsc-lookup-hint">Looking up IFSC…</p>}
-              {ifscLookupError && !ifscLookupLoading && <p className="ifsc-lookup-error">{ifscLookupError}</p>}
-              {showSuggestions && ifscSuggestions.length > 0 && (
-                <ul className="ifsc-suggestions" role="listbox" aria-label="IFSC suggestions">
-                  {ifscSuggestions.map((item) => (
-                    <li key={item.ifsc}>
-                      <button
-                        type="button"
-                        role="option"
-                        className="ifsc-suggestion-item"
-                        onClick={() => applyIfscResult(item)}
-                      >
-                        <strong>{item.ifsc}</strong>
-                        <span>{item.bank}</span>
-                        <span className="ifsc-suggestion-branch">{item.branch}</span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          )
+            ) : null,
+          ]
         }
 
         const value = form[field.key]
         const readOnly = isReadOnly(field)
+
+        if (field.key === 'routingNumber' && renderedRouting) return null
 
         return (
           <label
@@ -189,7 +222,7 @@ export function BankDetailsFormFields({
             className={field.fullWidth ? 'pay-form-full' : undefined}
             style={labelStyle}
           >
-            {field.label} {field.required && <span className="pay-req">*</span>}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>{field.label} {field.required && <span className="pay-req">*</span>}</div>
             {field.multiline ? (
               <textarea
                 id={`${idPrefix}-${field.key}-input`}
