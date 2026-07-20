@@ -4324,7 +4324,7 @@ export function EmployeePortalFlow({
           const employee = adminEmployees.find(emp => emp.id === o.employeeId)
           if (!employee) return
           const status = o.status === 'Approved' ? 'Completed' : 'In Progress'
-          csv += `"${o.clientName}","${employee.paygroup}","${reportPeriodLabel}","${o.employeeName}","${o.employeeId}","Payroll Off-cycle",0,"${o.date}",${o.amount},"USD","Off-cycle Adjustment","${status}"\n`
+          csv += `"${o.clientName}","${employee.paygroup}","${reportPeriodLabel}","${o.employeeName}","${o.employeeId}","Payroll Off-cycle","","${o.date}",${o.amount},"USD","Off-cycle Adjustment","${status}"\n`
         })
       }
 
@@ -4672,7 +4672,7 @@ export function EmployeePortalFlow({
                         </tr>
                       )
                     })}
-                    {offcyclePaymentsList.filter(o => {
+                        {offcyclePaymentsList.filter(o => {
                       const employee = adminEmployees.find(emp => emp.id === o.employeeId)
                       if (!employee) return false
                       const matchesClient = reportFilterClient === 'All' || employee.clientName === reportFilterClient
@@ -4692,7 +4692,7 @@ export function EmployeePortalFlow({
                           <td>{o.employeeName}</td>
                           <td><code>{o.employeeId}</code></td>
                           <td>Payroll Off-cycle</td>
-                          <td className="num">0</td>
+                              <td className="num">-</td>
                           <td>{o.date}</td>
                           <td className="num">$ {o.amount.toLocaleString('en-US')}</td>
                           <td>USD</td>
@@ -5879,7 +5879,7 @@ export function EmployeePortalFlow({
                           <button
                             type="button"
                             className="btn btn-secondary btn-sm"
-                            onClick={() => handleEditOffcycle(pay)}
+                            onClick={(e) => { e.stopPropagation(); handleEditOffcycle(pay) }}
                           >
                             ✏️ Edit
                           </button>
@@ -5888,7 +5888,7 @@ export function EmployeePortalFlow({
                               type="button"
                               className="btn btn-secondary btn-sm"
                               style={{ borderColor: '#e74c3c', color: '#e74c3c' }}
-                              onClick={() => handleCancelOffcycle(pay.id)}
+                              onClick={(e) => { e.stopPropagation(); handleCancelOffcycle(pay.id) }}
                             >
                               🚫 Cancel
                             </button>
