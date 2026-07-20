@@ -4226,8 +4226,16 @@ export function EmployeePortalFlow({
   // ── Client Portal & Reports Sub-Renders ──
   const renderReportsView = () => {
     const isAccessRestricted = activeReportType === 'access' && activeUserType !== 'admin'
-    const finalReportEmployees = adminEmployees.filter(emp => {
-      const matchesClient = activeUserType === 'admin' ? (reportFilterClient === 'All' || emp.clientName === reportFilterClient) : (emp.clientName === simulatedClientName)
+    const availableClients = Array.from(new Set(adminEmployees.map(emp => emp.clientName))).sort()
+    const clientFilteredEmployees = adminEmployees.filter(emp =>
+      activeUserType === 'admin'
+        ? reportFilterClient === 'All' || emp.clientName === reportFilterClient
+        : emp.clientName === simulatedClientName
+    )
+    const availablePaygroups = Array.from(new Set(clientFilteredEmployees.map(emp => emp.paygroup))).sort()
+    const availableEmployeeOptions = clientFilteredEmployees
+
+    const finalReportEmployees = clientFilteredEmployees.filter(emp => {
       const matchesSearch = reportFilterEmployee === 'All' || emp.id === reportFilterEmployee
       const matchesPaygroup = reportFilterPaygroup === 'All' || emp.paygroup === reportFilterPaygroup
       const matchesStatus = reportFilterStatus === 'All' || activeReportType !== 'payroll_detail'
@@ -4235,7 +4243,7 @@ export function EmployeePortalFlow({
         : reportFilterStatus === 'Completed'
           ? isPayrollSubmitted
           : !isPayrollSubmitted
-      return matchesClient && matchesSearch && matchesPaygroup && matchesStatus
+      return matchesSearch && matchesPaygroup && matchesStatus
     })
 
     const calculateDetailedRegister = (e: AdminEmployee) => {
@@ -4389,10 +4397,9 @@ export function EmployeePortalFlow({
               <label style={{ fontSize: '11px', color: 'var(--muted)' }}>Select Company</label>
               <select value={reportFilterClient} onChange={e => setReportFilterClient(e.target.value)} className="btn" style={{ background: 'var(--surface)', color: '#fff' }}>
                 <option value="All">All Clients</option>
-                <option value="Acme Corp">Acme Corp</option>
-                <option value="Stark Industries">Stark Industries</option>
-                <option value="Wayne Enterprises">Wayne Enterprises</option>
-                <option value="Globex Corp">Globex Corp</option>
+                {availableClients.map(client => (
+                  <option key={client} value={client}>{client}</option>
+                ))}
               </select>
             </div>
           )}
@@ -4401,7 +4408,7 @@ export function EmployeePortalFlow({
             <label style={{ fontSize: '11px', color: 'var(--muted)' }}>Select Pay Group</label>
             <select value={reportFilterPaygroup} onChange={e => setReportFilterPaygroup(e.target.value)} className="btn" style={{ background: 'var(--surface)', color: '#fff' }}>
               <option value="All">All Pay Groups</option>
-              {Array.from(new Set(adminEmployees.map(emp => emp.paygroup))).sort().map(paygroup => (
+              {availablePaygroups.map(paygroup => (
                 <option key={paygroup} value={paygroup}>{paygroup}</option>
               ))}
             </select>
@@ -4420,9 +4427,7 @@ export function EmployeePortalFlow({
             <label style={{ fontSize: '11px', color: 'var(--muted)' }}>Employee Database Search</label>
             <select value={reportFilterEmployee} onChange={e => setReportFilterEmployee(e.target.value)} className="btn" style={{ background: 'var(--surface)', color: '#fff' }}>
               <option value="All">All Employees</option>
-              {adminEmployees
-                .filter(emp => activeUserType === 'admin' || emp.clientName === simulatedClientName)
-                .map(emp => <option key={emp.id} value={emp.id}>{emp.name}</option>)}
+              {availableEmployeeOptions.map(emp => <option key={emp.id} value={emp.id}>{emp.name}</option>)}
             </select>
           </div>
         </div>
@@ -5209,7 +5214,12 @@ export function EmployeePortalFlow({
   }
 
   const renderClientPayrollPeriod = () => {
-    const allIds = adminEmployees.map(e => e.id)
+    const activeClientEmployeeIds = clientPersonnelSeed
+      .filter((person) => person.status !== 'Terminated')
+      .map((person) => person.id)
+
+    const visibleEmployees = adminEmployees.filter((emp) => activeClientEmployeeIds.includes(emp.id))
+    const allIds = visibleEmployees.map(e => e.id)
     // Only non-approved employees are eligible for selection
     const pendingIds = allIds.filter(id => !approvedEmployeeIds.has(id))
     const allApproved = allIds.length > 0 && allIds.every(id => approvedEmployeeIds.has(id))
@@ -5217,7 +5227,7 @@ export function EmployeePortalFlow({
     const isAllSelected = pendingIds.length > 0 && pendingIds.every(id => selectedEmployeeIds.has(id))
     const isIndeterminate = pendingIds.some(id => selectedEmployeeIds.has(id)) && !isAllSelected
     const selectedCount = selectedEmployeeIds.size
-    const selectedAmount = adminEmployees
+    const selectedAmount = visibleEmployees
       .filter(emp => selectedEmployeeIds.has(emp.id))
       .reduce((sum, emp) => sum + emp.currGross, 0)
     const approvedCount = approvedEmployeeIds.size
@@ -5560,7 +5570,7 @@ export function EmployeePortalFlow({
                 </tr>
               </thead>
               <tbody>
-                {adminEmployees.map(emp => {
+                {visibleEmployees.map(emp => {
                   const isEmpApproved = approvedEmployeeIds.has(emp.id)
                   const isChecked = selectedEmployeeIds.has(emp.id)
                   const bonus = offcyclePaymentsList.filter(o => o.employeeId === emp.id).reduce((sum, o) => sum + o.amount, 0)
@@ -5725,6 +5735,10 @@ export function EmployeePortalFlow({
       setIsOffcycleModalOpen(true)
     }
 
+    const activeClientEmployeeIds = clientPersonnelSeed
+      .filter((person) => person.status !== 'Terminated')
+      .map((person) => person.id)
+
     // Filter payments
     const filteredPayments = offcyclePaymentsList.filter(pay => {
       if (offcyclePayPeriodFilter !== 'All' && pay.payPeriod !== offcyclePayPeriodFilter) {
@@ -5739,8 +5753,10 @@ export function EmployeePortalFlow({
       if (offcycleStatusFilter !== 'All' && pay.status !== offcycleStatusFilter) {
         return false
       }
-      return true
+      return activeClientEmployeeIds.includes(pay.employeeId)
     })
+
+    const visibleOffcycleEmployees = adminEmployees.filter((emp) => activeClientEmployeeIds.includes(emp.id))
 
     return (
       <div className="dash-shell">
@@ -5859,46 +5875,89 @@ export function EmployeePortalFlow({
                 </tr>
               </thead>
               <tbody>
-                {filteredPayments.map(pay => (
-                  <tr key={pay.id}>
-                    <td><strong>{pay.employeeName}</strong> <br /><small style={{ color: 'var(--muted)' }}><code>{pay.employeeId}</code></small></td>
-                    <td>{pay.clientName}</td>
-                    <td><span className="badge done">{pay.code}</span></td>
-                    <td>{pay.payPeriod}</td>
-                    <td className="num" style={{ color: 'var(--primary)', fontWeight: 'bold' }}>$ {pay.amount.toLocaleString('en-US')}</td>
-                    <td>{pay.date}</td>
-                    <td>
-                      <span className={`badge ${pay.status === 'Approved' ? 'done' : pay.status === 'Cancelled' ? 'terminated' : 'warning'}`}>
-                        {pay.status}
-                      </span>
-                    </td>
-                    <td>{pay.remarks}</td>
-                    {!isPeriodLocked && (
-                      <td className="num">
-                        <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
-                          <button
-                            type="button"
-                            className="btn btn-secondary btn-sm"
-                            onClick={(e) => { e.stopPropagation(); handleEditOffcycle(pay) }}
-                          >
-                            ✏️ Edit
-                          </button>
-                          {pay.status !== 'Cancelled' && (
-                            <button
-                              type="button"
-                              className="btn btn-secondary btn-sm"
-                              style={{ borderColor: '#e74c3c', color: '#e74c3c' }}
-                              onClick={(e) => { e.stopPropagation(); handleCancelOffcycle(pay.id) }}
-                            >
-                              🚫 Cancel
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    )}
-                  </tr>
-                ))}
-                {filteredPayments.length === 0 && (
+                {filteredPayments.length > 0 ? (
+                  Array.from(filteredPayments.reduce((map, payment) => {
+                    const employeePayments = map.get(payment.employeeId) ?? []
+                    employeePayments.push(payment)
+                    map.set(payment.employeeId, employeePayments)
+                    return map
+                  }, new Map<string, ClientOffcyclePayment[]>())).flatMap(([employeeId, payments]) => {
+                    const employee = adminEmployees.find(emp => emp.id === employeeId)
+                    if (!employee) return []
+
+                    const payPeriod = payments[0]?.payPeriod ?? ''
+
+                    const regularRow = (
+                      <tr key={`${employeeId}-regular`} style={{ background: 'rgba(248,249,250,0.65)' }}>
+                        <td><strong>{employee.name}</strong> <br /><small style={{ color: 'var(--muted)' }}><code>{employee.id}</code></small></td>
+                        <td>{employee.clientName}</td>
+                        <td><span className="badge done">Regular Hours</span></td>
+                        <td>{payPeriod}</td>
+                        <td className="num">-</td>
+                        <td>40 hours</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>-</td>
+                      </tr>
+                    )
+
+                    const leaveRow = (
+                      <tr key={`${employeeId}-leave`} style={{ background: 'transparent' }}>
+                        <td />
+                        <td />
+                        <td><span className="badge warning">Leave Hours</span></td>
+                        <td>{payPeriod}</td>
+                        <td className="num">-</td>
+                        <td>8 hours</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>-</td>
+                      </tr>
+                    )
+
+                    const bonusRows = payments.map((pay) => (
+                      <tr key={pay.id} style={{ background: 'transparent' }}>
+                        <td />
+                        <td />
+                        <td><span className="badge ok">{pay.code}</span></td>
+                        <td>{pay.payPeriod}</td>
+                        <td className="num" style={{ color: 'var(--primary)', fontWeight: 'bold' }}>$ {pay.amount.toLocaleString('en-US')}</td>
+                        <td>{pay.date}</td>
+                        <td>
+                          <span className={`badge ${pay.status === 'Approved' ? 'done' : pay.status === 'Cancelled' ? 'terminated' : 'warning'}`}>
+                            {pay.status}
+                          </span>
+                        </td>
+                        <td>{pay.remarks}</td>
+                        {!isPeriodLocked && (
+                          <td className="num">
+                            <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+                              <button
+                                type="button"
+                                className="btn btn-secondary btn-sm"
+                                onClick={(e) => { e.stopPropagation(); handleEditOffcycle(pay) }}
+                              >
+                                ✏️ Edit
+                              </button>
+                              {pay.status !== 'Cancelled' && (
+                                <button
+                                  type="button"
+                                  className="btn btn-secondary btn-sm"
+                                  style={{ borderColor: '#e74c3c', color: '#e74c3c' }}
+                                  onClick={(e) => { e.stopPropagation(); handleCancelOffcycle(pay.id) }}
+                                >
+                                  🚫 Cancel
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        )}
+                      </tr>
+                    ))
+
+                    return [regularRow, leaveRow, ...bonusRows]
+                  })
+                ) : (
                   <tr>
                     <td colSpan={9} style={{ textAlign: 'center', padding: '24px', color: 'var(--muted)' }}>
                       No off-cycle payments found matching the filters.
@@ -5928,7 +5987,7 @@ export function EmployeePortalFlow({
                     value={offcycleForm.employeeId}
                     onChange={(e) => setOffcycleForm(prev => ({ ...prev, employeeId: e.target.value }))}
                   >
-                    {adminEmployees.map(emp => <option key={emp.id} value={emp.id}>{emp.name} ({emp.id})</option>)}
+                    {visibleOffcycleEmployees.map(emp => <option key={emp.id} value={emp.id}>{emp.name} ({emp.id})</option>)}
                   </select>
                 </div>
 
@@ -6033,10 +6092,15 @@ export function EmployeePortalFlow({
   }
 
   const renderClientLock = () => {
-    const allIds = adminEmployees.map(emp => emp.id)
+    const activeClientEmployeeIds = clientPersonnelSeed
+      .filter((person) => person.status !== 'Terminated')
+      .map((person) => person.id)
+
+    const visibleLockEmployees = adminEmployees.filter((emp) => activeClientEmployeeIds.includes(emp.id))
+    const allIds = visibleLockEmployees.map(emp => emp.id)
     const pendingLockIds = allIds.filter(id => !lockedEmployeeIds.has(id))
     const selectedLockCount = selectedLockEmployeeIds.size
-    const selectedLockAmount = adminEmployees
+    const selectedLockAmount = visibleLockEmployees
       .filter((emp) => selectedLockEmployeeIds.has(emp.id))
       .reduce((sum, emp) => {
         const bonus = offcyclePaymentsList
@@ -6045,7 +6109,7 @@ export function EmployeePortalFlow({
         return sum + emp.currGross + bonus
       }, 0)
 
-    const pendingLockAmount = adminEmployees
+    const pendingLockAmount = visibleLockEmployees
       .filter((emp) => pendingLockIds.includes(emp.id))
       .reduce((sum, emp) => {
         const bonus = offcyclePaymentsList
@@ -6102,7 +6166,7 @@ export function EmployeePortalFlow({
         'Locked Status',
       ]
 
-      const rows = adminEmployees.map((emp) => {
+      const rows = visibleLockEmployees.map((emp) => {
         const bonus = offcyclePaymentsList
           .filter((o) => o.employeeId === emp.id)
           .reduce((sum, payment) => sum + payment.amount, 0)
@@ -6431,7 +6495,7 @@ export function EmployeePortalFlow({
                 </tr>
               </thead>
               <tbody>
-                {adminEmployees.map(e => {
+                {visibleLockEmployees.map(e => {
                   const isEmpLocked = lockedEmployeeIds.has(e.id)
                   const isChecked = selectedLockEmployeeIds.has(e.id)
                   const bonus = offcyclePaymentsList.filter(o => o.employeeId === e.id).reduce((sum, o) => sum + o.amount, 0)
